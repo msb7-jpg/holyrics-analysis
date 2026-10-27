@@ -1,0 +1,231 @@
+﻿
+<!DOCTYPE>
+<html lang="pt_BR">
+  </head>
+    <title></title>
+    <meta charset="utf-8"/>
+    <style>
+        dt {
+            font-weight: bold;
+            font-size: 120%;
+        }
+        #general {       
+           font-size: 16;
+           line-height: 150%;
+           padding: 16px;
+        }
+    </style>
+    <script language="javascript" type="text/javascript">  
+        function toLast(){
+            setTimeout(function(){
+                var element = document.getElementById("focus");
+                var top = 0;
+                do {
+                    top += element.offsetTop || 0;
+                    element = element.offsetParent;
+                } while(element);
+                window.scrollTo(0, top);
+            }, 200);
+        }
+    </script>
+  <head>
+  <body onpageshow='toLast()'>
+    <div id="general">
+      <h1>13/11/2016 - Versão de lançamento 1.0.0</h1>
+    
+      <hr/>
+      <h1>30/11/2016 - Versão 1.0.1</h1>
+      <dl>
+        <dt>Alterações</dt>
+          <dd>• Rodapé para adicionar novas letras a um perfil só aparece se tiver pelo menos um perfil criado.</dd>
+          <dd> </dd>
+    
+        <dt>Bugs corrigidos</dt>
+          <dd>• Erro ao adicionar vídeo (do PC) em um tema;</dd>
+          <dd>• Salvar tema de vídeo (do PC) não armazenava o arquivo de vídeo;</dd>
+          <dd>• Erro na atualização dos versículos da Bíblia (pela internet);</dd>
+          <dd>• Texto de exemplo na criação/edição de tema não era alterado;</dd>
+          <dd>• Outras correções...</dd>
+      </dl>
+    
+      <hr/>
+      <h1>01/12/2016 - Versão 1.0.2</h1>
+      <dl>
+        <dt>Bugs corrigidos</dt>
+          <dd>• Erro na importação pelo PowerPoint (uma letra em cada arquivo);</dd>
+          <dd>• Importar do PowerPoint não atualizava lista de letras automaticamente;</dd>
+          <dd>• Outras correções...</dd>
+      </dl>
+    
+      <hr/>
+      <h1>10/12/2016 - Versão 1.1.0</h1>
+      <dl>
+        <dt>Alterações</dt>
+          <dd>• Otimização dos temas de vídeo.</dd>
+          <dd> </dd>
+      
+        <dt>Bugs corrigidos</dt>
+          <dd>• Pesquisa offline não encontrava música caso o trecho da letra estivesse no início da linha;</dd>
+          <dd>• Programa não reiniciava automaticamente após importar um backup;</dd>
+          <dd>• Rodapé de controle de apresentação automática não atualizava o valor dos segundos na hora;</dd>
+          <dd>• Outras correções...</dd>
+      </dl>
+    
+      <hr/>
+      <h1>17/12/2016 - Versão 1.2.0</h1>
+      <dl>
+        <dt>Novidades</dt>
+          <dd>• Programação e exibição de alertas;</dd>
+          <dd>• Possibilidade de exibir mais de um versículo ao mesmo tempo;</dd>
+          <dd>• Opções de como exibir a descrição do versículo no slide.</dd>
+      </dl>
+      <hr/>
+      <h1>17/12/2016 - Versão 1.2.1</h1>
+      <dl>
+        <dt>Bugs corrigidos</dt>
+          <dd>• Rodapé de controle dos slides no modo "original" não apresentava a imagem de fundo em temas de vídeo;</dd>
+          <dd>• Diminuição na taxa de erro na conversão do vídeo em loop (Criação de tema);</dd>
+          <dd>• Outras correções...</dd>
+      </dl>
+    
+      <hr/>
+      <h1>03/01/2017 - Versão 1.3.0</h1>
+      <dl>
+        <dt>Novidades</dt>
+          <dd>• Apresentação de imagens (Ferramentas);</dd>
+          <dd>• Exibição de relógio no wallpaper (Configurações);</dd>
+          <dd>• Algumas melhorias no layout.</dd>
+          <dd> </dd>
+    
+        <dt>Bugs corrigidos</dt>
+          <dd>• Campo anotação ficava em branco ao editar uma música;</dd>
+          <dd>• Outras correções...</dd>
+      </dl>
+    
+      <hr/>
+      <h1>22/01/2017 - Versão 1.4.0</h1>
+      <dl>
+        <dt>Novidades</dt>
+          <dd>• Ativar/desativar o sublinhado no nome do artista (Janela principal);</dd>
+          <dd>• Criar uma imagem a partir de um tema e um texto digitado (Ferramentas);</dd>
+          <dd>• Alterar somente o texto selecionado para maiúsculo (Janela de edição de letra);</dd>
+          <dd>• Fade in/out ao iniciar ou terminar uma apresentação;</dd>
+          <dd>• Aplicativo Holyrics para celular atualizado com novas funcionalidades. Exemplo: alertas; anúncios; apresentar texto digitado no próprio celular; alterar versão da Bíblia, etc...;</dd>
+          <dd>• Link para a lista dos vídeos tutoriais do programa no youtube no menu Ajuda.</dd>
+          <dd> </dd>
+      
+        <dt>Alterações</dt>
+          <dd>• [Pesquisas] Não precisa mais digitar vírgula, ponto, exclamação e interrogação nas pesquisas;</dd>
+          <dd>• Alerta e relógio podem ter fundo transparente;</dd>
+          <dd>• Adaptação do código do programa para permitir novas funções no app Holyrics no celular.</dd>
+          <dd> </dd>
+      
+        <dt>Bugs corrigidos</dt>
+          <dd>• Piscava uma tela branca antes de iniciar uma apresentação;</dd>
+          <dd>• Outras correções...</dd>
+      </dl>
+    
+      <hr />
+      <h1>01/05/2017 - Versão 2.0.0</h1>
+      <dl>
+        <dt>Novidades</dt>
+          <dd>• Exibição de áudio e vídeo (incluindo links diretos do YouTube);</dd>
+          <dd>• Efeito de transição entre slides;</dd>
+          <dd>• Funcionalidade "Visão do palco"; <a href='http://stageView'>Saiba mais</a></dd>
+          <dd>• Barra de favoritos;</dd>
+          <dd>• [TEMA] Alinhamento vertical, alinhamento justificado e margens personalizadas;</dd>
+          <dd>• Quebra de linha automática;</dd>
+          <dd>• Salvar um tema específico para cada música;</dd>
+          <dd>• Lista de reprodução específica para mídias;</dd>
+          <dd>• Formatação personalizada de parágrafo; <a href='http://customFormatting'>Saiba mais</a></dd>
+          <dd>• Possibilidade de exibir título e artista em todos os slides;</dd>
+          <dd>• Atalho para alterar a versão da Bíblia no título das abas;</dd>
+          <dd>• Teclas de atalho F9 (slide sem texto) e F10 (tela preta) funcionando para Bíblia;</dd>
+          <dd>• Salvar relatórios e escala em arquivo do Excel (*.xlsx);</dd>
+          <dd>• Contagem regressiva (Menu Ferramentas);</dd>
+          <dd>• Painel de Comunicação (Menu Janelas); <a href='http://communicationPanel'>Saiba mais</a></dd>
+          <dd>• Janela "AO VIVO" (Menu Janelas); <a href='http://live'>Saiba mais</a></dd>
+          <dd> </dd>
+      
+        <dt>Alterações</dt>
+          <dd>• Limite de duração para um vídeo de tema aumentou para 60 segundos;</dd>
+          <dd>• Limite máximo de anúncios cadastrados aumentou (limite calculado dinamicamente pelo programa);</dd>
+          <dd>• Não aparece mais um popup de confirmação ao dar clique duplo nas listas de reprodução;</dd>
+          <dd>• Recurso de editar ordem dos slides mais fácil de utilizar.</dd>
+          <dd>• Possibilidade de desativar o controle remoto pelo aplicativo.</dd>
+          <dd>• Mensagem de alerta com rolagem lateral.</dd>
+          <dd> </dd>
+      
+        <dt>Bugs corrigidos</dt>
+          <dd>• Exibir slides em todos os monitores auxiliares não estava funcionando;</dd>
+          <dd>• Erro ao fechar o programa com usuário cadastrado e sem conexão com a internet;</dd>
+          <dd>• Cada nova abertura de uma janela para seleção de arquivo deixava o sistema mais lento;</dd>
+          <dd>• Arquivo "*.dll" utilizado pelo banco de dados gerava muitos arquivos temporários sem apagá-los posteriormente;</dd>
+          <dd>• Outras correções e melhorias de performance...</dd>
+      </dl>
+    
+      <hr />
+      <h1>22/06/2017 - Versão 2.1.0</h1>
+      <dl>
+        <dt>Novidades</dt>
+          <dd>• Apresentação Automática com áudio (Menu Ferramentas); <a href='http://automaticShow'>Saiba mais</a></dd>
+          <dd>• Criar vídeo de uma Apresentação Automática utilizando Temas do programa;</dd>
+          <dd>• Editar um slide (letra de música, anúncio, etc) em "tempo real"; <a href='http://editTextRealTime'>Saiba mais</a></dd>
+          <dd>• Ajustar a posição da projeção no telão (Configurações de exibição);</dd>          
+          <dd>• Apagar música em lote (Menu Música).</dd>
+          <dd> </dd>
+
+        <dt>Alterações</dt>
+          <dd>• [APP] Implementações necessárias para as novas funcionalidades no aplicativo Holyrics para celular;</dd>
+          <dd>• Possibilidade de exibir em duas linhas e alterar a cor do texto da opção "título e artista em todos os slides";</dd>
+          <dd>• Melhoria na geração de thumbnail;</dd>
+          <dd>• Janelas para seleção de arquivo agora com miniatura dos vídeos;</dd>
+          <dd>• Identificação de slide no rodapé de slides (Formatação Personalizada); <a href='http://slideLabelExample'>Ver Exemplo</a></dd>
+          <dd>• [TEMA] Limite aumentado para "Minhas Imagens" e "Meus Vídeos" (calculado dinamicamente).</dd>
+          <dd> </dd>
+      
+        <dt>Bugs corrigidos</dt>
+          <dd>• Janela de exemplo de transição entre slides com "delay" entre os exemplos desajustado;</dd>
+          <dd>• Outras correções e melhorias de performance...</dd>
+      </dl>
+
+      <hr id="focus" />
+      <h1>15/09/2017 - Versão 2.2.0</h1>
+      <dl>
+        <dt>Novidades</dt>
+          <dd>• Chat para comunicação entre computador e app Holyrics para celular (Menu Janelas);</dd>
+          <dd>• Exibir relógio apenas no monitor de retorno (Painel de Comunicação);</dd>
+          <dd>• Adicionar versículo na lista de reprodução de mídias;</dd>
+          <dd>• Congelar tela (Menu Ferramentas);</dd>
+          <dd>• Alterar a velocidade de reprodução de um vídeo de tema;</dd>
+          <dd>• Minimizar o rodapé de apresentação;</dd>
+          <dd>• Exibir a descrição do versículo no final do texto;</dd>
+          <dd>• Atualizar dados (download) pela internet;</dd>
+          <dd>• Escolher uma apresentação para iniciar automaticamente ao final da contagem regressiva;</dd>
+          <dd>• Definir um horário para iniciar a contagem regressiva;</dd>
+          <dd>• Agendar tarefas (definir um horário para uma apresentação/mídia iniciar automaticamente);</dd>
+          <dd>• Novas opções de transição entre slides;</dd>
+          <dd>• Plugin Holyrics (Menu Ferramentas);</dd>
+          <dd>• Atalho para exibir plano de fundo durante uma apresentação (F8);</dd>
+          <dd>• Importar letras de arquivos <b>.doc</b> e <b>.docx</b>;</dd>
+          <dd>• Opção para exibir somente descrição do versículo (Configurações - Bíblia);</dd>
+          <dd>• Contagem regressiva somente no monitor de retorno (Painel de Comunicação);</dd>
+          <dd>• Opção para alterar Tema durante uma apresentação.</dd>
+          <dd> </dd>
+
+        <dt>Alterações</dt>
+          <dd>• Limite de duração para um vídeo de tema aumentou para 600 segundos;</dd>
+          <dd>• Opção para salvar várias músicas em arquivo único;</dd>
+          <dd>• Texto da Contagem Regressiva em múltiplas linhas;</dd>
+          <dd>• Botões laterais do rodapé de apresentação alinhado na parte inferior.</dd>
+          <dd> </dd>
+      
+        <dt>Bugs corrigidos</dt>
+          <dd>• Contagem Regressiva não atualizava a lista de temas após um tema ser editado;</dd>
+          <dd>• Tela preta entre a reprodução de um vídeo em loop pelo VLC Player;</dd>
+          <dd>• Pesquisar na aba áudio não destacava texto pesquisado;</dd>
+          <dd>• Outras correções e melhorias de performance...</dd>
+      </dl>    
+    </div>
+  </body>
+</html>

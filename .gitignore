@@ -1,0 +1,18 @@
+# Ignorar arquivos binários pesados e redundantes da análise
+app/
+extracted_classes/
+
+# Arquivos e diretórios temporários ou de IDEs
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Java
+*.class
+*.jar
+*.war
+
+# Logs e variáveis de ambiente
+*.log
+.env

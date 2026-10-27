@@ -1,0 +1,31 @@
+body {
+    background: #F8F8F8;
+    color: #404040;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-right: 16px;
+    padding-left: 16px;
+}
+
+div.title {
+    font-family: Georgia, serif;
+    font-size: 24px;
+    text-align: center;
+    color: #353535;
+}
+
+div.content {
+    font-family: Georgia, serif;
+    font-size: 12px;
+    text-align: justify;
+}
+
+div.question {
+    font-weight: bold;
+}
+
+div.answer {
+    margin-left: 36px;
+    margin-bottom: 24px;
+}
+
