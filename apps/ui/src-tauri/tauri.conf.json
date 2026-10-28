@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/crates/tauri-cli/schema.json",
+  "productName": "LumenLite",
+  "version": "0.1.0",
+  "identifier": "com.lumenlite.app",
+  "build": {
+    "beforeDevCommand": "bun run dev",
+    "devUrl": "http://localhost:3000",
+    "beforeBuildCommand": "bun run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "LumenLite - Console do Operador",
+        "label": "main",
+        "width": 1440,
+        "height": 900,
+        "resizable": true,
+        "fullscreen": false
+      },
+      {
+        "title": "LumenLite - Projetor HDMI",
+        "label": "projector",
+        "url": "/projector",
+        "width": 1920,
+        "height": 1080,
+        "resizable": false,
+        "fullscreen": true,
+        "decorations": false,
+        "visible": false
+      }
+    ]
+  }
+}
