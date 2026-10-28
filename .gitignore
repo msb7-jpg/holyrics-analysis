@@ -1,5 +1,19 @@
+# Node & Bun
+node_modules/
+dist/
+*.local
+.turbo/
+
+# SQLite Databases gerados localmente
+*.db
+*.db-shm
+*.db-wal
+
+# Rust / Tauri
+target/
+src-tauri/target/
+
 # Ignorar arquivos binários pesados e redundantes da análise
-app/
 extracted_classes/
 
 # Arquivos e diretórios temporários ou de IDEs
@@ -16,3 +30,4 @@ extracted_classes/
 # Logs e variáveis de ambiente
 *.log
 .env
+

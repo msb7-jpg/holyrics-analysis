@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@lumen/core": ["packages/core/src/index.ts"],
+      "@lumen/core/*": ["packages/core/src/*"],
+      "@slices/*": ["slices/*/src/index.ts"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*",
+    "slices/*/src/**/*",
+    "apps/*/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "src",
+    "extracted_classes",
+    "extracted_dlls",
+    "dist"
+  ]
+}

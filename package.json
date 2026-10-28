@@ -1,0 +1,28 @@
+{
+  "name": "lumen-lite",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "slices/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:daemon": "bun run --filter @lumen/daemon dev",
+    "dev:ui": "bun run --filter @lumen/ui dev",
+    "dev": "bun run --filter \"@lumen/*\" --parallel dev",
+    "build": "bun run --filter \"@lumen/*\" build",
+    "test": "bun test packages/core/tests slices/*/tests",
+    "check": "bun x tsc --build",
+    "lint": "bun x oxlint .",
+    "fmt": "bun x oxfmt ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "zod": "3.24.2"
+  }
+}
