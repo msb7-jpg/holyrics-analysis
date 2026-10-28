@@ -146,11 +146,16 @@ Responsável pela montagem da liturgia completa do culto com suporte polimórfic
 | **RF-20** | **Pilha de Interrupção (Return Stack)** | Ao projetar um item de improviso (ex: pastor pede um versículo inesperado no meio do louvor), o sistema salva a posição exata anterior e permite retornar à música instantaneamente com um clique ou pressionando `Esc`/`Backspace`. | `packages/core`, `slices/navigation` |
 | **RF-21** | **Ingestão Nativa de PowerPoint (PPTX) & PDF** | Leitura direta de apresentações sem depender do Microsoft Office instalado: conversão acelerada dos slides em imagens de alta resolução e extração em XML das notas do orador para exibição no monitor de retorno. | `slices/pptx` |
 | **RF-22** | **Playback Sincronizado** | Execução de faixas de playback musical com temporizadores individuais por slide, permitindo avanço automático das letras em perfeita sincronia com a música. | `slices/songs`, `slices/liturgy` |
+| **RF-22A** | **Projeção Rápida de Texto Avulso (Quick Text)** | Mecanismo de entrada e projeção instantânea de texto livre de improviso ou emergência (ex.: recado pastoral urgente, aviso de veículo ou oração espontânea). Permite ao operador digitar ou colar uma frase e lançá-la diretamente no telão sob o tema visual ativo, sem a obrigatoriedade de salvar no banco de dados de músicas ou criar um item permanente na liturgia. | `packages/core`, `slices/navigation` |
+| **RF-22B** | **Ações de Contexto no Roteiro Litúrgico (Right-Click Context Menu)** | Capacidade de interagir com o roteiro de culto (`culto.json`) através de menu de contexto acionado pelo botão direito do mouse, permitindo inserção e manuseio rápido de itens polimórficos categorizados essencialmente em: <br>• **Mídia:** Inserção rápida de arquivos de imagem (`.png`, `.jpg`, `.webp`), vídeos em tela cheia/background, trilhas de áudio ou músicas/letras com mídia associada. <br>• **Anotações:** Inserção de anotações textuais livres de púlpito, avisos, versículo bíblico único, lista de versículos bíblicos encadeados para a pregação e acionadores de cronômetro/contagem regressiva. | `slices/liturgy`, `slices/hitems` |
+| **RF-22C** | **Ingestão por Arraste e Solte no Roteiro (Universal Drag & Drop)** | Capacidade de compor a liturgia arrastando e soltando elementos diretamente sobre a lista do roteiro de culto (`culto.json`). O despachante identifica automaticamente o tipo do item e o insere na posição solta: <br>• **Letras/Louvores:** Arrastadas da lista de músicas da biblioteca para a liturgia. <br>• **Mídias e Arquivos Externos:** Arquivos arrastados diretamente do explorador de arquivos do sistema operacional (imagens `.jpg`/`.png`/`.webp`, vídeos `.mp4`/`.webm`, áudios `.mp3`/`.wav` ou apresentações `.pptx`/`.pdf`). O sistema copia para o cache de mídia e cria o nó polimórfico correspondente no roteiro. <br>• **Reordenação Interna:** Arraste e solte entre itens já presentes no roteiro para reordenar a sequência de execução do culto em tempo real. | `slices/liturgy`, `slices/hitems`, `slices/media` |
 
 #### 🕵️ Como buscar e inspecionar no código original (Holyrics):
 - **Classes-chave:**
   - `src/com/limagiran/holyrics/hitem/`: Pacote contendo as implementações polimórficas de itens (`HItemMusic.java`, `HItemVerse.java`, `HItemAnnouncement.java`, `HItemImage.java`, `HItemVideo.java`, `HItemAudio.java`, `HItemPlayBack.java`, `HItemURL.java`).
   - `src/com/limagiran/holyrics/hitem/HItemResolve.java`: Despachante que identifica e resolve o tipo de cada item para projeção.
+  - `src/com/limagiran/holyrics/util/PopUpMenu.java` & `HItemUtils.java`: Ações de menu de contexto e inserção rápida de itens.
+  - `src/com/limagiran/holyrics/view/QuickPresentationDialog.java`: Apresentação rápida de texto livre de emergência.
   - `src/com/limagiran/holyrics/playback/PlayBack.java` & `EditPlayBackDialog.java`: Motor e editor de playbacks sincronizados.
   - `src/com/limagiran/holyrics/view/PowerPointImportView.java` & `MSOfficeUtils.java`: Importação de arquivos `.ppt` e `.pptx`.
   - `src/com/limagiran/holyrics/control/WorshipController.java`: Orquestrador da lista de culto em execução.
@@ -158,6 +163,8 @@ Responsável pela montagem da liturgia completa do culto com suporte polimórfic
   ```bash
   grep -rn "HItem" src/
   grep -rn "HItemResolve" src/
+  grep -rn "QuickPresentation" src/
+  grep -rn "schedulePopUpHItemPlayList" src/
   grep -rn "PowerPoint" src/
   grep -rn "PlayBack" src/
   ```
@@ -166,11 +173,13 @@ Responsável pela montagem da liturgia completa do culto com suporte polimórfic
 - **Dependência do Pacote Office via Automação COM:** No Holyrics, a importação de PowerPoint depende da instalação física do Microsoft Office na máquina do operador e utiliza pontes nativas COM do Windows. Isso causa travamentos frequentes, janelas invisíveis do PowerPoint que não fecham e incompatibilidade no Linux/macOS.
 - **Arquivos Proprietários `.hly` Binários:** Os cultos salvos utilizam o formato `.hly` baseado em serialização binária Java (`ObjectOutputStream`). Qualquer pequena alteração na versão de uma classe Java invalida o arquivo salvo, impedindo compatibilidade entre versões diferentes do programa.
 - **Playback com Temporização Frágil:** A sincronização de slides no playback depende de `java.util.Timer` do Swing. Se a thread gráfica travar por 1 segundo durante uma busca, o tempo do slide dessincroniza da faixa de áudio.
+- **Drag & Drop e Menus Rígidos no Swing:** O sistema legado utiliza implementações antigas de `TransferHandler` e `JPopupMenu` do Swing. A inserção de arquivos externos frequentemente trava ao calcular metadados na thread de UI, e menus de contexto são engessados em diálogos modais pesados.
 
 #### 🚀 Nova Abordagem & Melhorias (LumenLite):
 - **Extração Nativa de PPTX com `fflate` + `fast-xml-parser`:** Como arquivos `.pptx` são arquivos ZIP contendo XMLs e imagens, o LumenLite extrai e converte os slides diretamente em memória sem tocar no Microsoft Office. Funciona 100% no Linux, Windows e macOS sem nenhuma dependência externa.
 - **Roteiro em JSON Declarativo:** Os cultos são salvos em `culto.json`, um formato de texto aberto, humano e legível, com autocompletion e validação nativa em qualquer editor moderno via JSON Schema.
 - **Áudio com Web Audio API Precisa:** A sincronização de playbacks utiliza o clock de alta precisão da **Web Audio API** do navegador, garantindo que o avanço dos slides seja perfeitamente fiel ao milissegundo do áudio, mesmo sob carga pesada no sistema.
+- **Drag & Drop e Context Menu Nativos Ultrarrápidos:** A captura de arquivos externos do OS e a reordenação da liturgia utilizam a API nativa de Drag & Drop do HTML5 combinada com eventos de arquivos do Tauri v2. A ingestão de mídias pesadas processa hashes e metadados de forma puramente assíncrona em segundo plano, garantindo que a interface permaneça a 60 FPS sem engasgos.
 
 ---
 
@@ -183,7 +192,9 @@ Responsável pela comunicação em rede local, integração com softwares de tra
 | **RF-23** | **Streaming Transparente para OBS (Browser Source)** | Servidor web local embutido que disponibiliza uma rota com canal alfa transparente (`/broadcast`), permitindo adicionar o telão diretamente como fonte de navegador (*Browser Source*) no OBS Studio, vMix ou Wirecast para legendagem ao vivo. | `slices/broadcast` |
 | **RF-24** | **Alertas Instantâneos & Lower Thirds** | Sistema de avisos sobrepostos ao telão (banners inferiores/superiores) para mensagens emergenciais: chamada de pais ao berçário, placa de veículo bloqueando passagem e recados pastorais, com temporizador de auto-ocultação. | `slices/stage` |
 | **RF-25** | **Cronômetros & Contagens Regressivas** | Módulo de contagem regressiva pré-culto (*countdown*) e cronômetro de tempo de pregação sincronizado em tempo real com o monitor de retorno dos pastores. | `slices/stage` |
-| **RF-26** | **Servidor Holyrics Remote (App Mobile)** | Servidor WebSocket/HTTP embutido na porta da rede local (Wi-Fi) permitindo parear smartphones e tablets para trocar slides, buscar bíblia e enviar alertas remotamente. | `apps/daemon`, `slices/remote` |
+| **RF-26A** | **Endpoint Web do Pregador / Pastor (`/remote/preacher`)** | Interface web responsiva e focada na ministração, acessível via navegador em smartphone/tablet na rede local com token restrito. Permite: <br>• Avanço e recuo imediato de slides da apresentação ativa (PowerPoint/PDF/Letra/Versículos). <br>• Exibição em tempo real do slide atual e do próximo slide em destaque. <br>• Sincronização do cronômetro de pregação e exibição das anotações do orador (*speaker notes*). <br>• Bloqueio contra comandos fora da apresentação para evitar interferência na cabine. | `apps/daemon`, `slices/remote` |
+| **RF-26B** | **Console Web do Operador via QR Code (`/remote/operator`)** | Pareamento instantâneo via escaneamento de QR Code na tela da cabine, abrindo uma aplicação web móvel completa no navegador (sem necessidade de instalar apps de lojas). Permite controle volante das principais funções: <br>• **Ações de Emergência:** Acionamento de comandos de pânico (Blackout, Clear Text, Clear Background, Freeze). <br>• **Navegação do Culto:** Disparo e avanço dos itens da liturgia (`culto.json`). <br>• **Bíblia Rápida:** Busca e projeção direta de passagens e versículos. <br>• **Alertas Rápidos:** Disparo de mensagens de rodapé (placas de carro, pais de crianças). | `apps/daemon`, `slices/remote` |
+| **RF-26C** | **Arquitetura Focada & Exclusão de Bloatware** | Rejeição arquitetural expressa a canais de chat interno entre operadores, feeds sociais ou listas de contatos de membros, focando 100% dos recursos em despacho de comandos litúrgicos de baixa latência e alta estabilidade de rede. | `apps/daemon`, `slices/remote` |
 
 #### 🕵️ Como buscar e inspecionar no código original (Holyrics):
 - **Classes-chave:**
@@ -203,12 +214,17 @@ Responsável pela comunicação em rede local, integração com softwares de tra
 #### ⚠️ Análise da Abordagem Legada & Problemas Encontrados:
 - **Streaming via Concatenação Bruta de HTML:** O `HolyricsStreaming.java` roda um `ServerSocket` rudimentar que gera HTML e CSS concatenando strings na mão a cada requisição HTTP. Não utiliza WebSockets; o navegador do OBS precisa fazer polling ou receber recarregamentos agressivos, causando cintilação (*flickering*).
 - **Protocolo de Rede Frágil no App Mobile:** A comunicação com o aplicativo móvel utiliza sockets TCP brutos com serialização própria. Se o smartphone do operador mudar de tela ou oscilar no Wi-Fi, a conexão cai e frequentemente o servidor do Holyrics trava, exigindo reiniciar o programa no meio do culto.
+- **Acoplamento com Chat e Funções Desnecessárias:** O app legado mistura comandos litúrgicos com recursos de chat em tempo real e notificações sociais, gerando concorrência de threads e sobrecarga no servidor do programa principal.
+- **Pareamento Manual Complexo:** No sistema legado, o operador precisa digitar manualmente endereços IP e portas ou depender de broadcast UDP que frequentemente é bloqueado por roteadores Wi-Fi corporativos de igrejas.
 - **Alertas com Estilos Rígidos:** Os alertas em tela são caixas de diálogo Swing desenhadas sobrepostas à janela do projetor, sem suporte a animações suaves de entrada/saída ou adaptação responsiva a diferentes resoluções.
 
 #### 🚀 Nova Abordagem & Melhorias (LumenLite):
 - **WebSockets de Baixa Latência com `Bun.serve`:** O servidor de conectividade roda nativamente no runtime Bun com suporte a WebSockets de altíssima performance. As rotas `/broadcast` (para o OBS) e `/stage` (para o palco) recebem as transições instantaneamente em sub-milissegundos com zero cintilação.
+- **Controle Web sem Instalação (Zero App Stores):** Todo o controle móvel é servido diretamente pelo daemon local como uma aplicação web responsiva (PWA leve). Tanto o pastor quanto o operador acessam via navegador nativo (Safari, Chrome) sem necessidade de instalar aplicativos de terceiros.
+- **Pareamento Instantâneo via QR Code:** O operador ou o pregador escaneia o QR Code gerado na interface desktop do LumenLite, que já embute a URL local com o token de autorização de curta duração (RBAC: papel de pastor ou papel de operador).
+- **Papéis Estritos (RBAC Leve):** A rota do pregador (`/remote/preacher`) concede apenas controle da sua apresentação, visão dos próximos slides, notas do orador e relógio, impedindo toques acidentais em configurações da igreja. A rota do operador (`/remote/operator`) libera botões de pânico, liturgia e bíblia.
+- **Eliminação de Bloatware (Sem Chat):** Eliminação deliberada de módulos de chat e mensageria, mantendo o tráfego 100% dedicado a pacotes JSON de controle de estado em sub-milissegundos.
 - **Transmissão Transparente Fluida com React:** A rota do OBS é uma aplicação web React com fundo transparente nativo. Letras e alertas entram e saem com animações elegantes de fade e slide aceleradas por hardware via `motion/react`.
-- **API REST & WebSocket Aberta para o Remote:** O protocolo do app mobile é padronizado em JSON leve sobre WebSockets com reconexão automática e heartbeat resiliente, garantindo estabilidade mesmo em redes Wi-Fi com alta interferência.
 
 ---
 
