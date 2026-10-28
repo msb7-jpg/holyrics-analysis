@@ -16,4 +16,5 @@
  *   numeradas (`SongSearchResults`) e modal de importação do Vagalume em `apps/ui`.
  */
 
-export * from './contracts/song-contracts'
+export type { Song, SongSection } from './contracts/song-contracts'
+export { SongSchema, SongSectionSchema } from './contracts/song-contracts'

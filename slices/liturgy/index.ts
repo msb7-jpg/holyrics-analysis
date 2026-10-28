@@ -14,5 +14,12 @@
  * - **Exporta para UI:** Barra lateral de roteiro do culto (`LiturgyQueue`) e status de pré-voo em `apps/ui`.
  */
 
-export * from './contracts/liturgy-schema'
-export * from './daemon/preflight-validator'
+export type { LiturgyItem, LiturgyFile } from './contracts/liturgy-schema'
+export {
+  LiturgyItemSchema,
+  LiturgyThemeSchema,
+  LiturgyFileSchema,
+} from './contracts/liturgy-schema'
+
+export type { PreflightResult } from './daemon/preflight-validator'
+export { validateLiturgy } from './daemon/preflight-validator'

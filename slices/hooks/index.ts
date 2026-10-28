@@ -14,4 +14,10 @@
  * - **Exporta para UI:** Editor visual de automação em blocos arrastáveis (`@xyflow/react`) em `apps/ui`.
  */
 
-export * from './contracts/hook-contracts'
+export type { HookNode, HookEdge, HookGraph } from './contracts/hook-contracts'
+export {
+  HookNodeTypeSchema,
+  HookNodeSchema,
+  HookEdgeSchema,
+  HookGraphSchema,
+} from './contracts/hook-contracts'

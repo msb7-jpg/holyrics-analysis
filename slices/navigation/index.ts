@@ -14,4 +14,4 @@
  * - **Exporta para UI:** Barra de pânico (`PanicToolbar`), miniatura 16:9 (`LivePreviewCard`) e viewport do projetor HDMI (`/projector`).
  */
 
-export * from './contracts/navigation-contracts'
+export type { NavigationStatePayload, KeyAction } from './contracts/navigation-contracts'

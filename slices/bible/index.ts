@@ -14,5 +14,6 @@
  * - **Exporta para UI:** Componente de Spotlight de busca bíblica e seletor rápido de versículos.
  */
 
-export * from './contracts/bible-contracts'
-export * from './daemon/verse-parser'
+export type { BibleReference, ParsedVerseRef } from './contracts/bible-contracts'
+export { BibleReferenceSchema } from './contracts/bible-contracts'
+export { parseVerseReference } from './daemon/verse-parser'

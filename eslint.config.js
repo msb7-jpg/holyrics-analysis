@@ -31,6 +31,14 @@ export default [
       'tsdoc/syntax': 'off',
 
       // JSDoc / TSDoc estrito para Documentação de Código
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'ExportAllDeclaration',
+          message:
+            'Proibido o uso de "export * from". Especifique explicitamente quais símbolos devem ser exportados (Named Exports) para preservar o encapsulamento do módulo.',
+        },
+      ],
       'jsdoc/require-jsdoc': [
         'error',
         {
