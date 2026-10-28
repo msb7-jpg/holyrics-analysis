@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test'
-import { INITIAL_SCREEN_STATE } from '../src/fsm/screen-state'
-import { fsmReducer } from '../src/fsm/fsm-reducer'
-import { FsmEngine } from '../src/fsm/fsm-engine'
+import { INITIAL_SCREEN_STATE } from '../screen-state'
+import { fsmReducer } from '../fsm-reducer'
+import { FsmEngine } from '../fsm-engine'
 
 describe('FSM Reducer', () => {
   it('inicializa no estado EMPTY', () => {

@@ -66,7 +66,7 @@ export default [
     },
   },
   {
-    files: ['**/*.test.ts', '**/*.spec.ts', 'tests/**/*'],
+    files: ['**/*.test.ts', '**/*.spec.ts', '**/__tests__/**/*'],
     rules: {
       'jsdoc/require-jsdoc': 'off',
       'jsdoc/require-param': 'off',
