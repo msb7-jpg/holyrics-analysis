@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { validateLiturgy } from '../src/daemon/preflight-validator'
+import { validateLiturgy } from '../daemon/preflight-validator'
 
 describe('Liturgy Preflight Validator', () => {
   it('valida com sucesso um roteiro de culto correto', () => {

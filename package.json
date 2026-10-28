@@ -5,7 +5,6 @@
   "type": "module",
   "workspaces": [
     "packages/*",
-    "slices/*",
     "apps/*"
   ],
   "scripts": {
@@ -15,12 +14,17 @@
     "build": "bun run --filter \"@lumen/*\" build",
     "test": "bun test packages/core/tests slices/*/tests",
     "check": "bun x tsc --build",
-    "lint": "bun x oxlint .",
-    "fmt": "bun x oxfmt ."
+    "lint": "bun x eslint packages/ slices/ apps/",
+    "lint:docs": "bun x eslint packages/ slices/ apps/ --rule 'jsdoc/require-jsdoc: error'"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.13.0",
-    "typescript": "^5.7.3"
+    "eslint": "^10.13.0",
+    "eslint-plugin-jsdoc": "^65.4.2",
+    "eslint-plugin-tsdoc": "^0.5.4",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.72.1"
   },
   "dependencies": {
     "zod": "3.24.2"

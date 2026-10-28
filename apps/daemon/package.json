@@ -11,8 +11,6 @@
     "cli": "bun src/cli.ts"
   },
   "dependencies": {
-    "@lumen/core": "workspace:*",
-    "@lumen/slice-liturgy": "workspace:*",
-    "@lumen/slice-bible": "workspace:*"
+    "@lumen/core": "workspace:*"
   }
 }

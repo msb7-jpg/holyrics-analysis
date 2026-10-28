@@ -2,6 +2,12 @@ import React from 'react'
 import { useWebSocketTransport } from './core/sync/useWebSocketTransport'
 import { OperatorView } from './operator/OperatorView'
 
+/**
+ * Componente raiz da aplicação cliente React 19.
+ * Gerencia o roteamento entre o console do operador e a janela do projetor HDMI.
+ *
+ * @returns Elemento JSX da rota ativa (/operator ou /projector).
+ */
 export function App() {
   const { state, connected, dispatch } = useWebSocketTransport()
   const path = window.location.pathname

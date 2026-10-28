@@ -28,8 +28,11 @@ const BOOK_MAP: Record<string, string> = {
 }
 
 /**
- * Micro-parser nativo em TypeScript (< 60 linhas)
- * Cobre entradas rápidas: "jo 3 16", "jo 3:16", "sl 23:1-4", "1co 13:4-8"
+ * Micro-parser nativo em TypeScript (< 60 linhas).
+ * Cobre entradas rápidas: "jo 3 16", "jo 3:16", "sl 23:1-4", "1co 13:4-8".
+ *
+ * @param input - String de entrada contendo a referência bíblica informal.
+ * @returns Objeto estruturado com livro, capítulo e versículos, ou `null` se não for reconhecido.
  */
 export function parseVerseReference(input: string): ParsedVerseRef | null {
   const clean = input.trim().toLowerCase().replace(/\s+/g, ' ')

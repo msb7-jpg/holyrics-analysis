@@ -8,7 +8,6 @@ import {
   BookOpen,
   Calendar,
   Volume2,
-  ChevronRight,
   Monitor,
   Radio,
 } from 'lucide-react'
@@ -20,6 +19,16 @@ interface OperatorViewProps {
   dispatch: (cmd: ActionCommand) => void
 }
 
+/**
+ * Console principal de operação litúrgica do LumenLite.
+ * Layout sóbrio de 4 colunas verticais no padrão Slate Pro Studio.
+ *
+ * @param props - Propriedades do console.
+ * @param props.state - Estado atômico da projeção e pânico.
+ * @param props.connected - Flag de conexão WebSocket ativa.
+ * @param props.dispatch - Despachante tipado de comandos para a FSM.
+ * @returns Elemento JSX com o console de controle do operador.
+ */
 export function OperatorView({ state, connected, dispatch }: OperatorViewProps) {
   const [searchQuery, setSearchQuery] = useState('')
 

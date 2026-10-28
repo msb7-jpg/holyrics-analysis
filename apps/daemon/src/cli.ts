@@ -31,7 +31,7 @@ Comandos:
 
 const command = positionals[0]
 
-async function sendCommand(action: Record<string, unknown>) {
+async function sendCommand(_action: Record<string, unknown>) {
   try {
     const res = await fetch('http://localhost:4040/api/status')
     if (!res.ok) {

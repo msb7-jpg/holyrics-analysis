@@ -5,12 +5,12 @@
     "paths": {
       "@lumen/core": ["packages/core/src/index.ts"],
       "@lumen/core/*": ["packages/core/src/*"],
-      "@slices/*": ["slices/*/src/index.ts"]
+      "@slices/*": ["slices/*/index.ts"]
     }
   },
   "include": [
     "packages/*/src/**/*",
-    "slices/*/src/**/*",
+    "slices/**/*",
     "apps/*/src/**/*"
   ],
   "exclude": [

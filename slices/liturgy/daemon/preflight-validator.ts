@@ -1,4 +1,4 @@
-import { LiturgyFileSchema, type LiturgyFile } from '../contracts/liturgy-schema'
+import { LiturgyFileSchema } from '../contracts/liturgy-schema'
 
 export interface PreflightResult {
   valid: boolean
@@ -6,6 +6,13 @@ export interface PreflightResult {
   itemCount: number
 }
 
+/**
+ * Validador de pré-voo para roteiros litúrgicos (`culto.json`).
+ * Verifica a integridade estrutural do arquivo e campos obrigatórios.
+ *
+ * @param data - Conteúdo bruto ou parseado do arquivo `culto.json`.
+ * @returns Resultado detalhado contendo status de validação, contagem de itens e lista de erros.
+ */
 export function validateLiturgy(data: unknown): PreflightResult {
   const parsed = LiturgyFileSchema.safeParse(data)
   if (!parsed.success) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test'
-import { parseVerseReference } from '../src/daemon/verse-parser'
+import { parseVerseReference } from '../daemon/verse-parser'
 
 describe('Bible Micro-Parser', () => {
   it('reconhece referências abreviadas com espaço "jo 3 16"', () => {

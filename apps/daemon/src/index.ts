@@ -4,7 +4,7 @@ import { DbClient } from './db/db-client'
 
 const PORT = parseInt(process.env.PORT || '4040', 10)
 const fsm = new FsmEngine()
-const dbClient = new DbClient()
+const _dbClient = new DbClient()
 
 interface WebSocketData {
   id: string

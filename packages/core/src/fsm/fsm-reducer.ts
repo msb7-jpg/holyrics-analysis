@@ -4,6 +4,10 @@ import type { ActionCommand } from './commands'
 /**
  * Reducer puro da Máquina de Estados Finita (FSM).
  * Determinístico, imutável e sem efeitos colaterais.
+ *
+ * @param state - Estado atual completo da tela (camadas, modo e máscaras de pânico).
+ * @param action - Comando de ação despachado pelo operador, teclado ou rede.
+ * @returns Novo estado imutável da tela após a aplicação do comando.
  */
 export function fsmReducer(state: ScreenState, action: ActionCommand): ScreenState {
   const timestamp = Date.now()

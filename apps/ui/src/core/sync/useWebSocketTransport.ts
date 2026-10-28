@@ -2,6 +2,13 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import type { ScreenState, ActionCommand } from '@lumen/core'
 import { INITIAL_SCREEN_STATE } from '@lumen/core'
 
+/**
+ * Hook de conexão em tempo real via WebSocket com o Daemon LumenLite.
+ * Mantém reconexão automática e sincroniza o `ScreenState` global.
+ *
+ * @param url - Endereço do endpoint WebSocket do servidor local.
+ * @returns Objeto com o estado atual, flag de conexão e despachante de comandos.
+ */
 export function useWebSocketTransport(url = 'ws://localhost:4040/ws?type=operator') {
   const [state, setState] = useState<ScreenState>(INITIAL_SCREEN_STATE)
   const [connected, setConnected] = useState(false)

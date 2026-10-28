@@ -1,4 +1,4 @@
-import type { ActionCommand, PanicMask } from '@lumen/core'
+import type { PanicMask } from '@lumen/core'
 
 export interface NavigationStatePayload {
   activeSlide: number
