@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LiturgyFile",
+  "type": "object",
+  "required": ["id", "title", "date", "items"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "date": { "type": "string" },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "defaultBackground": { "type": "string" },
+        "fontFamily": { "type": "string", "default": "Inter" },
+        "textColor": { "type": "string", "default": "#FFFFFF" },
+        "textShadow": { "type": "string" }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "title"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string", "enum": ["MEDIA", "SONG", "BIBLE", "PPTX", "TEXT"] },
+          "title": { "type": "string" },
+          "mediaSrc": { "type": "string" },
+          "autoAdvance": { "type": "boolean" },
+          "songId": { "type": "string" },
+          "arrangement": { "type": "array", "items": { "type": "string" } },
+          "backgroundOverride": { "type": "string" },
+          "reference": { "type": "string" },
+          "version": { "type": "string" },
+          "dualVersion": { "type": "string" },
+          "fileSrc": { "type": "string" },
+          "content": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "hooksEnabled": { "type": "boolean", "default": true }
+  }
+}
