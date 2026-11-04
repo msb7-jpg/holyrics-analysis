@@ -141,7 +141,10 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
         </section>
 
         {/* Coluna 4: Monitor do Telão & Áudio Ambiente (18%) */}
-        <OutputMonitorPanel state={state} />
+        <OutputMonitorPanel
+          state={state}
+          onSelectBackground={(background) => dispatch({ type: 'SET_BACKGROUND', background })}
+        />
       </main>
 
       {/* Footer de Atalhos Sóbrio */}

@@ -80,6 +80,13 @@ function printHelp(): void {
     lumen keymap list            Lista todos os atalhos declarativos ativos
     lumen keymap reset           Restaura atalhos para padrões de fábrica
 
+  \x1b[33mmedia\x1b[0m
+    lumen media list [tipo]      Lista itens de mídia (todos, video, image)
+    lumen media bg <id>          Aplica item como fundo da projeção no telão
+
+  \x1b[33maudio\x1b[0m
+    lumen audio playlists        Lista as playlists litúrgicas de áudio ativas
+
 \x1b[1mOPÇÕES:\x1b[0m
   -j, --json                     Retorna a saída formatada em JSON estruturado
   --url <daemonUrl>              URL do daemon LumenLite (padrão: http://localhost:4040)
@@ -411,6 +418,71 @@ if (primary === 'keymap') {
       console.log(JSON.stringify(result))
     } else {
       console.log(`\x1b[32m✔\x1b[0m ${result.message}`)
+    }
+    process.exit(0)
+  }
+}
+
+// 9. Domínio de Mídias Visuais (media)
+if (primary === 'media') {
+  if (secondary === 'list' || !secondary) {
+    const filterType = tertiary ? tertiary.toLowerCase() : ''
+    const endpoint = filterType ? `/api/media?type=${encodeURIComponent(filterType)}` : '/api/media'
+    const result = await requestApi<{ ok: boolean; data: Array<{ id: string; name: string; type: string; resolution?: string }> }>(
+      endpoint,
+    )
+
+    if (isJson) {
+      console.log(JSON.stringify(result, null, 2))
+    } else {
+      console.log('\n\x1b[1m--- ACERVO DE MÍDIAS DO LUMENLITE ---\x1b[0m')
+      result.data.forEach((mediaItem) => {
+        console.log(`  [\x1b[33m${mediaItem.type.padEnd(5)}\x1b[0m] \x1b[1m${mediaItem.name}\x1b[0m (ID: ${mediaItem.id})`)
+      })
+      console.log()
+    }
+    process.exit(0)
+  }
+
+  if (secondary === 'bg') {
+    const mediaId = tertiary
+    if (!mediaId) {
+      console.error('Uso: lumen media bg <mediaId>')
+      process.exit(1)
+    }
+
+    const mediaResult = await requestApi<{ ok: boolean; data: { id: string; path: string; type: string } }>(
+      `/api/media/${encodeURIComponent(mediaId)}`,
+    )
+
+    const isVideo = mediaResult.data.type === 'VIDEO'
+    await dispatchFsm({
+      type: 'SET_BACKGROUND',
+      background: {
+        type: isVideo ? 'video' : 'image',
+        source: mediaResult.data.path,
+        loop: isVideo,
+        muted: true,
+      },
+    })
+    process.exit(0)
+  }
+}
+
+// 10. Domínio de Áudio Ambiente (audio)
+if (primary === 'audio') {
+  if (secondary === 'playlists' || !secondary) {
+    const result = await requestApi<{ ok: boolean; data: Array<{ id: string; name: string; tracks: Array<{ title: string }> }> }>(
+      '/api/media/audio/playlists',
+    )
+    if (isJson) {
+      console.log(JSON.stringify(result, null, 2))
+    } else {
+      console.log('\n\x1b[1m--- PLAYLISTS LITÚRGICAS DE ÁUDIO ---\x1b[0m')
+      result.data.forEach((playlist) => {
+        console.log(`  \x1b[33m${playlist.name}\x1b[0m (ID: ${playlist.id}) - ${playlist.tracks.length} faixa(s)`)
+      })
+      console.log()
     }
     process.exit(0)
   }

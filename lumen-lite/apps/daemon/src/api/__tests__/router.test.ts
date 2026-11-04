@@ -10,6 +10,7 @@ import { BibleRepository } from '@slices/bible'
 import { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
 import { AutomationRepository, DagRunner } from '@slices/automation'
 import { KeymapRepository } from '@slices/keymap'
+import { MediaRepository } from '@slices/media'
 import type { WebSocketData } from '../../ws/ws-handler'
 import { createApiRouter } from '../router'
 
@@ -31,6 +32,7 @@ describe('Daemon API Router', () => {
     const liturgyRepo = new LiturgyRepository(resolve(import.meta.dir, 'test-culto-router.json'))
     automationRepo = new AutomationRepository(resolve(import.meta.dir, 'test-automation-router.json'))
     const keymapRepo = new KeymapRepository(resolve(import.meta.dir, 'test-keymap-router.json'))
+    const mediaRepo = new MediaRepository(resolve(import.meta.dir, 'test-media-router.json'))
     const dagRunner = new DagRunner(automationRepo, null, (cmd) => fsm.dispatch(cmd))
 
     router = createApiRouter({
@@ -42,6 +44,7 @@ describe('Daemon API Router', () => {
       automationRepo,
       dagRunner,
       keymapRepo,
+      mediaRepo,
     })
 
     const sampleSong: Song = {
@@ -73,6 +76,9 @@ describe('Daemon API Router', () => {
 
     const testKeymapPath = resolve(import.meta.dir, 'test-keymap-router.json')
     if (existsSync(testKeymapPath)) unlinkSync(testKeymapPath)
+
+    const testMediaPath = resolve(import.meta.dir, 'test-media-router.json')
+    if (existsSync(testMediaPath)) unlinkSync(testMediaPath)
   })
 
   it('deve responder requisições OPTIONS com cabeçalhos CORS completos', async () => {
@@ -252,6 +258,24 @@ describe('Daemon API Router', () => {
     const resetJson = await resetRes?.json()
     expect(resetJson.ok).toBe(true)
     expect(resetJson.data.bindings.length).toBeGreaterThan(0)
+  })
+
+  it('deve listar mídias e playlists de áudio via GET /api/media e /api/media/audio/playlists', async () => {
+    // GET /api/media
+    const mediaReq = new Request('http://localhost:4040/api/media', { method: 'GET' })
+    const mediaRes = await router.handle(mediaReq, mockServer)
+    expect(mediaRes?.status).toBe(200)
+    const mediaJson = await mediaRes?.json()
+    expect(mediaJson.ok).toBe(true)
+    expect(mediaJson.data.length).toBeGreaterThan(0)
+
+    // GET /api/media/audio/playlists
+    const playlistReq = new Request('http://localhost:4040/api/media/audio/playlists', { method: 'GET' })
+    const playlistRes = await router.handle(playlistReq, mockServer)
+    expect(playlistRes?.status).toBe(200)
+    const playlistJson = await playlistRes?.json()
+    expect(playlistJson.ok).toBe(true)
+    expect(playlistJson.data.length).toBeGreaterThan(0)
   })
 })
 

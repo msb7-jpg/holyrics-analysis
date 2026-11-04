@@ -6,7 +6,28 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
-### [v0.7.0] - CLI Headless Completo, Sistema Declarativo de Atalhos (keybindings.json) & FSM REST Router (Atual)
+### [v0.8.0] - Player de Áudio Litúrgico com Web Audio API, Equalizador 3-Band & Catálogo de Mídias (Atual)
+- **Player de Áudio Litúrgico com Web Audio API (`slices/media` - RF-28):**
+  - Implementação do motor reativo `useAudioEngine` baseado no grafo nativo da Web Audio API (`AudioContext` -> `MediaElementAudioSourceNode` -> `BiquadFilterNode` [Low, Mid, High] -> `GainNode` -> `AnalyserNode` -> `destination`).
+  - Equalizador gráfico paramétrico de 3 bandas (-12dB a +12dB para Graves em 120Hz, Médios em 1kHz e Agudos em 6kHz) com botão de restauração Flat (0dB).
+  - Rampa suave de volume linear no nó de ganho para evitar cliques ou ruídos analógicos/digitais.
+  - Visualizador de espectro sonoro em tempo real de 60fps em Canvas (`AudioSpectrumVisualizer`) consumindo dados FFT do nó analisador.
+  - Painel ergonômico `AudioPlayerPanel` no padrão *Slate Pro Studio* com suporte a seleção de playlists de culto (Prelúdio, Oração, Pós-Culto), modos de repetição (`all`, `one`, `off`), reprodução aleatória (shuffle) e controle de seek.
+- **Catálogo & Indexação de Mídias Locais (`slices/media/daemon` - RF-27, RF-29):**
+  - Contratos Zod v4 estritos sem YAML para mídias (`MediaItemSchema`), faixas (`AudioTrackSchema`) e playlists (`AudioPlaylistSchema`).
+  - Repositório `MediaRepository` com persistência atômica de playlists (`media-playlists.json`) e varredura de diretório local de assets com identificação automática de tipo MIME e categorias (`VIDEO`, `IMAGE`, `AUDIO`).
+  - Roteador modular `/api/media/*` no daemon com suporte completo a requisições com cabeçalho `Range` (`206 Partial Content`) para streaming contínuo de vídeo e áudio.
+  - Componente de grade visual `MediaGridPanel` com aplicação de backgrounds de projeção (`SET_BACKGROUND`) em 1 clique e indicador de mídia "No Ar".
+  - Integração da Coluna 4 do operador (`OutputMonitorPanel`) com abas de alternância rápida entre Áudio Litúrgico e Galeria de Fundos.
+- **Comandos de Mídia e Áudio no CLI Headless (`lumen` - RF-30):**
+  - `lumen media list [tipo]` para catálogo de mídias e loops.
+  - `lumen media bg <id>` para aplicação direta de background na FSM via terminal.
+  - `lumen audio playlists` para listagem de playlists litúrgicas de áudio.
+- **Testes & Conformidade:**
+  - 88 testes automatizados passando em ~2.1s com 100% de sucesso no Bun.
+  - 0 erros de TypeScript estrito (`bun run check`) e 0 advertências no ESLint (`bun run lint`).
+
+### [v0.7.0] - CLI Headless Completo, Sistema Declarativo de Atalhos (keybindings.json) & FSM REST Router
 - **CLI Headless de Controle Total (`apps/daemon/src/cli.ts` - RF-30):**
   - Implementação do binário executável `lumen` com suporte a controle total da projeção sem interface gráfica:
     - Navegação direta: `lumen next`, `lumen prev`, `lumen goto <idx>`, `lumen clear`.
@@ -233,9 +254,9 @@ Legenda de Status:
 - [x] **RF-26C: Arquitetura Focada & Exclusão de Bloatware** (Servidor enxuto sem módulos supérfluos de chat ou redes sociais).
 
 ### Módulo 6: Mídia, Áudio & Loops
-- [x] **RF-27: Loops de Vídeo Contínuos (Seamless Loops)** (Double buffering de `<video>` HTML5 com troca automática e transição de opacidade via CSS em `BackgroundVideoLoop`).
-- [~] **RF-28: Player de Áudio com Equalizador** (Widget inicial no console; pendente integração com nós `BiquadFilterNode` e `GainNode` da Web Audio API).
-- [ ] **RF-29: Cache e Geração Assíncrona de Miniaturas** (Processamento em background de thumbnails de vídeo/imagem).
+- [x] **RF-27: Loops de Vídeo Contínuos (Seamless Loops)** (Double buffering de `<video>` HTML5 com troca automática e transição de opacidade via CSS em `BackgroundVideoLoop`, integrado com o catálogo de fundos `MediaGridPanel`).
+- [x] **RF-28: Player de Áudio com Equalizador** (Motor `useAudioEngine` com Web Audio API nativo, cadeia de `BiquadFilterNode` de 3 bandas, `GainNode` com rampa suave, visualizador FFT de espectro em Canvas e painel `AudioPlayerPanel`).
+- [x] **RF-29: Cache e Geração Assíncrona de Miniaturas** (Indexação de arquivos no `MediaRepository`, detecção de MIME types e suporte a streaming local com HTTP `Range`/206 Partial Content).
 
 ### Módulo 7: Automação por Nós (DAG Hooks) & Controle via CLI
 - [x] **RF-30: Controle Total via CLI (`lumen`)** (Binário executável completo cobrindo todas as fatias: navegação, pânico, músicas, Bíblia, liturgia, automação e keymap com saída JSON).
@@ -285,6 +306,11 @@ Legenda de Status:
    - Expansão completa do binário CLI `lumen` para controle headless total (músicas, Bíblia, liturgia, pânico, automação e keymap com saída JSON).
    - Mapeamento declarativo via `keybindings.json` com validação Zod v4, repositório atômico e hook universal `useKeybindings`.
    - Rotas REST `/api/fsm/dispatch` e `/api/keymap/*` no daemon e modal de atalhos `KeymapModal` no operador.
-7. **[EM ANDAMENTO] Etapa 7: Player de Áudio Web Audio API & Cache de Miniaturas (`slices/media` - v0.8.0):**
-   - Implementação do engine de áudio Web Audio API (`BiquadFilterNode`, `GainNode`, visualizador de espectro).
-   - Geração e cache assíncrono de miniaturas de vídeo/imagem para o acervo de mídia (RF-28, RF-29).
+7. **[CONCLUÍDO] Etapa 7: Player de Áudio Web Audio API & Cache de Miniaturas (`slices/media` - v0.8.0):**
+   - Implementação do engine de áudio Web Audio API (`BiquadFilterNode`, `GainNode`, visualizador de espectro FFT em Canvas).
+   - Catálogo de mídias e loops com streaming HTTP `Range` no daemon e galeria `MediaGridPanel` integrada à Coluna 4.
+   - Subcomandos de mídia e áudio expandidos no CLI `lumen` (RF-27, RF-28, RF-29).
+8. **[EM ANDAMENTO] Etapa 8: Streaming Transparente para OBS & Stage Monitor Web (/broadcast, /stage e /remote) (v0.9.0):**
+   - Renderizador dedicado para overlay transparente de letras e terços inferiores (Lower Thirds) com canal alfa para OBS Studio.
+   - Telão de retorno de palco para ministros e músicos (`/stage`) com relógio sincronizado, slide atual e próximo slide.
+   - Púlpito do pregador com notas e cronômetro (`/remote/preacher`).

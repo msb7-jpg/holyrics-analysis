@@ -44,6 +44,24 @@ describe('LumenLite Headless CLI (apps/daemon/src/cli.ts)', () => {
           })
         }
 
+        if (url.pathname === '/api/media') {
+          return Response.json({
+            ok: true,
+            data: [
+              { id: 'bg-loop-test', name: 'Loop de Teste', type: 'VIDEO' },
+            ],
+          })
+        }
+
+        if (url.pathname === '/api/media/audio/playlists') {
+          return Response.json({
+            ok: true,
+            data: [
+              { id: 'playlist-preludio', name: 'Prelúdio', tracks: [{ title: 'Piano Suave' }] },
+            ],
+          })
+        }
+
         return new Response('Not Found', { status: 404 })
       },
     })
@@ -110,5 +128,23 @@ describe('LumenLite Headless CLI (apps/daemon/src/cli.ts)', () => {
     expect(json.ok).toBe(true)
     expect(json.data.bindings.length).toBe(1)
     expect(json.data.bindings[0].action).toBe('NAV_NEXT')
+  })
+
+  it('lista mídias com lumen media list --json', async () => {
+    const { stdout, code } = await runCli(['media', 'list', '--json'])
+    expect(code).toBe(0)
+    const json = JSON.parse(stdout)
+    expect(json.ok).toBe(true)
+    expect(json.data.length).toBe(1)
+    expect(json.data[0].id).toBe('bg-loop-test')
+  })
+
+  it('lista playlists de áudio com lumen audio playlists --json', async () => {
+    const { stdout, code } = await runCli(['audio', 'playlists', '--json'])
+    expect(code).toBe(0)
+    const json = JSON.parse(stdout)
+    expect(json.ok).toBe(true)
+    expect(json.data.length).toBe(1)
+    expect(json.data[0].id).toBe('playlist-preludio')
   })
 })

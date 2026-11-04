@@ -15,6 +15,7 @@ import { handleBibleRoutes } from '@slices/bible/daemon/routes/bible-router'
 import { handleLiturgyRoutes } from '@slices/liturgy/daemon/routes/liturgy-router'
 import { handleAutomationRoutes } from '@slices/automation'
 import { handleKeymapRoutes } from '@slices/keymap'
+import { handleMediaRoutes } from '@slices/media'
 
 /**
  * Cria a interface do roteador da API com injeção de dependências do contexto.
@@ -83,6 +84,10 @@ export function createApiRouter(context: ApiContext) {
       // Delegação para o roteador de atalhos de teclado da fatia @slices/keymap
       const keymapResponse = await handleKeymapRoutes(request, targetUrl, context)
       if (keymapResponse) return keymapResponse
+
+      // Delegação para o roteador de mídia e áudio da fatia @slices/media
+      const mediaResponse = await handleMediaRoutes(request, targetUrl, context)
+      if (mediaResponse) return mediaResponse
 
       // Fallback para raiz ou rota padrão
       return new Response('LumenLite Daemon Active', { status: 200, headers: CORS_HEADERS })
