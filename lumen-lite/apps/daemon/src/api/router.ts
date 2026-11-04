@@ -16,6 +16,7 @@ import { handleLiturgyRoutes } from '@slices/liturgy/daemon/routes/liturgy-route
 import { handleAutomationRoutes } from '@slices/automation'
 import { handleKeymapRoutes } from '@slices/keymap'
 import { handleMediaRoutes } from '@slices/media'
+import { handleDisplayRoutes } from '@slices/navigation'
 
 /**
  * Cria a interface do roteador da API com injeção de dependências do contexto.
@@ -60,6 +61,10 @@ export function createApiRouter(context: ApiContext) {
       // Rota de despacho e telemetria da FSM
       const fsmResponse = await handleFsmRoutes(request, targetUrl, context)
       if (fsmResponse) return fsmResponse
+
+      // Delegação para o roteador de display (broadcast, stage)
+      const displayResponse = await handleDisplayRoutes(request, targetUrl, context)
+      if (displayResponse) return displayResponse
 
       // Delegação para o roteador de músicas da fatia @slices/songs
       const songsResponse = await handleSongsRoute(request, targetUrl, context)

@@ -23,6 +23,7 @@ import { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
 import { AutomationRepository, DagRunner, ObsClient } from '@slices/automation'
 import { KeymapRepository } from '@slices/keymap'
 import { MediaRepository } from '@slices/media'
+import { DisplayRepository } from '@slices/navigation'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import defaultSongs from '../../../slices/songs/default-songs.json'
@@ -43,6 +44,7 @@ const liturgyRepo = new LiturgyRepository()
 const automationRepo = new AutomationRepository()
 const keymapRepo = new KeymapRepository()
 const mediaRepo = new MediaRepository()
+const displayRepo = new DisplayRepository()
 
 // Inicializa cliente OBS Studio v5 conforme o grafo ativo
 const activeAutomationGraph = automationRepo.load()
@@ -80,6 +82,7 @@ const apiRouter = createApiRouter({
   dagRunner,
   keymapRepo,
   mediaRepo,
+  displayRepo,
   obsClient,
 })
 const wsHandler = createWebSocketHandler({ fsm, logger })

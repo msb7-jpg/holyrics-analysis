@@ -34,6 +34,7 @@ export {
   fsmReducer,
   ReturnStack,
   FsmEngine,
+  ForegroundLayerSchema,
 } from './fsm'
 
 export {

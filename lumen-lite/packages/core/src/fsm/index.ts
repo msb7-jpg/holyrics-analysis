@@ -5,7 +5,7 @@ export type {
   ForegroundLayer,
   ScreenState,
 } from './screen-state'
-export { INITIAL_SCREEN_STATE } from './screen-state'
+export { INITIAL_SCREEN_STATE, ForegroundLayerSchema } from './screen-state'
 
 export type { ActionCommand } from './commands'
 

@@ -10,6 +10,7 @@ import type { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repositor
 import type { AutomationRepository, DagRunner, ObsClient } from '@slices/automation'
 import type { KeymapRepository } from '@slices/keymap'
 import type { MediaRepository } from '@slices/media'
+import type { DisplayRepository } from '@slices/navigation'
 
 /**
  * Contexto compartilhado de dependências injetado nos roteadores da API.
@@ -24,6 +25,7 @@ export interface ApiContext {
   dagRunner: DagRunner
   keymapRepo: KeymapRepository
   mediaRepo: MediaRepository
+  displayRepo: DisplayRepository
   obsClient?: ObsClient | null
 }
 

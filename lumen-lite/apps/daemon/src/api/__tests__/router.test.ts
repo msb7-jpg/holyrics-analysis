@@ -11,6 +11,7 @@ import { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
 import { AutomationRepository, DagRunner } from '@slices/automation'
 import { KeymapRepository } from '@slices/keymap'
 import { MediaRepository } from '@slices/media'
+import { DisplayRepository } from '@slices/navigation'
 import type { WebSocketData } from '../../ws/ws-handler'
 import { createApiRouter } from '../router'
 
@@ -33,6 +34,7 @@ describe('Daemon API Router', () => {
     automationRepo = new AutomationRepository(resolve(import.meta.dir, 'test-automation-router.json'))
     const keymapRepo = new KeymapRepository(resolve(import.meta.dir, 'test-keymap-router.json'))
     const mediaRepo = new MediaRepository(resolve(import.meta.dir, 'test-media-router.json'))
+    const displayRepo = new DisplayRepository(resolve(import.meta.dir, 'test-display-router.json'))
     const dagRunner = new DagRunner(automationRepo, null, (cmd) => fsm.dispatch(cmd))
 
     router = createApiRouter({
@@ -45,6 +47,7 @@ describe('Daemon API Router', () => {
       dagRunner,
       keymapRepo,
       mediaRepo,
+      displayRepo,
     })
 
     const sampleSong: Song = {
@@ -79,6 +82,9 @@ describe('Daemon API Router', () => {
 
     const testMediaPath = resolve(import.meta.dir, 'test-media-router.json')
     if (existsSync(testMediaPath)) unlinkSync(testMediaPath)
+
+    const testDisplayPath = resolve(import.meta.dir, 'test-display-router.json')
+    if (existsSync(testDisplayPath)) unlinkSync(testDisplayPath)
   })
 
   it('deve responder requisições OPTIONS com cabeçalhos CORS completos', async () => {

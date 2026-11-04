@@ -14,7 +14,18 @@ export interface BackgroundLayer {
   loop?: boolean
 }
 
-export interface ForegroundLayer {
+import { z } from 'zod'
+
+export const ForegroundLayerSchema = z.object({
+  title: z.string().optional(),
+  reference: z.string().optional(),
+  content: z.array(z.string()),
+  activeLineIndex: z.number().optional(),
+  slideIndex: z.number(),
+  totalSlides: z.number(),
+})
+
+export interface ForegroundLayer extends z.infer<typeof ForegroundLayerSchema> {
   title?: string
   reference?: string
   content: string[]
