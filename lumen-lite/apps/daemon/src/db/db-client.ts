@@ -2,44 +2,21 @@ import { Database } from 'bun:sqlite'
 
 /**
  * Cliente de persistência SQLite em modo WAL (Write-Ahead Logging).
- * Gerencia a conexão com o banco e inicializa as tabelas com índices FTS5.
+ * Gerencia a conexão com o banco e inicializa configurações de concorrência.
  */
 export class DbClient {
-  private db: Database
+  private database: Database
 
   /**
-   * Inicializa a conexão SQLite e executa migrações estruturais básicas.
+   * Inicializa a conexão SQLite com WAL ativo.
    *
    * @param dbPath - Caminho do arquivo de banco no sistema de arquivos.
    */
   constructor(dbPath = 'lumenlite.db') {
-    this.db = new Database(dbPath, { create: true })
+    this.database = new Database(dbPath, { create: true })
     // Ativa WAL (Write-Ahead Logging) para concorrência de leitura e escrita sem travas
-    this.db.run('PRAGMA journal_mode = WAL;')
-    this.db.run('PRAGMA synchronous = NORMAL;')
-    this.initTables()
-  }
-
-  private initTables(): void {
-    this.db.run(`
-      CREATE TABLE IF NOT EXISTS songs (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        artist TEXT,
-        content TEXT NOT NULL,
-        updated_at INTEGER NOT NULL
-      );
-    `)
-
-    // FTS5 para busca instantânea sub-milissegundo
-    this.db.run(`
-      CREATE VIRTUAL TABLE IF NOT EXISTS songs_fts USING fts5(
-        title,
-        content,
-        content='songs',
-        content_rowid='rowid'
-      );
-    `)
+    this.database.run('PRAGMA journal_mode = WAL;')
+    this.database.run('PRAGMA synchronous = NORMAL;')
   }
 
   /**
@@ -48,13 +25,13 @@ export class DbClient {
    * @returns Instância do Database bun:sqlite.
    */
   getDb(): Database {
-    return this.db
+    return this.database
   }
 
   /**
    * Encerra a conexão com o banco de dados.
    */
   close(): void {
-    this.db.close()
+    this.database.close()
   }
 }

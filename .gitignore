@@ -3,6 +3,7 @@ node_modules/
 dist/
 *.local
 .turbo/
+*.tsbuildinfo
 
 # SQLite Databases gerados localmente
 *.db

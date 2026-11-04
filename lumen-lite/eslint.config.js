@@ -27,7 +27,15 @@ export default [
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
 
-      // TSDoc oficial
+      // Proibir variáveis com menos de 3 caracteres (definir a partir de 3 caracteres)
+      'id-length': [
+        'error',
+        {
+          min: 3,
+          exceptions: ['_', 'id', 'on', 'cn', 'ky'],
+          properties: 'never',
+        },
+      ],
       'tsdoc/syntax': 'off',
 
       // JSDoc / TSDoc estrito para Documentação de Código
@@ -68,6 +76,7 @@ export default [
   {
     files: ['**/*.test.ts', '**/*.spec.ts', '**/__tests__/**/*'],
     rules: {
+      'id-length': 'off',
       'jsdoc/require-jsdoc': 'off',
       'jsdoc/require-param': 'off',
       'jsdoc/require-returns': 'off',

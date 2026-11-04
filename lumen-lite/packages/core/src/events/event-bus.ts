@@ -1,4 +1,14 @@
+import { createLogger } from '../logger/logger'
+
+const logger = createLogger('event-bus')
+
 export type EventBusListener<T> = (event: T) => void
+
+export interface StateTransitionEvent {
+  previousState: unknown
+  nextState: unknown
+  timestamp: number
+}
 
 /**
  * Emissor e barramento de eventos desacoplado do LumenLite.
@@ -39,7 +49,7 @@ export class LumenEventBus {
       try {
         listener(payload)
       } catch (err) {
-        console.error(`Erro ao processar evento ${eventType}:`, err)
+        logger.error({ err, eventType }, `Erro ao processar evento ${eventType}`)
       }
     }
   }

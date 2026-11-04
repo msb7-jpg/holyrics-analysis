@@ -20,3 +20,12 @@ export const SongSchema = z.object({
 })
 
 export type Song = z.infer<typeof SongSchema>
+
+export const SongSearchResultSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  artist: z.string().optional(),
+  snippet: z.string().optional(),
+})
+
+export type SongSearchResult = z.infer<typeof SongSearchResultSchema>

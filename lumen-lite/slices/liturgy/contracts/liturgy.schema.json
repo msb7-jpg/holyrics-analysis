@@ -24,18 +24,26 @@
         "required": ["id", "type", "title"],
         "properties": {
           "id": { "type": "string" },
-          "type": { "type": "string", "enum": ["MEDIA", "SONG", "BIBLE", "PPTX", "TEXT"] },
+          "type": { "type": "string", "enum": ["SONG", "BIBLE", "MEDIA", "PPTX", "TEXT", "COUNTDOWN"] },
           "title": { "type": "string" },
-          "mediaSrc": { "type": "string" },
-          "autoAdvance": { "type": "boolean" },
+          "artist": { "type": "string" },
           "songId": { "type": "string" },
           "arrangement": { "type": "array", "items": { "type": "string" } },
           "backgroundOverride": { "type": "string" },
           "reference": { "type": "string" },
           "version": { "type": "string" },
           "dualVersion": { "type": "string" },
+          "mediaSrc": { "type": "string" },
+          "mediaType": { "type": "string", "enum": ["IMAGE", "VIDEO", "AUDIO"] },
+          "autoAdvance": { "type": "boolean" },
+          "durationSeconds": { "type": "number" },
           "fileSrc": { "type": "string" },
-          "content": { "type": "array", "items": { "type": "string" } }
+          "slidesCount": { "type": "number" },
+          "content": { "type": "array", "items": { "type": "string" } },
+          "category": { "type": "string", "enum": ["ANNOUNCEMENT", "PASTORAL_NOTE", "ALERT", "FREE_TEXT"] },
+          "targetDurationSeconds": { "type": "number" },
+          "targetTime": { "type": "string" },
+          "description": { "type": "string" }
         }
       }
     },

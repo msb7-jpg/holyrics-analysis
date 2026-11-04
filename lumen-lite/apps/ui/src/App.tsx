@@ -1,5 +1,4 @@
-import React from 'react'
-import { useWebSocketTransport } from './core/sync/useWebSocketTransport'
+import { useScreenState, useWsConnected, useCommandDispatch } from './core/sync/ws-hooks'
 import { OperatorView } from './operator/OperatorView'
 
 /**
@@ -9,14 +8,16 @@ import { OperatorView } from './operator/OperatorView'
  * @returns Elemento JSX da rota ativa (/operator ou /projector).
  */
 export function App() {
-  const { state, connected, dispatch } = useWebSocketTransport()
+  const state = useScreenState()
+  const connected = useWsConnected()
+  const dispatch = useCommandDispatch()
   const path = window.location.pathname
 
   if (path === '/projector') {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-black text-white p-12 text-center">
+      <div className="flex h-screen w-screen items-center justify-center bg-black text-white p-12 text-center select-none">
         {state.panic.blackout ? null : (
-          <div className="text-4xl font-bold leading-relaxed">
+          <div className="text-4xl font-bold leading-relaxed whitespace-pre-wrap">
             {state.foreground.content.join('\n') || 'LumenLite Projector Ready'}
           </div>
         )}

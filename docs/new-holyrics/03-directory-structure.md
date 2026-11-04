@@ -167,11 +167,11 @@ lumen-lite/
 │   │   └── tests/
 │   │       └── playback-sync.test.ts
 │   │
-│   ├── hooks/                          # FATIA DO MOTOR DE GATILHOS (DAG ENGINE)
+│   ├── automation/                     # FATIA DO MOTOR DE AUTOMAÇÃO (DAG ENGINE)
 │   │   ├── package.json
 │   │   ├── src/
 │   │   │   ├── index.ts
-│   │   │   ├── contracts/              # HookNode, HookEdge, HookGraph, hooks.schema.json
+│   │   │   ├── contracts/              # AutomationNode, AutomationEdge, automation.schema.json
 │   │   │   ├── daemon/
 │   │   │   │   ├── dag-runner.ts       # Pipeline assíncrono de nós
 │   │   │   │   ├── nodes/
@@ -179,10 +179,10 @@ lumen-lite/
 │   │   │   │   │   ├── diff-node.ts    # Disparo somente se alterado
 │   │   │   │   │   ├── obs-node.ts     # Chamada WebSocket v5 (obs-websocket-js)
 │   │   │   │   │   └── http-node.ts    # Chamada HTTP com timeout 500ms (Lumikit)
-│   │   │   │   ├── hooks-repo.ts       # Persistência do hooks.json
-│   │   │   │   └── hooks-cli.ts        # lumen hook add, list, test
+│   │   │   │   ├── automation-repo.ts  # Persistência do automation.json
+│   │   │   │   └── automation-cli.ts   # lumen automation add, list, test
 │   │   │   └── ui/
-│   │   │       ├── HookDagCanvas.tsx   # Canvas visual de nós (@xyflow/react)
+│   │   │       ├── AutomationDagCanvas.tsx # Canvas visual de nós (@xyflow/react)
 │   │   │       ├── nodes/              # Blocos visuais customizados do XYFlow
 │   │   │       │   ├── TriggerNode.tsx # Gatilho (on_transition, on_panic)
 │   │   │       │   ├── TransformNode.tsx # Regex e extração de payload

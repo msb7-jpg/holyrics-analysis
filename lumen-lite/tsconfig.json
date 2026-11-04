@@ -2,10 +2,13 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "noEmit": true,
     "paths": {
       "@lumen/core": ["packages/core/src/index.ts"],
+      "@lumen/core/logger": ["packages/core/src/logger/index.ts"],
       "@lumen/core/*": ["packages/core/src/*"],
-      "@slices/*": ["slices/*/index.ts"]
+      "@slices/*": ["slices/*"],
+      "@ui/*": ["apps/ui/src/*"]
     }
   },
   "include": [

@@ -11,14 +11,25 @@
  * ## Comunicação e Fronteiras:
  * - **Dispara:** Carregamento de itens litúrgicos para a fila de execução no `apps/daemon`.
  * - **Consome:** Contratos de itens polimórficos de `@slices/hitems`.
- * - **Exporta para UI:** Barra lateral de roteiro do culto (`LiturgyQueue`) e status de pré-voo em `apps/ui`.
+ * - **Exporta para UI:** Barra lateral de roteiro do culto (`LiturgyScheduleColumn`) e status de pré-voo em `apps/ui`.
  */
 
-export type { LiturgyItem, LiturgyFile } from './contracts/liturgy-schema'
+export type {
+  LiturgyItem,
+  LiturgyFile,
+  LiturgyTheme,
+  SaveLiturgyPayload,
+  ReorderLiturgyPayload,
+  QuickTextPayload,
+} from './contracts/liturgy-schema'
+
 export {
   LiturgyItemSchema,
   LiturgyThemeSchema,
   LiturgyFileSchema,
+  SaveLiturgyPayloadSchema,
+  ReorderLiturgyPayloadSchema,
+  QuickTextPayloadSchema,
 } from './contracts/liturgy-schema'
 
 export type { PreflightResult } from './daemon/preflight-validator'

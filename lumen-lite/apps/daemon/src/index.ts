@@ -1,74 +1,71 @@
+/**
+ * @module @lumen/daemon
+ * @description Ponto de entrada e orquestrador central do servidor de aplicação e WebSocket nativo do LumenLite.
+ *
+ * ## Responsabilidades:
+ * - Inicializar persistência SQLite WAL e semente do acervo musical offline.
+ * - Compor dependências (`FsmEngine`, `DbClient`, repositórios e clientes de fatias).
+ * - Instanciar o roteador de API REST (`createApiRouter`) e o manipulador WebSocket (`createWebSocketHandler`).
+ * - Inicializar o servidor HTTP e WebSocket de ultra-baixa latência (`Bun.serve`).
+ *
+ * ## Comunicação e Fronteiras:
+ * - **Expõe:** Endpoints REST e conexões WebSocket bidirecionais com canais dedicados (`operator`, `projector`, `stage`, `broadcast`).
+ * - **Conecta:** Despacha requisições para os módulos de fatias (`@slices/songs`) e reflete transições da FSM (`@lumen/core`).
+ */
+
 import { FsmEngine } from '@lumen/core'
-import type { ActionCommand, ScreenState } from '@lumen/core'
+import { createLogger } from '@lumen/core/logger'
 import { DbClient } from './db/db-client'
+import { SongRepository, VagalumeClient } from '@slices/songs'
+import type { Song } from '@slices/songs'
+import { BibleRepository } from '@slices/bible'
+import { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+import defaultSongs from '../../../slices/songs/default-songs.json'
+import { createApiRouter } from './api/router'
+import { createWebSocketHandler } from './ws/ws-handler'
+import type { WebSocketData } from './ws/ws-handler'
 
+const logger = createLogger('daemon')
 const PORT = parseInt(process.env.PORT || '4040', 10)
-const fsm = new FsmEngine()
-const _dbClient = new DbClient()
 
-interface WebSocketData {
-  id: string
-  clientType: 'operator' | 'projector' | 'stage' | 'broadcast'
+// 1. Inicialização de Dependências e Persistência
+const fsm = new FsmEngine()
+const dbClient = new DbClient()
+const songRepo = new SongRepository(dbClient.getDb())
+const vagalumeClient = new VagalumeClient()
+const bibleRepo = new BibleRepository(dbClient.getDb())
+const liturgyRepo = new LiturgyRepository()
+
+// Seed inicial do acervo musical
+songRepo.seedIfEmpty(defaultSongs as Song[])
+logger.info({ songsCount: songRepo.count() }, 'Acervo inicializado')
+
+// Seed inicial do motor bíblico (ACF) caso o banco esteja vazio
+if (!bibleRepo.hasBibles()) {
+  const bibleSeedPath = resolve(import.meta.dir, '../../../slices/bible/pt_acrf.bib')
+  if (existsSync(bibleSeedPath)) {
+    bibleRepo.seedFromBibFile(bibleSeedPath, 'ACF', 'Almeida Corrigida e Fiel')
+    logger.info({ versesCount: bibleRepo.count('ACF') }, 'Bíblia ACF populada no primeiro boot')
+  }
 }
 
-console.log(`[LumenLite Daemon] Inicializando na porta ${PORT}...`)
+// 2. Composição de Roteadores e Manipuladores
+const apiRouter = createApiRouter({ fsm, songRepo, vagalumeClient, bibleRepo, liturgyRepo })
+const wsHandler = createWebSocketHandler({ fsm, logger })
 
+// 3. Servidor Bun Thin Shell
+logger.info({ port: PORT }, 'Inicializando Daemon LumenLite...')
 const server = Bun.serve<WebSocketData>({
   port: PORT,
-  fetch(req, server) {
-    const url = new URL(req.url)
-
-    // Upgrade para WebSocket em /ws
-    if (url.pathname === '/ws') {
-      const clientType = (url.searchParams.get('type') || 'operator') as WebSocketData['clientType']
-      const success = server.upgrade(req, {
-        data: {
-          id: crypto.randomUUID(),
-          clientType,
-        },
-      })
-      if (success) return undefined
-    }
-
-    // Health check & status
-    if (url.pathname === '/api/status') {
-      return Response.json({
-        ok: true,
-        state: fsm.getState(),
-        clients: server.subscriberCount('screen-state'),
-      })
-    }
-
-    return new Response('LumenLite Daemon Active', { status: 200 })
+  fetch(request, serverInstance) {
+    return apiRouter.handle(request, serverInstance)
   },
-  websocket: {
-    open(ws) {
-      ws.subscribe('screen-state')
-      console.log(`[WS] Cliente conectado: ${ws.data.clientType} (${ws.data.id})`)
-      // Envia estado atual imediatamente ao conectar
-      ws.send(JSON.stringify({ type: 'SYNC_STATE', state: fsm.getState() }))
-    },
-    message(ws, message) {
-      try {
-        const data = JSON.parse(typeof message === 'string' ? message : new TextDecoder().decode(message))
-
-        if (data.type === 'DISPATCH' && data.command) {
-          const newState = fsm.dispatch(data.command as ActionCommand)
-          server.publish('screen-state', JSON.stringify({ type: 'STATE_CHANGED', state: newState }))
-        }
-      } catch (err) {
-        console.error('[WS] Erro ao processar mensagem:', err)
-      }
-    },
-    close(ws) {
-      console.log(`[WS] Cliente desconectado: ${ws.data.clientType} (${ws.data.id})`)
-    },
-  },
+  websocket: wsHandler.websocket,
 })
 
-// Assina mudanças da FSM para propagar via WebSocket
-fsm.subscribe((newState: ScreenState) => {
-  server.publish('screen-state', JSON.stringify({ type: 'STATE_CHANGED', state: newState }))
-})
+// 4. Integração do ciclo de vida FSM -> Clientes WebSocket
+wsHandler.bindFsm(server)
 
-console.log(`[LumenLite Daemon] Rodando em http://localhost:${server.port} (WS: ws://localhost:${server.port}/ws)`)
+logger.info({ port: server.port, url: `http://localhost:${server.port}` }, 'Daemon LumenLite ativo e pronto')
