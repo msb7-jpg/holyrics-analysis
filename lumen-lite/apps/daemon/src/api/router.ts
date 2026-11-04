@@ -12,6 +12,7 @@ import { handleSongsRoute } from '@slices/songs/daemon/routes/songs-router'
 import { handleVagalumeRoute } from '@slices/songs/daemon/routes/vagalume-router'
 import { handleBibleRoutes } from '@slices/bible/daemon/routes/bible-router'
 import { handleLiturgyRoutes } from '@slices/liturgy/daemon/routes/liturgy-router'
+import { handleAutomationRoutes } from '@slices/automation'
 
 /**
  * Cria a interface do roteador da API com injeção de dependências do contexto.
@@ -68,6 +69,10 @@ export function createApiRouter(context: ApiContext) {
       // Delegação para o roteador de liturgia da fatia @slices/liturgy
       const liturgyResponse = await handleLiturgyRoutes(request, targetUrl, context)
       if (liturgyResponse) return liturgyResponse
+
+      // Delegação para o roteador de automação DAG da fatia @slices/automation
+      const automationResponse = await handleAutomationRoutes(request, targetUrl, context)
+      if (automationResponse) return automationResponse
 
       // Fallback para raiz ou rota padrão
       return new Response('LumenLite Daemon Active', { status: 200, headers: CORS_HEADERS })

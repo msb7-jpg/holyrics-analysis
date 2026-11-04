@@ -41,3 +41,8 @@ export {
   globalEventBus,
 } from './events'
 
+export {
+  createLogger,
+  defaultLogger,
+} from './logger'
+

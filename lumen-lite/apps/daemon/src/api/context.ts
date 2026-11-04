@@ -7,6 +7,7 @@ import type { FsmEngine } from '@lumen/core'
 import type { SongRepository, VagalumeClient } from '@slices/songs'
 import type { BibleRepository } from '@slices/bible'
 import type { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
+import type { AutomationRepository, DagRunner, ObsClient } from '@slices/automation'
 
 /**
  * Contexto compartilhado de dependências injetado nos roteadores da API.
@@ -17,6 +18,9 @@ export interface ApiContext {
   vagalumeClient: VagalumeClient
   bibleRepo: BibleRepository
   liturgyRepo: LiturgyRepository
+  automationRepo: AutomationRepository
+  dagRunner: DagRunner
+  obsClient?: ObsClient | null
 }
 
 /**

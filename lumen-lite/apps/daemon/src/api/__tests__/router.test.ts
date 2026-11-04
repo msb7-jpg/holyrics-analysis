@@ -1,12 +1,14 @@
-import { describe, expect, it, beforeAll } from 'bun:test'
+import { describe, expect, it, beforeAll, afterAll } from 'bun:test'
 import type { Server } from 'bun'
 import { Database } from 'bun:sqlite'
 import { resolve } from 'node:path'
+import { existsSync, unlinkSync } from 'node:fs'
 import { FsmEngine } from '@lumen/core'
 import { SongRepository, VagalumeClient } from '@slices/songs'
 import type { Song } from '@slices/songs'
 import { BibleRepository } from '@slices/bible'
 import { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
+import { AutomationRepository, DagRunner } from '@slices/automation'
 import type { WebSocketData } from '../../ws/ws-handler'
 import { createApiRouter } from '../router'
 
@@ -14,6 +16,7 @@ describe('Daemon API Router', () => {
   let router: ReturnType<typeof createApiRouter>
   let songRepo: SongRepository
   let mockServer: Server<WebSocketData>
+  let automationRepo: AutomationRepository
 
   beforeAll(() => {
     const database = new Database(':memory:')
@@ -25,7 +28,18 @@ describe('Daemon API Router', () => {
     const fsm = new FsmEngine()
     const vagalumeClient = new VagalumeClient()
     const liturgyRepo = new LiturgyRepository(resolve(import.meta.dir, 'test-culto-router.json'))
-    router = createApiRouter({ fsm, songRepo, vagalumeClient, bibleRepo, liturgyRepo })
+    automationRepo = new AutomationRepository(resolve(import.meta.dir, 'test-automation-router.json'))
+    const dagRunner = new DagRunner(automationRepo, null, (cmd) => fsm.dispatch(cmd))
+
+    router = createApiRouter({
+      fsm,
+      songRepo,
+      vagalumeClient,
+      bibleRepo,
+      liturgyRepo,
+      automationRepo,
+      dagRunner,
+    })
 
     const sampleSong: Song = {
       id: 'test-song-1',
@@ -45,6 +59,14 @@ describe('Daemon API Router', () => {
       subscriberCount: (_channel: string) => 2,
       upgrade: () => false,
     } as unknown as Server<WebSocketData>
+  })
+
+  afterAll(() => {
+    const testCultoPath = resolve(import.meta.dir, 'test-culto-router.json')
+    if (existsSync(testCultoPath)) unlinkSync(testCultoPath)
+
+    const testAutoPath = resolve(import.meta.dir, 'test-automation-router.json')
+    if (existsSync(testAutoPath)) unlinkSync(testAutoPath)
   })
 
   it('deve responder requisições OPTIONS com cabeçalhos CORS completos', async () => {
@@ -158,4 +180,31 @@ describe('Daemon API Router', () => {
     expect(json.data[0].id).toBe('ACF')
     expect(json.data[0].verseCount).toBe(31106)
   })
+
+  it('deve retornar o grafo ativo e status do OBS via GET /api/automation', async () => {
+    const request = new Request('http://localhost:4040/api/automation', { method: 'GET' })
+    const response = await router.handle(request, mockServer)
+
+    expect(response?.status).toBe(200)
+    const json = await response?.json()
+    expect(json.ok).toBe(true)
+    expect(json.data.graph).toBeDefined()
+    expect(json.data.graph.nodes.length).toBeGreaterThan(0)
+    expect(json.data.obsStatus).toBeDefined()
+  })
+
+  it('deve salvar e validar novo grafo DAG via PUT /api/automation', async () => {
+    const current = automationRepo.load()
+    const request = new Request('http://localhost:4040/api/automation', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(current),
+    })
+    const response = await router.handle(request, mockServer)
+
+    expect(response?.status).toBe(200)
+    const json = await response?.json()
+    expect(json.ok).toBe(true)
+  })
 })
+

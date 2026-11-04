@@ -20,6 +20,7 @@ import { SongRepository, VagalumeClient } from '@slices/songs'
 import type { Song } from '@slices/songs'
 import { BibleRepository } from '@slices/bible'
 import { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
+import { AutomationRepository, DagRunner, ObsClient } from '@slices/automation'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import defaultSongs from '../../../slices/songs/default-songs.json'
@@ -37,6 +38,19 @@ const songRepo = new SongRepository(dbClient.getDb())
 const vagalumeClient = new VagalumeClient()
 const bibleRepo = new BibleRepository(dbClient.getDb())
 const liturgyRepo = new LiturgyRepository()
+const automationRepo = new AutomationRepository()
+
+// Inicializa cliente OBS Studio v5 conforme o grafo ativo
+const activeAutomationGraph = automationRepo.load()
+const obsClient = new ObsClient(activeAutomationGraph.obsConnection)
+obsClient.connect()
+
+// Instancia motor DAG de automação reativa
+const dagRunner = new DagRunner(
+  automationRepo,
+  obsClient,
+  (command) => fsm.dispatch(command),
+)
 
 // Seed inicial do acervo musical
 songRepo.seedIfEmpty(defaultSongs as Song[])
@@ -52,7 +66,16 @@ if (!bibleRepo.hasBibles()) {
 }
 
 // 2. Composição de Roteadores e Manipuladores
-const apiRouter = createApiRouter({ fsm, songRepo, vagalumeClient, bibleRepo, liturgyRepo })
+const apiRouter = createApiRouter({
+  fsm,
+  songRepo,
+  vagalumeClient,
+  bibleRepo,
+  liturgyRepo,
+  automationRepo,
+  dagRunner,
+  obsClient,
+})
 const wsHandler = createWebSocketHandler({ fsm, logger })
 
 // 3. Servidor Bun Thin Shell
@@ -65,7 +88,45 @@ const server = Bun.serve<WebSocketData>({
   websocket: wsHandler.websocket,
 })
 
-// 4. Integração do ciclo de vida FSM -> Clientes WebSocket
+// 4. Integração do ciclo de vida FSM -> Clientes WebSocket & DAG Runner
 wsHandler.bindFsm(server)
 
+// Disparo assíncrono e desacoplado de eventos da FSM para o DAG Runner (0ms de impacto na projeção - RNF-04)
+fsm.subscribe((nextState, previousState) => {
+  const isSlideChanged =
+    nextState.foreground.slideIndex !== previousState.foreground.slideIndex ||
+    nextState.foreground.content.join('\n') !== previousState.foreground.content.join('\n')
+
+  if (isSlideChanged) {
+    dagRunner.executeTrigger('ON_SLIDE_CHANGE', {
+      triggerType: 'ON_SLIDE_CHANGE',
+      state: nextState,
+      previousState,
+    }).catch((err) => logger.error({ err }, 'Erro assíncrono ao processar trigger ON_SLIDE_CHANGE'))
+  }
+
+  if (nextState.activeItemId !== previousState.activeItemId) {
+    dagRunner.executeTrigger('ON_ITEM_SELECT', {
+      triggerType: 'ON_ITEM_SELECT',
+      state: nextState,
+      previousState,
+    }).catch((err) => logger.error({ err }, 'Erro assíncrono ao processar trigger ON_ITEM_SELECT'))
+  }
+
+  const isPanicChanged =
+    nextState.panic.blackout !== previousState.panic.blackout ||
+    nextState.panic.clearText !== previousState.panic.clearText ||
+    nextState.panic.clearBg !== previousState.panic.clearBg ||
+    nextState.panic.freeze !== previousState.panic.freeze
+
+  if (isPanicChanged) {
+    dagRunner.executeTrigger('ON_PANIC', {
+      triggerType: 'ON_PANIC',
+      state: nextState,
+      previousState,
+    }).catch((err) => logger.error({ err }, 'Erro assíncrono ao processar trigger ON_PANIC'))
+  }
+})
+
 logger.info({ port: server.port, url: `http://localhost:${server.port}` }, 'Daemon LumenLite ativo e pronto')
+

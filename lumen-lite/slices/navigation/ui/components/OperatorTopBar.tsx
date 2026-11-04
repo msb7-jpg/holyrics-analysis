@@ -3,7 +3,7 @@
  * @description Barra superior do console do operador com status de hardware, conexão e atalho do Spotlight.
  */
 
-import { Monitor, Radio, Search } from 'lucide-react'
+import { Monitor, Radio, Search, Cpu } from 'lucide-react'
 import { Button } from '@ui/components/ui/button'
 import { Kbd } from '@ui/components/ui/kbd'
 import { PanicToolbar } from './PanicToolbar'
@@ -13,6 +13,7 @@ export interface OperatorTopBarProps {
   connected: boolean
   panic: PanicMask
   onOpenSpotlight: () => void
+  onOpenAutomation?: () => void
   onTogglePanic: (target: 'blackout' | 'clearText' | 'freeze') => void
 }
 
@@ -20,12 +21,18 @@ export interface OperatorTopBarProps {
  * Cabeçalho principal com telemetria e controles rápidos.
  *
  * @param props - Propriedades do cabeçalho.
+ * @param props.connected - Se o WebSocket está conectado.
+ * @param props.panic - Máscara de pânico ativa.
+ * @param props.onOpenSpotlight - Abertura do Spotlight.
+ * @param props.onOpenAutomation - Abertura do editor visual DAG de automações.
+ * @param props.onTogglePanic - Disparo de máscaras de pânico.
  * @returns Elemento JSX com a TopBar estilizada.
  */
 export function OperatorTopBar({
   connected,
   panic,
   onOpenSpotlight,
+  onOpenAutomation,
   onTogglePanic,
 }: OperatorTopBarProps) {
   return (
@@ -48,6 +55,13 @@ export function OperatorTopBar({
       </div>
 
       <div className="flex items-center gap-2">
+        {onOpenAutomation && (
+          <Button variant="ghost" onClick={onOpenAutomation} title="Configurar Automações (OBS, DMX, Webhooks)">
+            <Cpu className="h-3.5 w-3.5 text-sky-400" />
+            <span>Automações</span>
+          </Button>
+        )}
+
         <Button variant="secondary" onClick={onOpenSpotlight}>
           <Search className="h-3.5 w-3.5 text-sky-400" />
           <span>Spotlight</span>
@@ -59,3 +73,4 @@ export function OperatorTopBar({
     </header>
   )
 }
+

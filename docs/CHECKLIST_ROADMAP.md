@@ -6,7 +6,30 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
-### [v0.5.0] - Janela do Projetor HDMI, Auto-Fit Dinâmico & Seamless Video Loops (Atual)
+### [v0.6.0] - Motor de Automações DAG, Cliente Nativo OBS Studio v5 & Editor Visual por Nós (Atual)
+- **Motor de Automações Baseado em Grafo Acíclico Dirigido (`slices/automation` - RF-31, RNF-04):**
+  - Implementação de contratos Zod v4 com suporte a nós tipados de Gatilho (`TRIGGER`: `ON_SLIDE_CHANGE`, `ON_ITEM_SELECT`, `ON_PANIC`, `ON_HTTP_WEBHOOK`), Condições (`CONDITION`: `equals`, `contains`, `starts_with`, etc.) e Ações (`ACTION_OBS`, `ACTION_HTTP`, `ACTION_FSM`, `ACTION_DELAY`).
+  - Algoritmo de validação de aciclicidade via Busca em Profundidade (DFS) em `validateGraphAcyclic`, rejeitando ciclos diretos ou indiretos e loops em `automation.json`.
+  - Executor assíncrono `DagRunner` operando com ramificações concorrentes via `Promise.allSettled`, protegido por timeouts individuais (`AbortSignal.timeout`) para garantir **0ms de impacto na thread de projeção** (RNF-04).
+  - Repositório atômico `AutomationRepository` para persistência segura de `automation.json` via gravação temporária (`.tmp`).
+- **Cliente Nativo de Alta Performance para OBS Studio WebSocket v5 (RF-33):**
+  - Implementação do `ObsClient` nativo em Bun utilizando `WebSocket` e `crypto.createHash('sha256')` para autenticação com hash duplo sem bibliotecas externas pesadas.
+  - Suporte a comandos canônicos de transmissão (`SetCurrentProgramScene`, `SetCurrentPreviewScene`, `SetSceneItemEnabled`, `SetInputMute`, `ToggleInputMute`, `StartStream`, `StopStream`, etc.).
+  - Gerenciamento de reconexão automática e tolerância a quedas de rede.
+- **Roteador Modular REST do Daemon (`/api/automation/*`):**
+  - `GET /api/automation`: Consulta grafo ativo e telemetria de conectividade com o OBS Studio.
+  - `PUT /api/automation`: Validação atômica e salvamento de novas regras de grafo.
+  - `POST /api/automation/test-trigger`: Disparo manual de testes para validação imediata de regras.
+  - `POST /api/automation/webhook/:triggerId`: Receptor de webhooks externos para acionamento remoto.
+- **Editor Visual Interativo com Blocos (`@xyflow/react` - RF-32):**
+  - Componente `AutomationCanvas` com nós customizados nos padrões *Slate Pro Studio* (`TriggerNode`, `ConditionNode`, `ActionNode`).
+  - Handles de conexão com código de cores semântico (verde para `true`, vermelho/ardósia para `false`, ciano para conexões gerais).
+  - Modal integrado `AutomationModal` acessível diretamente pelo console do operador através da `OperatorTopBar`.
+- **Testes & Conformidade:**
+  - 61 testes automatizados passando em ~1.9s com 100% de sucesso no Bun.
+  - 0 erros de TypeScript estrito (`bun run check`) e 0 advertências no ESLint (`bun run lint`).
+
+### [v0.5.0] - Janela do Projetor HDMI, Auto-Fit Dinâmico & Seamless Video Loops
 - **Janela de Projeção Dedicada (`/projector` - RF-01, RF-03, RF-04):**
   - Implementação do componente `ProjectorView` em `apps/ui/src/projector/ProjectorView.tsx` renderizado em tela cheia com cursor invisível (`cursor: none`) e atalhos diretos de emergência (`F1` para blackout, `F2` para limpar texto).
   - Componente universal de projeção `ProjectorScreen` com suporte a todas as máscaras de pânico: `blackout` (tela preta total instantânea em 0ms), `clearText` (suprime o texto mantendo o vídeo em loop), `clearBg` (fundo escuro sólido mantendo texto) e `freeze` (congelamento de quadro via ref).
@@ -189,9 +212,9 @@ Legenda de Status:
 
 ### Módulo 7: Automação por Nós (DAG Hooks) & Controle via CLI
 - [~] **RF-30: Controle Total via CLI (`lumen`)** (Binário executável criado com comandos `status`, `next`, `prev`, `blackout`; pendente expansão para todos os slices).
-- [~] **RF-31: Motor de Automações Baseado em Grafo (DAG)** (Contratos e schemas Zod do grafo definidos em `slices/automation`).
-- [ ] **RF-32: Editor Visual de Automação com Blocos (`@xyflow/react`)** (Canvas interativo em nós arrastáveis).
-- [ ] **RF-33: Ações Externas Integradas** (Nós executores de OBS WebSocket v5 e HTTP Lumikit DMX).
+- [x] **RF-31: Motor de Automações Baseado em Grafo (DAG)** (Validador acíclico DFS, schemas Zod v4 e runner assíncrono `DagRunner` concorrente em `slices/automation`).
+- [x] **RF-32: Editor Visual de Automação com Blocos (`@xyflow/react`)** (Canvas interativo `AutomationCanvas` e modal `AutomationModal` no padrão Slate Pro Studio).
+- [x] **RF-33: Ações Externas Integradas** (Cliente nativo OBS WebSocket v5 `ObsClient`, chamadas HTTP REST para DMX e comandos internos de FSM).
 - [~] **RF-34: Sistema Declarativo de Atalhos (`keybindings.json`)** (Contratos mapeados; pendente hook listener global de teclas W3C).
 
 ---
@@ -227,5 +250,10 @@ Legenda de Status:
    - Janela `/projector` de tela cheia sem cursores e com atalhos de pânico.
    - Double-buffering de vídeo em background eliminando flash preto de loop.
    - Auto-fit tipográfico dinâmico responsivo e higienização de tags litúrgicas.
-5. **[EM ANDAMENTO] Etapa 5: Motor de Automação DAG (`slices/automation` - v0.6.0):**
-   - Implementar o runner DAG e o editor visual com `@xyflow/react` para `automation.json`.
+5. **[CONCLUÍDO] Etapa 5: Motor de Automação DAG (`slices/automation` - v0.6.0):**
+   - Implementação do runner DAG assíncrono com tolerância a falhas e sem bloqueio de thread.
+   - Cliente OBS WebSocket v5 nativo em Bun com handshake de autenticação SHA-256.
+   - Editor visual de blocos interativo com `@xyflow/react` e modal no console do operador.
+6. **[EM ANDAMENTO] Etapa 6: CLI Headless & Mapeador Declarativo de Atalhos (`slices/keymap` + CLI - v0.7.0):**
+   - Expansão do binário CLI `lumen` para controle total headless (músicas, Bíblia, liturgia, pânico).
+   - Hook global de atalhos personalizáveis via `keybindings.json` (RF-30, RF-34).

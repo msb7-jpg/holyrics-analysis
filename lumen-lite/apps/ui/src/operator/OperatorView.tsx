@@ -4,6 +4,7 @@
  * Orquestrador declarativo enxuto (< 100 linhas) montando o layout de 4 colunas Slate Pro Studio.
  */
 
+import { useState } from 'react'
 import { Search, Loader2 } from 'lucide-react'
 import type { ScreenState, ActionCommand } from '@lumen/core'
 import { Input } from '@ui/components/ui/input'
@@ -15,6 +16,7 @@ import { SongSearchList } from '@slices/songs/ui/components/SongSearchList'
 import { SongStanzaGrid } from '@slices/songs/ui/components/SongStanzaGrid'
 import { BibleQuickLookupCard } from '@slices/bible/ui/components/BibleQuickLookupCard'
 import { BibleVerseGrid } from '@slices/bible/ui/components/BibleVerseGrid'
+import { AutomationModal } from '@slices/automation'
 import { SpotlightDialog } from './components/SpotlightDialog'
 import { useOperatorController } from './hooks/useOperatorController'
 
@@ -53,6 +55,8 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
     handleSelectLiturgyItem,
   } = useOperatorController({ state, dispatch })
 
+  const [isAutomationOpen, setIsAutomationOpen] = useState(false)
+
   return (
     <div className="flex h-screen w-screen flex-col bg-slate-900 text-slate-100 select-none">
       {/* TopBar Sóbria com Pânico e Status */}
@@ -60,6 +64,7 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
         connected={connected}
         panic={state.panic}
         onOpenSpotlight={() => setIsSpotlightOpen(true)}
+        onOpenAutomation={() => setIsAutomationOpen(true)}
         onTogglePanic={(target) => dispatch({ type: 'TOGGLE_PANIC', target })}
       />
 
@@ -157,6 +162,12 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
         onSelectSong={handleSelectSong}
         onSelectBible={handleSelectBible}
         onTogglePanic={(target) => dispatch({ type: 'TOGGLE_PANIC', target })}
+      />
+
+      {/* Modal de Automação Litúrgica DAG */}
+      <AutomationModal
+        isOpen={isAutomationOpen}
+        onClose={() => setIsAutomationOpen(false)}
       />
     </div>
   )
