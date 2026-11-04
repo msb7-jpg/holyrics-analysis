@@ -3,7 +3,7 @@
  * @description Barra superior do console do operador com status de hardware, conexão e atalho do Spotlight.
  */
 
-import { Monitor, Radio, Search, Cpu } from 'lucide-react'
+import { Monitor, Radio, Search, Cpu, Keyboard } from 'lucide-react'
 import { Button } from '@ui/components/ui/button'
 import { Kbd } from '@ui/components/ui/kbd'
 import { PanicToolbar } from './PanicToolbar'
@@ -14,6 +14,7 @@ export interface OperatorTopBarProps {
   panic: PanicMask
   onOpenSpotlight: () => void
   onOpenAutomation?: () => void
+  onOpenKeymap?: () => void
   onTogglePanic: (target: 'blackout' | 'clearText' | 'freeze') => void
 }
 
@@ -33,6 +34,7 @@ export function OperatorTopBar({
   panic,
   onOpenSpotlight,
   onOpenAutomation,
+  onOpenKeymap,
   onTogglePanic,
 }: OperatorTopBarProps) {
   return (
@@ -55,6 +57,13 @@ export function OperatorTopBar({
       </div>
 
       <div className="flex items-center gap-2">
+        {onOpenKeymap && (
+          <Button variant="ghost" onClick={onOpenKeymap} title="Atalhos de Teclado (⌘/)">
+            <Keyboard className="h-3.5 w-3.5 text-slate-400" />
+            <span>Atalhos</span>
+          </Button>
+        )}
+
         {onOpenAutomation && (
           <Button variant="ghost" onClick={onOpenAutomation} title="Configurar Automações (OBS, DMX, Webhooks)">
             <Cpu className="h-3.5 w-3.5 text-sky-400" />

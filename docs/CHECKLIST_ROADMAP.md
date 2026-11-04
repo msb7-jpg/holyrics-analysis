@@ -6,7 +6,34 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
-### [v0.6.0] - Motor de Automações DAG, Cliente Nativo OBS Studio v5 & Editor Visual por Nós (Atual)
+### [v0.7.0] - CLI Headless Completo, Sistema Declarativo de Atalhos (keybindings.json) & FSM REST Router (Atual)
+- **CLI Headless de Controle Total (`apps/daemon/src/cli.ts` - RF-30):**
+  - Implementação do binário executável `lumen` com suporte a controle total da projeção sem interface gráfica:
+    - Navegação direta: `lumen next`, `lumen prev`, `lumen goto <idx>`, `lumen clear`.
+    - Pânico instantâneo: `lumen blackout`, `lumen clear-text`, `lumen clear-bg`, `lumen freeze`, `lumen panic clear`.
+    - Músicas: `lumen song search <termo>`, `lumen song play <id> [idx]`.
+    - Bíblia: `lumen bible quick <ref>`, `lumen bible search <termo>`.
+    - Liturgia: `lumen liturgy show`, `lumen liturgy quick-text "<texto>"`.
+    - Automações: `lumen automation status`, `lumen automation trigger <tipo>`.
+    - Atalhos: `lumen keymap list`, `lumen keymap reset`.
+    - Telemetria: `lumen status`.
+  - Suporte a output estruturado JSON (`--json`) e endpoint remoto configurável (`--url`).
+  - Suíte de testes automatizados com mock server em `apps/daemon/src/__tests__/cli.test.ts`.
+- **Sistema Declarativo de Atalhos de Teclado (`slices/keymap` - RF-34):**
+  - Esquemas Zod v4 para `keybindings.json` com validação estrita de ações canônicas (`KeyActionIdSchema`), escopos (`KeymapScopeSchema`) e combinações de teclas.
+  - Repositório atômico `KeymapRepository` com salvamento temporário (`.tmp`) e função de restauração de fábrica (`resetToDefaults`).
+  - Utilitários puros `matchesKeyCombo` (com suporte a normalização de `CommandOrControl`, modificadores e teclas de função) e `formatKeyComboDisplay`.
+  - Roteador REST modular `/api/keymap/*` no daemon (`GET /api/keymap`, `PUT /api/keymap`, `POST /api/keymap/reset`).
+  - Roteador REST `/api/fsm/*` no daemon (`POST /api/fsm/dispatch` e `GET /api/fsm/state`) para despacho de comandos sem depender de WebSockets.
+- **Integração na Camada de UI (React 19):**
+  - Hook reativo universal `useKeybindings` com isolamento de foco em formulários/inputs e prevenção de conflitos em modais abertos.
+  - Modal `KeymapModal` no padrão *Slate Pro Studio* permitindo ao operador consultar todos os atalhos, filtrar em tempo real e restaurar padrões.
+  - Integração com a barra de ferramentas `OperatorTopBar` e footer do console do operador (`OperatorView`).
+- **Testes & Conformidade:**
+  - 77 testes automatizados passando em ~2.0s com 100% de sucesso no Bun.
+  - 0 erros de TypeScript estrito (`bun run check`) e 0 advertências no ESLint (`bun run lint`).
+
+### [v0.6.0] - Motor de Automações DAG, Cliente Nativo OBS Studio v5 & Editor Visual por Nós
 - **Motor de Automações Baseado em Grafo Acíclico Dirigido (`slices/automation` - RF-31, RNF-04):**
   - Implementação de contratos Zod v4 com suporte a nós tipados de Gatilho (`TRIGGER`: `ON_SLIDE_CHANGE`, `ON_ITEM_SELECT`, `ON_PANIC`, `ON_HTTP_WEBHOOK`), Condições (`CONDITION`: `equals`, `contains`, `starts_with`, etc.) e Ações (`ACTION_OBS`, `ACTION_HTTP`, `ACTION_FSM`, `ACTION_DELAY`).
   - Algoritmo de validação de aciclicidade via Busca em Profundidade (DFS) em `validateGraphAcyclic`, rejeitando ciclos diretos ou indiretos e loops em `automation.json`.
@@ -211,11 +238,11 @@ Legenda de Status:
 - [ ] **RF-29: Cache e Geração Assíncrona de Miniaturas** (Processamento em background de thumbnails de vídeo/imagem).
 
 ### Módulo 7: Automação por Nós (DAG Hooks) & Controle via CLI
-- [~] **RF-30: Controle Total via CLI (`lumen`)** (Binário executável criado com comandos `status`, `next`, `prev`, `blackout`; pendente expansão para todos os slices).
+- [x] **RF-30: Controle Total via CLI (`lumen`)** (Binário executável completo cobrindo todas as fatias: navegação, pânico, músicas, Bíblia, liturgia, automação e keymap com saída JSON).
 - [x] **RF-31: Motor de Automações Baseado em Grafo (DAG)** (Validador acíclico DFS, schemas Zod v4 e runner assíncrono `DagRunner` concorrente em `slices/automation`).
 - [x] **RF-32: Editor Visual de Automação com Blocos (`@xyflow/react`)** (Canvas interativo `AutomationCanvas` e modal `AutomationModal` no padrão Slate Pro Studio).
 - [x] **RF-33: Ações Externas Integradas** (Cliente nativo OBS WebSocket v5 `ObsClient`, chamadas HTTP REST para DMX e comandos internos de FSM).
-- [~] **RF-34: Sistema Declarativo de Atalhos (`keybindings.json`)** (Contratos mapeados; pendente hook listener global de teclas W3C).
+- [x] **RF-34: Sistema Declarativo de Atalhos (`keybindings.json`)** (Contratos Zod v4, repositório atômico, hook universal `useKeybindings`, rotas REST e modal de atalhos `KeymapModal`).
 
 ---
 
@@ -254,6 +281,10 @@ Legenda de Status:
    - Implementação do runner DAG assíncrono com tolerância a falhas e sem bloqueio de thread.
    - Cliente OBS WebSocket v5 nativo em Bun com handshake de autenticação SHA-256.
    - Editor visual de blocos interativo com `@xyflow/react` e modal no console do operador.
-6. **[EM ANDAMENTO] Etapa 6: CLI Headless & Mapeador Declarativo de Atalhos (`slices/keymap` + CLI - v0.7.0):**
-   - Expansão do binário CLI `lumen` para controle total headless (músicas, Bíblia, liturgia, pânico).
-   - Hook global de atalhos personalizáveis via `keybindings.json` (RF-30, RF-34).
+6. **[CONCLUÍDO] Etapa 6: CLI Headless & Mapeador Declarativo de Atalhos (`slices/keymap` + CLI - v0.7.0):**
+   - Expansão completa do binário CLI `lumen` para controle headless total (músicas, Bíblia, liturgia, pânico, automação e keymap com saída JSON).
+   - Mapeamento declarativo via `keybindings.json` com validação Zod v4, repositório atômico e hook universal `useKeybindings`.
+   - Rotas REST `/api/fsm/dispatch` e `/api/keymap/*` no daemon e modal de atalhos `KeymapModal` no operador.
+7. **[EM ANDAMENTO] Etapa 7: Player de Áudio Web Audio API & Cache de Miniaturas (`slices/media` - v0.8.0):**
+   - Implementação do engine de áudio Web Audio API (`BiquadFilterNode`, `GainNode`, visualizador de espectro).
+   - Geração e cache assíncrono de miniaturas de vídeo/imagem para o acervo de mídia (RF-28, RF-29).

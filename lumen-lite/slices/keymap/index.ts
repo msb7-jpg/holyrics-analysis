@@ -1,16 +1,43 @@
 /**
  * @module @slices/keymap
- * @description Fatia de Mapeamento Declarativo de Atalhos de Teclado.
+ * @description Fatia de Mapeamento Declarativo de Atalhos de Teclado do LumenLite (keybindings.json).
  *
  * ## Responsabilidades:
- * - Leitura e gravação do mapeamento declarativo `keybindings.json` com validação de esquema.
- * - Captura e normalização de eventos de teclado W3C padrão (`event.code`).
- * - Execução de comandos do console ou despachos da FSM a partir de teclas de atalho.
+ * - Validação e persistência atômica de atalhos em `keybindings.json` (RF-34).
+ * - Mapeamento ergonômico de combinações W3C para ações litúrgicas canônicas.
+ * - Roteamento REST `/api/keymap/*` para consulta, atualização e reset de atalhos.
+ * - Hook reativo `useKeybindings` com isolamento de foco em formulários/inputs.
  *
  * ## Comunicação e Fronteiras:
- * - **Dispara:** Comandos tipados para o `@lumen/core` ou requisições para a CLI do daemon.
- * - **Consome:** Configuração de atalhos em disco e foco da interface.
- * - **Exporta para UI:** Hook global `useKeymapListener` e diálogo de ajuda de atalhos (`KeymapHelpDialog`).
+ * - **Dispara:** Ações para a FSM (`@lumen/core`), Spotlight e modais do operador.
+ * - **Consome:** Configuração em disco e eventos de teclado do navegador.
+ * - **Exporta:** Contratos, repositório, hooks e componentes de UI.
  */
 
-export const SLICE_NAME = 'keymap'
+export type {
+  KeyActionId,
+  KeymapScope,
+  Keybinding,
+  KeymapConfig,
+  KeyComboEventLike,
+} from './contracts/keymap-contracts'
+
+export {
+  KeyActionIdSchema,
+  KeymapScopeSchema,
+  KeybindingSchema,
+  KeymapConfigSchema,
+  DEFAULT_KEYBINDINGS,
+  DEFAULT_KEYMAP_CONFIG,
+  matchesKeyCombo,
+  formatKeyComboDisplay,
+} from './contracts/keymap-contracts'
+
+export { KeymapRepository } from './daemon/keymap-repository'
+export { handleKeymapRoutes } from './daemon/routes/keymap-router'
+
+export { useKeybindings } from './ui/hooks/useKeybindings'
+export type { UseKeybindingsOptions } from './ui/hooks/useKeybindings'
+
+export { KeymapModal } from './ui/components/KeymapModal'
+export type { KeymapModalProps } from './ui/components/KeymapModal'

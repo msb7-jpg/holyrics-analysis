@@ -8,11 +8,13 @@ import type { WebSocketData } from '../ws/ws-handler'
 import { CORS_HEADERS } from './context'
 import type { ApiContext } from './context'
 import { handleStatusRoute } from './routes/status-router'
+import { handleFsmRoutes } from './routes/fsm-router'
 import { handleSongsRoute } from '@slices/songs/daemon/routes/songs-router'
 import { handleVagalumeRoute } from '@slices/songs/daemon/routes/vagalume-router'
 import { handleBibleRoutes } from '@slices/bible/daemon/routes/bible-router'
 import { handleLiturgyRoutes } from '@slices/liturgy/daemon/routes/liturgy-router'
 import { handleAutomationRoutes } from '@slices/automation'
+import { handleKeymapRoutes } from '@slices/keymap'
 
 /**
  * Cria a interface do roteador da API com injeção de dependências do contexto.
@@ -54,6 +56,10 @@ export function createApiRouter(context: ApiContext) {
         return handleStatusRoute(context, serverInstance)
       }
 
+      // Rota de despacho e telemetria da FSM
+      const fsmResponse = await handleFsmRoutes(request, targetUrl, context)
+      if (fsmResponse) return fsmResponse
+
       // Delegação para o roteador de músicas da fatia @slices/songs
       const songsResponse = await handleSongsRoute(request, targetUrl, context)
       if (songsResponse) return songsResponse
@@ -73,6 +79,10 @@ export function createApiRouter(context: ApiContext) {
       // Delegação para o roteador de automação DAG da fatia @slices/automation
       const automationResponse = await handleAutomationRoutes(request, targetUrl, context)
       if (automationResponse) return automationResponse
+
+      // Delegação para o roteador de atalhos de teclado da fatia @slices/keymap
+      const keymapResponse = await handleKeymapRoutes(request, targetUrl, context)
+      if (keymapResponse) return keymapResponse
 
       // Fallback para raiz ou rota padrão
       return new Response('LumenLite Daemon Active', { status: 200, headers: CORS_HEADERS })

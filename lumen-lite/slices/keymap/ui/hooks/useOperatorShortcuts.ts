@@ -1,9 +1,14 @@
 /**
  * @module @slices/keymap/ui/hooks/useOperatorShortcuts
- * @description Hook reativo que escuta atalhos globais de teclado usando @siberiacancode/reactuse.
+ * @description Hook de atalhos do operador construído sobre o motor declarativo `useKeybindings`.
+ *
+ * ## Responsabilidades:
+ * - Mapear os callbacks do operador para as ações declarativas canônicas (`KeyActionId`).
+ * - Fornecer compatibilidade transparente para o console do operador e modais.
  */
 
-import { useEventListener } from '@siberiacancode/reactuse'
+import { useKeybindings } from './useKeybindings'
+import type { KeyActionId } from '../../contracts/keymap-contracts'
 
 export interface OperatorShortcutsOptions {
   isSpotlightOpen: boolean
@@ -12,20 +17,26 @@ export interface OperatorShortcutsOptions {
   onNavPrev: () => void
   onPanicBlackout?: () => void
   onPanicClearText?: () => void
+  onPanicClearBg?: () => void
   onPanicFreeze?: () => void
+  onOpenAutomation?: () => void
+  onOpenKeymap?: () => void
 }
 
 /**
- * Escuta eventos de teclado no window de forma resiliente, respeitando inputs em foco.
+ * Escuta eventos de teclado no window conectando o motor declarativo aos manipuladores do console.
  *
  * @param options - Ações e estados para os atalhos.
  * @param options.isSpotlightOpen - Se o Spotlight universal está aberto no momento.
- * @param options.onToggleSpotlight - Ação de alternar visibilidade do Spotlight (Cmd+K).
- * @param options.onNavNext - Ação de avançar para o próximo slide (Barra de Espaço).
- * @param options.onNavPrev - Ação de retornar ao slide anterior (Backspace).
+ * @param options.onToggleSpotlight - Ação de alternar visibilidade do Spotlight.
+ * @param options.onNavNext - Ação de avançar para o próximo slide.
+ * @param options.onNavPrev - Ação de retornar ao slide anterior.
  * @param options.onPanicBlackout - Ação de alternar blackout (F1).
  * @param options.onPanicClearText - Ação de alternar ocultar letra (F2).
- * @param options.onPanicFreeze - Ação de alternar congelar telão (F3).
+ * @param options.onPanicClearBg - Ação de alternar ocultar fundo (F3).
+ * @param options.onPanicFreeze - Ação de alternar congelar telão (F4).
+ * @param options.onOpenAutomation - Ação de abrir editor de automação.
+ * @param options.onOpenKeymap - Ação de abrir tabela de atalhos.
  */
 export function useOperatorShortcuts({
   isSpotlightOpen,
@@ -34,42 +45,48 @@ export function useOperatorShortcuts({
   onNavPrev,
   onPanicBlackout,
   onPanicClearText,
+  onPanicClearBg,
   onPanicFreeze,
-}: OperatorShortcutsOptions) {
-  useEventListener('keydown', (event: KeyboardEvent) => {
-    const targetElement = event.target as HTMLElement | null
-    const isInputFocused =
-      targetElement?.tagName === 'INPUT' ||
-      targetElement?.tagName === 'TEXTAREA' ||
-      targetElement?.isContentEditable
-
-    // Cmd+K / Ctrl+K abre ou fecha o Spotlight universal
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-      event.preventDefault()
-      onToggleSpotlight()
-      return
+  onOpenAutomation,
+  onOpenKeymap,
+}: OperatorShortcutsOptions): void {
+  const handleAction = (actionId: KeyActionId) => {
+    switch (actionId) {
+      case 'NAV_NEXT':
+        onNavNext()
+        break
+      case 'NAV_PREV':
+        onNavPrev()
+        break
+      case 'PANIC_BLACKOUT':
+        onPanicBlackout?.()
+        break
+      case 'PANIC_CLEAR_TEXT':
+        onPanicClearText?.()
+        break
+      case 'PANIC_CLEAR_BG':
+        onPanicClearBg?.()
+        break
+      case 'PANIC_FREEZE':
+        onPanicFreeze?.()
+        break
+      case 'OPEN_SPOTLIGHT':
+        onToggleSpotlight()
+        break
+      case 'OPEN_AUTOMATION':
+        onOpenAutomation?.()
+        break
+      case 'OPEN_KEYMAP':
+        onOpenKeymap?.()
+        break
+      default:
+        break
     }
+  }
 
-    // Se estiver digitando em um campo de texto ou com o Spotlight aberto, ignora navegação
-    if (isInputFocused || isSpotlightOpen) {
-      return
-    }
-
-    if (event.key === ' ') {
-      event.preventDefault()
-      onNavNext()
-    } else if (event.key === 'Backspace') {
-      event.preventDefault()
-      onNavPrev()
-    } else if (event.key === 'F1' && onPanicBlackout) {
-      event.preventDefault()
-      onPanicBlackout()
-    } else if (event.key === 'F2' && onPanicClearText) {
-      event.preventDefault()
-      onPanicClearText()
-    } else if (event.key === 'F3' && onPanicFreeze) {
-      event.preventDefault()
-      onPanicFreeze()
-    }
+  useKeybindings({
+    enabled: true,
+    isModalOpen: isSpotlightOpen,
+    onAction: handleAction,
   })
 }

@@ -21,6 +21,7 @@ import type { Song } from '@slices/songs'
 import { BibleRepository } from '@slices/bible'
 import { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
 import { AutomationRepository, DagRunner, ObsClient } from '@slices/automation'
+import { KeymapRepository } from '@slices/keymap'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import defaultSongs from '../../../slices/songs/default-songs.json'
@@ -39,6 +40,7 @@ const vagalumeClient = new VagalumeClient()
 const bibleRepo = new BibleRepository(dbClient.getDb())
 const liturgyRepo = new LiturgyRepository()
 const automationRepo = new AutomationRepository()
+const keymapRepo = new KeymapRepository()
 
 // Inicializa cliente OBS Studio v5 conforme o grafo ativo
 const activeAutomationGraph = automationRepo.load()
@@ -74,6 +76,7 @@ const apiRouter = createApiRouter({
   liturgyRepo,
   automationRepo,
   dagRunner,
+  keymapRepo,
   obsClient,
 })
 const wsHandler = createWebSocketHandler({ fsm, logger })

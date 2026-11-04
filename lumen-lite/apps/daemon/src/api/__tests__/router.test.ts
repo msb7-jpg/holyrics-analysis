@@ -9,6 +9,7 @@ import type { Song } from '@slices/songs'
 import { BibleRepository } from '@slices/bible'
 import { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
 import { AutomationRepository, DagRunner } from '@slices/automation'
+import { KeymapRepository } from '@slices/keymap'
 import type { WebSocketData } from '../../ws/ws-handler'
 import { createApiRouter } from '../router'
 
@@ -29,6 +30,7 @@ describe('Daemon API Router', () => {
     const vagalumeClient = new VagalumeClient()
     const liturgyRepo = new LiturgyRepository(resolve(import.meta.dir, 'test-culto-router.json'))
     automationRepo = new AutomationRepository(resolve(import.meta.dir, 'test-automation-router.json'))
+    const keymapRepo = new KeymapRepository(resolve(import.meta.dir, 'test-keymap-router.json'))
     const dagRunner = new DagRunner(automationRepo, null, (cmd) => fsm.dispatch(cmd))
 
     router = createApiRouter({
@@ -39,6 +41,7 @@ describe('Daemon API Router', () => {
       liturgyRepo,
       automationRepo,
       dagRunner,
+      keymapRepo,
     })
 
     const sampleSong: Song = {
@@ -67,6 +70,9 @@ describe('Daemon API Router', () => {
 
     const testAutoPath = resolve(import.meta.dir, 'test-automation-router.json')
     if (existsSync(testAutoPath)) unlinkSync(testAutoPath)
+
+    const testKeymapPath = resolve(import.meta.dir, 'test-keymap-router.json')
+    if (existsSync(testKeymapPath)) unlinkSync(testKeymapPath)
   })
 
   it('deve responder requisições OPTIONS com cabeçalhos CORS completos', async () => {
@@ -205,6 +211,47 @@ describe('Daemon API Router', () => {
     expect(response?.status).toBe(200)
     const json = await response?.json()
     expect(json.ok).toBe(true)
+  })
+
+  it('deve despachar comandos FSM via POST /api/fsm/dispatch e consultar estado via GET /api/fsm/state', async () => {
+    const postReq = new Request('http://localhost:4040/api/fsm/dispatch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        command: { type: 'TOGGLE_PANIC', target: 'blackout' },
+      }),
+    })
+    const postRes = await router.handle(postReq, mockServer)
+    expect(postRes?.status).toBe(200)
+    const postJson = await postRes?.json()
+    expect(postJson.ok).toBe(true)
+    expect(postJson.data.panic.blackout).toBe(true)
+
+    // Consulta estado
+    const getReq = new Request('http://localhost:4040/api/fsm/state', { method: 'GET' })
+    const getRes = await router.handle(getReq, mockServer)
+    expect(getRes?.status).toBe(200)
+    const getJson = await getRes?.json()
+    expect(getJson.ok).toBe(true)
+    expect(getJson.data.panic.blackout).toBe(true)
+  })
+
+  it('deve consultar e restaurar atalhos via GET e POST /api/keymap', async () => {
+    // GET /api/keymap
+    const getReq = new Request('http://localhost:4040/api/keymap', { method: 'GET' })
+    const getRes = await router.handle(getReq, mockServer)
+    expect(getRes?.status).toBe(200)
+    const getJson = await getRes?.json()
+    expect(getJson.ok).toBe(true)
+    expect(getJson.data.bindings.length).toBeGreaterThan(0)
+
+    // POST /api/keymap/reset
+    const resetReq = new Request('http://localhost:4040/api/keymap/reset', { method: 'POST' })
+    const resetRes = await router.handle(resetReq, mockServer)
+    expect(resetRes?.status).toBe(200)
+    const resetJson = await resetRes?.json()
+    expect(resetJson.ok).toBe(true)
+    expect(resetJson.data.bindings.length).toBeGreaterThan(0)
   })
 })
 

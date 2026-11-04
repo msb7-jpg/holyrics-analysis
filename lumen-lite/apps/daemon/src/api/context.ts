@@ -8,6 +8,7 @@ import type { SongRepository, VagalumeClient } from '@slices/songs'
 import type { BibleRepository } from '@slices/bible'
 import type { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
 import type { AutomationRepository, DagRunner, ObsClient } from '@slices/automation'
+import type { KeymapRepository } from '@slices/keymap'
 
 /**
  * Contexto compartilhado de dependências injetado nos roteadores da API.
@@ -20,6 +21,7 @@ export interface ApiContext {
   liturgyRepo: LiturgyRepository
   automationRepo: AutomationRepository
   dagRunner: DagRunner
+  keymapRepo: KeymapRepository
   obsClient?: ObsClient | null
 }
 

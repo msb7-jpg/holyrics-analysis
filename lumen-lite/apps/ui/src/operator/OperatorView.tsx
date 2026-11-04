@@ -17,6 +17,7 @@ import { SongStanzaGrid } from '@slices/songs/ui/components/SongStanzaGrid'
 import { BibleQuickLookupCard } from '@slices/bible/ui/components/BibleQuickLookupCard'
 import { BibleVerseGrid } from '@slices/bible/ui/components/BibleVerseGrid'
 import { AutomationModal } from '@slices/automation'
+import { KeymapModal } from '@slices/keymap'
 import { SpotlightDialog } from './components/SpotlightDialog'
 import { useOperatorController } from './hooks/useOperatorController'
 
@@ -56,6 +57,7 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
   } = useOperatorController({ state, dispatch })
 
   const [isAutomationOpen, setIsAutomationOpen] = useState(false)
+  const [isKeymapOpen, setIsKeymapOpen] = useState(false)
 
   return (
     <div className="flex h-screen w-screen flex-col bg-slate-900 text-slate-100 select-none">
@@ -65,6 +67,7 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
         panic={state.panic}
         onOpenSpotlight={() => setIsSpotlightOpen(true)}
         onOpenAutomation={() => setIsAutomationOpen(true)}
+        onOpenKeymap={() => setIsKeymapOpen(true)}
         onTogglePanic={(target) => dispatch({ type: 'TOGGLE_PANIC', target })}
       />
 
@@ -148,6 +151,7 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
           <span><Kbd>Espaço</Kbd> Próximo</span>
           <span><Kbd>Backspace</Kbd> Retornar</span>
           <span><Kbd>F1</Kbd> Blackout</span>
+          <span><Kbd>⌘/</Kbd> Ver Atalhos</span>
         </div>
         <div className="flex items-center gap-3">
           <span>Versão FSM: {state.version}</span>
@@ -168,6 +172,12 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
       <AutomationModal
         isOpen={isAutomationOpen}
         onClose={() => setIsAutomationOpen(false)}
+      />
+
+      {/* Modal de Atalhos de Teclado (keybindings.json) */}
+      <KeymapModal
+        isOpen={isKeymapOpen}
+        onClose={() => setIsKeymapOpen(false)}
       />
     </div>
   )
