@@ -1,5 +1,6 @@
 import { useScreenState, useWsConnected, useCommandDispatch } from './core/sync/ws-hooks'
 import { OperatorView } from './operator/OperatorView'
+import { ProjectorView } from './projector/ProjectorView'
 
 /**
  * Componente raiz da aplicação cliente React 19.
@@ -14,15 +15,7 @@ export function App() {
   const path = window.location.pathname
 
   if (path === '/projector') {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-black text-white p-12 text-center select-none">
-        {state.panic.blackout ? null : (
-          <div className="text-4xl font-bold leading-relaxed whitespace-pre-wrap">
-            {state.foreground.content.join('\n') || 'LumenLite Projector Ready'}
-          </div>
-        )}
-      </div>
-    )
+    return <ProjectorView state={state} dispatch={dispatch} />
   }
 
   // Rota padrão: Console do Operador

@@ -1,17 +1,45 @@
 /**
  * @module @slices/navigation
- * @description Fatia de Transporte de Slides, Controle do Telão e Ações de Emergência (Pânico).
+ * @description Fatia de Navegação, Controle de Telão HDMI, Transições e Máscaras de Pânico.
  *
  * ## Responsabilidades:
- * - Controle de avanço, retrocesso e salto direto entre estrofes e slides.
- * - Gestão de cortes de emergência: Blackout, Clear Text, Clear Background e Freeze.
- * - Gerenciamento de saídas de vídeo multi-monitor (Interface do Operador vs. Saída HDMI sem bordas).
- * - Renderização do telão com aceleração 100% por GPU e auto-fit dinâmico via CSS.
+ * - Renderização completa do projetor HDMI na janela dedicada `/projector`.
+ * - Auto-fit dinâmico de texto para evitar quebras ou overflow no telão.
+ * - Double-buffering de background com seamless video loop livre de flash preto.
+ * - Tratamento instantâneo de máscaras de pânico (blackout, clearText, clearBg, freeze).
+ * - Monitor e preview na Coluna 4 do console do operador.
  *
  * ## Comunicação e Fronteiras:
- * - **Dispara:** Ações `NAV_NEXT`, `NAV_PREV`, `NAV_GOTO` e `TOGGLE_PANIC` para o `@lumen/core`.
- * - **Consome:** `ScreenState` atualizado emitido via WebSocket pelo `apps/daemon`.
- * - **Exporta para UI:** Barra de pânico (`PanicToolbar`), miniatura 16:9 (`LivePreviewCard`) e viewport do projetor HDMI (`/projector`).
+ * - **Dispara:** Comandos de navegação (NAV_NEXT, NAV_PREV, TOGGLE_PANIC) para a FSM.
+ * - **Consome:** ScreenState atualizado via WebSocket (`ws-handler`).
+ * - **Exporta para UI:** Telão do projetor (`ProjectorScreen`), barras de pânico e preview de saída.
  */
 
-export type { NavigationStatePayload, KeyAction } from './contracts/navigation-contracts'
+export const SLICE_NAME = 'navigation'
+
+export type {
+  AspectRatio,
+  TextAlignment,
+  ProjectorDisplayConfig,
+} from './contracts/projector-contracts'
+
+export {
+  AspectRatioSchema,
+  TextAlignmentSchema,
+  ProjectorDisplayConfigSchema,
+  DEFAULT_PROJECTOR_CONFIG,
+} from './contracts/projector-contracts'
+
+export type {
+  NavigationStatePayload,
+  KeyAction,
+} from './contracts/navigation-contracts'
+
+export { sanitizeLine, sanitizeSlideLines } from './daemon/text-sanitizer'
+export { useAutoFitText } from './ui/hooks/useAutoFitText'
+export { BackgroundVideoLoop } from './ui/components/BackgroundVideoLoop'
+export { ForegroundTextDisplay } from './ui/components/ForegroundTextDisplay'
+export { ProjectorScreen } from './ui/components/ProjectorScreen'
+export { OutputMonitorPanel } from './ui/components/OutputMonitorPanel'
+export { OperatorTopBar } from './ui/components/OperatorTopBar'
+export { PanicToolbar } from './ui/components/PanicToolbar'

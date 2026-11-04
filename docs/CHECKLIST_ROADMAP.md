@@ -6,7 +6,25 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
-### [v0.4.0] - Roteiro Litúrgico Interativo, HItems Polimórficos, Drag & Drop e Quick Text (Atual)
+### [v0.5.0] - Janela do Projetor HDMI, Auto-Fit Dinâmico & Seamless Video Loops (Atual)
+- **Janela de Projeção Dedicada (`/projector` - RF-01, RF-03, RF-04):**
+  - Implementação do componente `ProjectorView` em `apps/ui/src/projector/ProjectorView.tsx` renderizado em tela cheia com cursor invisível (`cursor: none`) e atalhos diretos de emergência (`F1` para blackout, `F2` para limpar texto).
+  - Componente universal de projeção `ProjectorScreen` com suporte a todas as máscaras de pânico: `blackout` (tela preta total instantânea em 0ms), `clearText` (suprime o texto mantendo o vídeo em loop), `clearBg` (fundo escuro sólido mantendo texto) e `freeze` (congelamento de quadro via ref).
+- **Tipografia Responsiva com Auto-Fit Dinâmico (RF-05, RF-06):**
+  - Hook de alta performance `useAutoFitText` (`slices/navigation/ui/hooks/useAutoFitText.ts`) com algoritmo de busca binária e `ResizeObserver` para ajustar a fonte (`fontSize`) de forma suave entre 24px e 86px sem overflow ou cortes no telão.
+  - Componente `ForegroundTextDisplay` com aplicação estrita do Design System *Slate Pro Studio* (sombra suave, legibilidade máxima e indicador discreto de slide/estrofe).
+- **Vídeo em Background com Double-Buffering & Seamless Loop (RF-27):**
+  - Componente `BackgroundVideoLoop` (`slices/navigation/ui/components/BackgroundVideoLoop.tsx`) utilizando técnica de double-buffering com dois elementos `<video>` HTML5 sobrepostos (Buffer A e Buffer B).
+  - Crossfade de opacidade calibrado (~200ms) eliminando totalmente o flash preto de fim de arquivo gerado por navegadores/Chromium.
+- **Higienização de Marcações Litúrgicas para a Congregação:**
+  - Micro-motor léxico `text-sanitizer.ts` e testes unitários para purgar marcações de ensaio/banda (`[CORO]`, `[V1]`, `[VERSO 2]`, `[PONTE]`, `[INTRO]`, etc.) do telão público, mantendo a tela 100% focada na congregação.
+- **Monitor de Saída Fiel na Coluna 4 do Operador:**
+  - Atualização do `OutputMonitorPanel` utilizando o `ProjectorScreen` em proporção 16:9, permitindo que o operador visualize exatamente o que a congregação vê em escala 1:1, além de botão com link para abrir o telão em nova janela.
+- **Testes & Conformidade:**
+  - 47 testes passando com 100% de sucesso no Bun.
+  - 0 erros de TypeScript (`bun run check`) e 0 advertências de linter (`bun run lint`).
+
+### [v0.4.0] - Roteiro Litúrgico Interativo, HItems Polimórficos, Drag & Drop e Quick Text
 - **Modelagem Polimórfica de Itens Litúrgicos (`slices/hitems`):**
   - Definição canônica do `HItemSchema` com união discriminada Zod v4 para `SONG`, `BIBLE`, `MEDIA`, `PPTX`, `TEXT` e `COUNTDOWN`.
   - Contratos tipados e esquemas isomórficos compartilhados entre o daemon Bun e o frontend React 19.
@@ -124,12 +142,12 @@ Legenda de Status:
 - [ ] **Pendente:** Próximas etapas do roadmap.
 
 ### Módulo 1: Motor de Projeção & Saídas de Vídeo
-- [~] **RF-01: Controle Multi-Monitor** (Configuração do `tauri.conf.json` criada com suporte a Monitor 1 e HDMI 2; pendente binding nativo de enumeração de monitores via Tauri).
+- [~] **RF-01: Controle Multi-Monitor** (Configuração do `tauri.conf.json` criada com suporte a Monitor 1 e HDMI 2; rota `/projector` pronta com suporte a tela cheia).
 - [~] **RF-02: Monitor de Retorno (Stage View)** (Rota `/stage` e contratos estruturados; pendente layout de alto contraste e relógio de cabeçalho).
 - [x] **RF-03: Ações de Emergência (Pânico)** (Comandos de corte imediato `blackout`, `clearText`, `clearBg` e `freeze` no Reducer e botões no console).
-- [x] **RF-04: Freeze (Congelar Projeção)** (Máscara atômica no `ScreenState` e despacho via FSM/WS).
-- [ ] **RF-05: Motor Tipográfico & Auto-Fit** (Container Queries e `ResizeObserver` para escala dinâmica de fontes sem engasgos).
-- [~] **RF-06: Temas e Estilos Visuais** (Design System Slate Pro e tokens de cores/margens definidos em `MASTER.md`).
+- [x] **RF-04: Freeze (Congelar Projeção)** (Máscara atômica no `ScreenState`, despacho via FSM/WS e retenção de frame no `ProjectorScreen`).
+- [x] **RF-05: Motor Tipográfico & Auto-Fit** (Hook `useAutoFitText` com busca binária de tamanho de fonte, `ResizeObserver` e higienização de letras).
+- [x] **RF-06: Temas e Estilos Visuais** (Design System Slate Pro Studio, tokens em `MASTER.md` e renderizador `ForegroundTextDisplay` com sombra e legibilidade calibradas).
 
 ### Módulo 2: Gestão de Músicas & Letras (Music Engine)
 - [x] **RF-07: Estrutura Semântica de Letras** (Contratos Zod `SongSchema` e `SongSectionSchema` com estrofes sóbrias).
@@ -165,7 +183,7 @@ Legenda de Status:
 - [x] **RF-26C: Arquitetura Focada & Exclusão de Bloatware** (Servidor enxuto sem módulos supérfluos de chat ou redes sociais).
 
 ### Módulo 6: Mídia, Áudio & Loops
-- [ ] **RF-27: Loops de Vídeo Contínuos (Seamless Loops)** (Double buffering de `<video>` HTML5 com transição de opacidade via CSS).
+- [x] **RF-27: Loops de Vídeo Contínuos (Seamless Loops)** (Double buffering de `<video>` HTML5 com troca automática e transição de opacidade via CSS em `BackgroundVideoLoop`).
 - [~] **RF-28: Player de Áudio com Equalizador** (Widget inicial no console; pendente integração com nós `BiquadFilterNode` e `GainNode` da Web Audio API).
 - [ ] **RF-29: Cache e Geração Assíncrona de Miniaturas** (Processamento em background de thumbnails de vídeo/imagem).
 
@@ -205,7 +223,9 @@ Legenda de Status:
    - Drag & Drop nativo para reordenar a sequência da liturgia sem dependências infladas.
    - Menu de contexto (botão direito) no roteiro para inserção de anotações pastorais, contagens e projeção direta.
    - Modal de Projeção Rápida de Texto Avulso de Emergência (Quick Text - RF-22A).
-4. **[EM ANDAMENTO] Etapa 4: Projetor HDMI & Seamless Loop (`slices/navigation`):**
-   - Implementar a janela `/projector` com auto-fit de texto por CSS e double-buffer de vídeo em loop.
-5. **Etapa 5: Motor de Automação DAG (`slices/automation`):**
+4. **[CONCLUÍDO] Etapa 4: Projetor HDMI & Seamless Loop (`slices/navigation` - v0.5.0):**
+   - Janela `/projector` de tela cheia sem cursores e com atalhos de pânico.
+   - Double-buffering de vídeo em background eliminando flash preto de loop.
+   - Auto-fit tipográfico dinâmico responsivo e higienização de tags litúrgicas.
+5. **[EM ANDAMENTO] Etapa 5: Motor de Automação DAG (`slices/automation` - v0.6.0):**
    - Implementar o runner DAG e o editor visual com `@xyflow/react` para `automation.json`.
