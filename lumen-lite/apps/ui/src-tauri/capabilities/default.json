@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissoes padrao para controle multi-monitor e janelas do LumenLite",
+  "windows": ["main", "projector", "stage"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-fullscreen",
+    "core:window:allow-set-position",
+    "core:window:allow-set-size",
+    "core:window:allow-available-monitors"
+  ]
+}

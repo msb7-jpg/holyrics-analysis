@@ -104,6 +104,7 @@ const wsHandler = createWebSocketHandler({ fsm, stageEngine, logger })
 // 3. Servidor Bun Thin Shell
 logger.info({ port: PORT }, 'Inicializando Daemon LumenLite...')
 const server = Bun.serve<WebSocketData>({
+  hostname: '0.0.0.0',
   port: PORT,
   fetch(request, serverInstance) {
     return apiRouter.handle(request, serverInstance)
