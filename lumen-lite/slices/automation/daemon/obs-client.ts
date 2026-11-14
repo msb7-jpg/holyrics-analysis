@@ -43,6 +43,8 @@ export class ObsClient {
   private obsVersion: string | undefined
   private pendingRequests = new Map<string, PendingRequest>()
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
+  private reconnectAttempts = 0
+  private hasLoggedOffline = false
   private isDisposed = false
 
   /**
@@ -61,7 +63,11 @@ export class ObsClient {
     if (this.isDisposed || this.socket) return
 
     const targetUrl = `ws://${this.config.host}:${this.config.port}`
-    logger.info({ url: targetUrl }, 'Iniciando conexão com OBS Studio WebSocket v5...')
+    if (!this.hasLoggedOffline) {
+      logger.info({ url: targetUrl }, 'Iniciando conexão com OBS Studio WebSocket v5...')
+    } else {
+      logger.debug({ url: targetUrl, attempt: this.reconnectAttempts }, 'Tentando reconexão silenciosa com OBS Studio...')
+    }
 
     try {
       this.socket = new WebSocket(targetUrl)
@@ -74,8 +80,14 @@ export class ObsClient {
         this.handleMessage(String(event.data))
       }
 
-      this.socket.onerror = (event: Event) => {
-        logger.warn({ event }, 'Erro na conexão WebSocket com OBS Studio')
+      this.socket.onerror = () => {
+        if (!this.hasLoggedOffline) {
+          this.hasLoggedOffline = true
+          logger.info(
+            { url: targetUrl },
+            'OBS Studio offline ou inacessível no momento (status: offline; reconexão automática silenciosa ativa)',
+          )
+        }
       }
 
       this.socket.onclose = () => {
@@ -88,7 +100,10 @@ export class ObsClient {
         }
       }
     } catch (error) {
-      logger.warn({ error }, 'Falha imediata ao instanciar conexão com OBS Studio')
+      if (!this.hasLoggedOffline) {
+        this.hasLoggedOffline = true
+        logger.info({ error, url: targetUrl }, 'OBS Studio offline (falha ao instanciar WebSocket)')
+      }
       this.scheduleReconnect()
     }
   }
@@ -114,6 +129,8 @@ export class ObsClient {
       // OpCode 2: Identified (Handshake concluído com sucesso)
       if (message.op === 2) {
         this.connected = true
+        this.reconnectAttempts = 0
+        this.hasLoggedOffline = false
         logger.info({ version: this.obsVersion }, 'Handshake concluído. Conectado ao OBS Studio v5!')
         return
       }
@@ -241,10 +258,13 @@ export class ObsClient {
   private scheduleReconnect(): void {
     if (this.reconnectTimer || this.isDisposed) return
 
+    this.reconnectAttempts += 1
+    const delayMs = Math.min(3000 * Math.pow(2, Math.min(this.reconnectAttempts - 1, 4)), 30000)
+
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null
       this.connect()
-    }, 3000)
+    }, delayMs)
   }
 
   /**
