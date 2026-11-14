@@ -273,7 +273,7 @@ describe('Daemon API Router', () => {
     expect(mediaRes?.status).toBe(200)
     const mediaJson = await mediaRes?.json()
     expect(mediaJson.ok).toBe(true)
-    expect(mediaJson.data.length).toBeGreaterThan(0)
+    expect(Array.isArray(mediaJson.data)).toBe(true)
 
     // GET /api/media/audio/playlists
     const playlistReq = new Request('http://localhost:4040/api/media/audio/playlists', { method: 'GET' })
@@ -281,7 +281,7 @@ describe('Daemon API Router', () => {
     expect(playlistRes?.status).toBe(200)
     const playlistJson = await playlistRes?.json()
     expect(playlistJson.ok).toBe(true)
-    expect(playlistJson.data.length).toBeGreaterThan(0)
+    expect(Array.isArray(playlistJson.data)).toBe(true)
   })
 })
 

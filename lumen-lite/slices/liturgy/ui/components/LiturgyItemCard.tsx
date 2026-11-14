@@ -1,21 +1,16 @@
 /**
  * @module @slices/liturgy/ui/components/LiturgyItemCard
  * @description Card individual de item polimórfico renderizado na coluna do roteiro litúrgico.
- *
- * ## Responsabilidades:
- * - Exibir ícone, título, subtítulo e badges de acordo com o tipo (Louvor, Bíblia, Mídia, Aviso, Contagem).
- * - Suporte a arraste (dragstart, dragover, drop) para reordenação nativa (RF-22C).
- * - Suporte a menu de contexto por clique com o botão direito (RF-22B).
  */
 
 import { Music, BookOpen, Film, FileText, Clock, Presentation } from 'lucide-react'
-import { Badge } from '@ui/components/ui/badge'
 import type { LiturgyItem } from '../../contracts/liturgy-schema'
 
 export interface LiturgyItemCardProps {
   item: LiturgyItem
   index: number
   isLive: boolean
+  isSelected?: boolean
   isDragging?: boolean
   onSelect: (item: LiturgyItem) => void
   onContextMenu: (event: React.MouseEvent, item: LiturgyItem) => void
@@ -36,7 +31,6 @@ function getItemMeta(item: LiturgyItem) {
       return {
         label: 'Louvor',
         color: 'text-sky-400',
-        badgeBg: 'bg-sky-500/10 text-sky-300 border-sky-500/20',
         icon: Music,
         subtitle: item.artist ? `${item.artist}` : 'Acervo musical',
       }
@@ -44,48 +38,43 @@ function getItemMeta(item: LiturgyItem) {
       return {
         label: 'Escrituras',
         color: 'text-amber-400',
-        badgeBg: 'bg-amber-500/10 text-amber-300 border-amber-500/20',
         icon: BookOpen,
         subtitle: `Versão ${item.version || 'ACF'}`,
       }
     case 'MEDIA':
       return {
-        label: 'Mídia',
+        label: item.mediaType === 'VIDEO' ? 'Vídeo' : 'Imagem',
         color: 'text-purple-400',
-        badgeBg: 'bg-purple-500/10 text-purple-300 border-purple-500/20',
         icon: Film,
-        subtitle: item.mediaType || 'Vídeo/Imagem',
+        subtitle: item.mediaType === 'VIDEO' ? 'Vídeo / Loop' : 'Imagem de fundo',
       }
     case 'PPTX':
       return {
-        label: 'Slide',
+        label: 'Arquivo',
         color: 'text-orange-400',
-        badgeBg: 'bg-orange-500/10 text-orange-300 border-orange-500/20',
         icon: Presentation,
-        subtitle: 'Apresentação externa',
+        subtitle: 'Apresentação / Slides',
       }
     case 'COUNTDOWN':
       return {
         label: 'Contagem',
         color: 'text-emerald-400',
-        badgeBg: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
         icon: Clock,
         subtitle: `${Math.round((item.targetDurationSeconds || 300) / 60)} min cronometrados`,
       }
     case 'TEXT':
     default:
       return {
-        label: 'Anotação',
+        label: item.category === 'ALERT' || item.category === 'ANNOUNCEMENT' ? 'Aviso' : 'Anotação',
         color: 'text-indigo-400',
-        badgeBg: 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20',
         icon: FileText,
-        subtitle: `${item.content.length} linhas de texto`,
+        subtitle: `${item.content.length} ${item.content.length === 1 ? 'linha' : 'linhas'}`,
       }
   }
 }
 
 /**
- * Card de exibição do item com suporte a Drag & Drop nativo.
+ * Card de exibição do item com superfície sem borda (#192334), semântica Preview (Azul) vs Live (Esmeralda) e Drag & Drop.
  *
  * @param props - Propriedades do card.
  * @returns Elemento JSX do card.
@@ -94,7 +83,8 @@ export function LiturgyItemCard({
   item,
   index,
   isLive,
-  isDragging,
+  isSelected = false,
+  isDragging = false,
   onSelect,
   onContextMenu,
   onDragStart,
@@ -112,20 +102,34 @@ export function LiturgyItemCard({
       onDrop={(event) => onDrop(event, index)}
       onContextMenu={(event) => onContextMenu(event, item)}
       onClick={() => onSelect(item)}
-      className={`group relative flex cursor-pointer flex-col rounded-lg border p-2.5 transition select-none ${
-        isDragging ? 'opacity-40 border-dashed border-sky-400 bg-slate-800/40' : ''
+      className={`group relative flex cursor-pointer flex-col rounded-[6px] p-2.5 transition select-none ${
+        isDragging ? 'opacity-40 ring-1 ring-dashed ring-sky-400 bg-[#192334]/40' : ''
       } ${
         isLive
-          ? 'border-sky-500/50 bg-slate-800 shadow-md ring-1 ring-sky-500/30'
-          : 'border-white/10 bg-slate-800/80 hover:bg-slate-800 hover:border-white/20'
+          ? 'bg-[#1D2D3E] ring-1 ring-emerald-500/50 shadow-sm'
+          : isSelected
+            ? 'bg-[#1B2A42] ring-1 ring-[#3B82F6]/60'
+            : 'bg-[#192334] hover:bg-[#1E2B40]'
       }`}
     >
+      {isLive && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[6px] bg-emerald-500" />
+      )}
+      {!isLive && isSelected && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[6px] bg-[#3B82F6]" />
+      )}
+
       <div className="flex items-center justify-between gap-1">
         <span className={`flex items-center gap-1.5 text-[10px] font-mono font-medium uppercase ${meta.color}`}>
           <Icon className="h-3 w-3" />
           {meta.label}
         </span>
-        {isLive && <Badge variant="live">AO VIVO</Badge>}
+        {isLive && (
+          <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
+            <span>No ar</span>
+          </span>
+        )}
       </div>
 
       <p className="mt-1 font-medium text-slate-100 text-xs truncate">

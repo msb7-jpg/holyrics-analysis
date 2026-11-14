@@ -15,12 +15,14 @@
     "tauri:build": "bun run --filter @lumen/ui tauri:build",
     "build": "bun run --filter \"@lumen/*\" build",
     "test": "bun test",
+    "test:e2e": "bun x playwright test",
     "check": "bun x tsc --noEmit",
     "lint": "bun x eslint packages/ slices/ apps/",
     "lint:docs": "bun x eslint packages/ slices/ apps/ --rule 'jsdoc/require-jsdoc: error'"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.1",
     "@types/bun": "^1.4.4",
     "@types/node": "^22.13.0",
     "@types/pino": "^7.0.4",

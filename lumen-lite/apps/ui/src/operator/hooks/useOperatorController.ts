@@ -53,7 +53,7 @@ function buildBibleSlides(lookup: BibleLookupResponse): SlideItem[] {
  * @param options.dispatch - Despachante tipado de comandos para a FSM.
  * @returns Estados e manipuladores de seleção e navegação.
  */
-export function useOperatorController({ state, dispatch }: UseOperatorControllerOptions) {
+export function useOperatorController({ state: _state, dispatch }: UseOperatorControllerOptions) {
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebounceValue(query, 120)
 
@@ -83,30 +83,7 @@ export function useOperatorController({ state, dispatch }: UseOperatorController
     setSelectedSongId(id)
   }
 
-  // Quando os dados da música chegarem, se for uma nova seleção, despacha o slide inicial com `slides` populado
-  useEffect(() => {
-    if (currentSong && state.mode !== 'SONG') {
-      if (currentSong.sections.length > 0) {
-        const songSlides: SlideItem[] = currentSong.sections.map((section) => ({
-          content: section.lines,
-        }))
-        dispatch({
-          type: 'PRESENT_ITEM',
-          itemId: currentSong.id,
-          mode: 'SONG',
-          foreground: {
-            title: currentSong.title,
-            content: songSlides[0].content,
-            slides: songSlides,
-            slideIndex: 0,
-            totalSlides: songSlides.length,
-          },
-        })
-      }
-    }
-  }, [currentSong, dispatch, state.mode])
-
-  // Despacha estrofe específica
+  // Despacha estrofe específica para o telão ao vivo (Live)
   const handleSelectSection = (index: number) => {
     if (!currentSong) return
     const section = currentSong.sections[index]

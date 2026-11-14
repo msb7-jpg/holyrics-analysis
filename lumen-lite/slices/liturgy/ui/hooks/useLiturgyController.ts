@@ -1,12 +1,6 @@
 /**
  * @module @slices/liturgy/ui/hooks/useLiturgyController
- * @description Headless Controller para a gestão da liturgia na Coluna 1 do operador.
- *
- * ## Responsabilidades:
- * - Carregar a liturgia ativa via TanStack Query.
- * - Gerenciar operações de Drag & Drop nativo (reordenação de itens sem dependências pesadas).
- * - Gerenciar menu de contexto (clique com o botão direito).
- * - Ações de inserção de contagem, anotação ou Quick Text.
+ * @description Headless Controller para a gestão do roteiro e mídias na Coluna 1 (Esquerda) do operador.
  */
 
 import { useState } from 'react'
@@ -15,54 +9,112 @@ import {
   useReorderLiturgyMutation,
   useAddLiturgyItemMutation,
   useRemoveLiturgyItemMutation,
+  useUpdateLiturgyTitleMutation,
 } from '../queries/liturgy-queries'
 import type { LiturgyItem } from '../../contracts/liturgy-schema'
 
 /**
- * Hook orquestrador do roteiro litúrgico na UI.
+ * Hook orquestrador do roteiro litúrgico na UI com Drag & Drop universal e menu de contexto.
  *
- * @returns Estados e manipuladores de Drag & Drop, context menu e adições.
+ * @returns Estados e manipuladores de Drag & Drop, menu de contexto e adições.
  */
 export function useLiturgyController() {
   const { data: liturgy, isLoading } = useCurrentLiturgyQuery()
   const { mutate: reorderLiturgy } = useReorderLiturgyMutation()
   const { mutate: addItem } = useAddLiturgyItemMutation()
   const { mutate: removeItem } = useRemoveLiturgyItemMutation()
+  const { mutate: updateTitle } = useUpdateLiturgyTitleMutation()
 
-  // Estados de Drag & Drop
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-
-  // Estados do Menu de Contexto
   const [contextMenu, setContextMenu] = useState<{
     isOpen: boolean
-    x: number
-    y: number
+    posX: number
+    posY: number
     item?: LiturgyItem | null
   }>({
     isOpen: false,
-    x: 0,
-    y: 0,
+    posX: 0,
+    posY: 0,
     item: null,
   })
-
-  // Modal de Quick Text
   const [isQuickTextOpen, setIsQuickTextOpen] = useState(false)
 
-  // Handlers de Drag & Drop
   const handleDragStart = (event: React.DragEvent, index: number) => {
     setDraggedIndex(index)
     event.dataTransfer.effectAllowed = 'move'
     event.dataTransfer.setData('text/plain', String(index))
   }
 
-  const handleDragOver = (event: React.DragEvent, _index: number) => {
+  const handleDragOver = (event: React.DragEvent, _index?: number) => {
     event.preventDefault()
     event.dataTransfer.dropEffect = 'move'
   }
 
-  const handleDrop = (event: React.DragEvent, dropIndex: number) => {
+  const parseDroppedLumenItem = (rawPayload: string): LiturgyItem | null => {
+    try {
+      const parsed = JSON.parse(rawPayload) as Record<string, unknown>
+      const itemId = `item-${String(parsed.type || 'custom').toLowerCase()}-${Date.now()}`
+      if (parsed.type === 'SONG' && typeof parsed.songId === 'string') {
+        return {
+          id: itemId,
+          type: 'SONG',
+          title: String(parsed.title || 'Louvor'),
+          songId: parsed.songId,
+          artist: typeof parsed.artist === 'string' ? parsed.artist : undefined,
+        }
+      }
+      if (parsed.type === 'BIBLE' && typeof parsed.reference === 'string') {
+        return {
+          id: itemId,
+          type: 'BIBLE',
+          title: String(parsed.title || `Leitura: ${parsed.reference}`),
+          reference: parsed.reference,
+          version: typeof parsed.version === 'string' ? parsed.version : 'ACF',
+        }
+      }
+      if (parsed.type === 'MEDIA' && typeof parsed.mediaSrc === 'string') {
+        return {
+          id: itemId,
+          type: 'MEDIA',
+          title: String(parsed.title || 'Mídia'),
+          mediaSrc: parsed.mediaSrc,
+          mediaType: parsed.mediaType === 'VIDEO' ? 'VIDEO' : 'IMAGE',
+        }
+      }
+      if (parsed.type === 'PPTX' && typeof parsed.fileSrc === 'string') {
+        return {
+          id: itemId,
+          type: 'PPTX',
+          title: String(parsed.title || 'Apresentação'),
+          fileSrc: parsed.fileSrc,
+          slidesCount: typeof parsed.slidesCount === 'number' ? parsed.slidesCount : undefined,
+        }
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  const handleDrop = (event: React.DragEvent, dropIndex?: number) => {
     event.preventDefault()
-    if (draggedIndex === null || draggedIndex === dropIndex || !liturgy) {
+
+    const customPayload = event.dataTransfer.getData('application/lumen-item')
+    if (customPayload) {
+      const newItem = parseDroppedLumenItem(customPayload)
+      if (newItem) {
+        addItem({ item: newItem, insertIndex: dropIndex })
+      }
+      setDraggedIndex(null)
+      return
+    }
+
+    if (
+      draggedIndex === null ||
+      typeof dropIndex !== 'number' ||
+      draggedIndex === dropIndex ||
+      !liturgy
+    ) {
       setDraggedIndex(null)
       return
     }
@@ -76,27 +128,26 @@ export function useLiturgyController() {
     setDraggedIndex(null)
   }
 
-  // Handlers de Context Menu
   const handleOpenContextMenu = (event: React.MouseEvent, item?: LiturgyItem | null) => {
     event.preventDefault()
+    event.stopPropagation()
     setContextMenu({
       isOpen: true,
-      x: event.clientX,
-      y: event.clientY,
+      posX: event.clientX,
+      posY: event.clientY,
       item: item || null,
     })
   }
 
   const handleCloseContextMenu = () => {
-    setContextMenu((prev) => ({ ...prev, isOpen: false }))
+    setContextMenu((previous) => ({ ...previous, isOpen: false }))
   }
 
-  // Ações de criação rápida
   const handleAddCountdown = () => {
     const newItem: LiturgyItem = {
       id: `item-countdown-${Date.now()}`,
       type: 'COUNTDOWN',
-      title: 'Contagem Regressiva 5min',
+      title: 'Contagem Regressiva (5 min)',
       targetDurationSeconds: 300,
       description: 'Início do culto',
     }
@@ -107,11 +158,33 @@ export function useLiturgyController() {
     const newItem: LiturgyItem = {
       id: `item-note-${Date.now()}`,
       type: 'TEXT',
-      title: 'Anotação Pastoral',
-      content: ['Anotações para a ministração do culto.'],
+      title: 'Anotação de Culto',
+      content: ['Avisos e observações para a celebração.'],
       category: 'PASTORAL_NOTE',
     }
     addItem({ item: newItem })
+  }
+
+  const handleDuplicateItem = (target: LiturgyItem) => {
+    const duplicated: LiturgyItem = {
+      ...target,
+      id: `${target.id}-copy-${Date.now()}`,
+      title: `${target.title} (Cópia)`,
+    }
+    addItem({ item: duplicated })
+  }
+
+  const handleMoveItemRelative = (target: LiturgyItem, delta: -1 | 1) => {
+    if (!liturgy) return
+    const items = [...liturgy.items]
+    const currentIndex = items.findIndex((entry) => entry.id === target.id)
+    if (currentIndex < 0) return
+    const nextIndex = currentIndex + delta
+    if (nextIndex < 0 || nextIndex >= items.length) return
+
+    const [moved] = items.splice(currentIndex, 1)
+    items.splice(nextIndex, 0, moved)
+    reorderLiturgy(items.map((entry) => entry.id))
   }
 
   return {
@@ -128,6 +201,11 @@ export function useLiturgyController() {
     handleCloseContextMenu,
     handleAddCountdown,
     handleAddNote,
+    handleDuplicateItem,
+    handleMoveItemUp: (target: LiturgyItem) => handleMoveItemRelative(target, -1),
+    handleMoveItemDown: (target: LiturgyItem) => handleMoveItemRelative(target, 1),
+    handleAddCustomItem: (item: LiturgyItem, insertIndex?: number) => addItem({ item, insertIndex }),
     handleRemoveItem: (id: string) => removeItem(id),
+    handleUpdateTitle: (title: string) => updateTitle(title),
   }
 }

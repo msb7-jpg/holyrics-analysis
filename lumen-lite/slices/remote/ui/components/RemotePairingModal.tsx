@@ -135,14 +135,14 @@ export function RemotePairingModal({ isOpen, onClose }: RemotePairingModalProps)
               onClick={() => setSelectedRole('preacher')}
             >
               <Smartphone className="h-3.5 w-3.5" />
-              <span>Púlpito do Pastor (RF-26A)</span>
+              <span>Púlpito do Pastor</span>
             </Button>
             <Button
               variant={selectedRole === 'operator' ? 'activeInfo' : 'secondary'}
               onClick={() => setSelectedRole('operator')}
             >
               <QrCode className="h-3.5 w-3.5" />
-              <span>Operador Volante (RF-26B)</span>
+              <span>Operador Volante</span>
             </Button>
           </div>
 

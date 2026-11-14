@@ -112,6 +112,23 @@ export async function handleLiturgyRoutes(
     return jsonResponse({ ok: true, data: updated })
   }
 
+  // 5b. POST /api/liturgy/title - Atualiza o título do culto ativo
+  if (pathname === '/api/liturgy/title' && request.method === 'POST') {
+    try {
+      const body = (await request.json()) as { title?: string }
+      if (!body.title || typeof body.title !== 'string') {
+        return jsonResponse({ ok: false, error: 'Título inválido' }, 400)
+      }
+      const updated = context.liturgyRepo.updateTitle(body.title)
+      return jsonResponse({ ok: true, data: updated })
+    } catch (error: unknown) {
+      return jsonResponse(
+        { ok: false, error: error instanceof Error ? error.message : 'Falha ao atualizar título' },
+        400
+      )
+    }
+  }
+
   // 6. POST /api/liturgy/quick-text - Projeção instantânea de texto livre de emergência (RF-22A)
   if (pathname === '/api/liturgy/quick-text' && request.method === 'POST') {
     try {

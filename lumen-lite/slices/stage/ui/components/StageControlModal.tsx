@@ -105,7 +105,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold text-sky-400 uppercase tracking-wider">
                 <Bell className="h-3.5 w-3.5" />
-                <span>Alertas & Lower Thirds (RF-24)</span>
+                <span>Alertas & Lower Thirds</span>
               </div>
               {stageState.activeAlert && <Badge variant="live">NO AR</Badge>}
             </div>
@@ -201,7 +201,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-semibold text-sky-400 uppercase tracking-wider">
                   <Timer className="h-3.5 w-3.5" />
-                  <span>Cronômetro de Palco & Culto (RF-25)</span>
+                  <span>Cronômetro de Palco & Culto</span>
                 </div>
                 {stageState.timer.isRunning && <Badge variant="success">RODANDO</Badge>}
               </div>

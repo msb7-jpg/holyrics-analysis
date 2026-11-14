@@ -70,7 +70,7 @@ export function BibleDownloadModal({ isOpen, onClose }: BibleDownloadModalProps)
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-sky-400" />
             <h2 className="text-sm font-semibold text-white">
-              Gerenciador de Traduções Bíblicas Offline (RF-13, RF-17)
+              Gerenciador de Traduções Bíblicas Offline
             </h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>

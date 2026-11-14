@@ -19,13 +19,13 @@ describe('LiturgyRepository (daemon)', () => {
     }
   })
 
-  it('cria a liturgia padrão no primeiro boot se o arquivo não existir', () => {
+  it('cria a liturgia inicial limpa no primeiro boot se o arquivo não existir', () => {
     const repo = new LiturgyRepository(testFilePath)
     const liturgy = repo.getCurrentLiturgy()
 
     expect(liturgy).toBeDefined()
     expect(liturgy.title).toContain('Culto')
-    expect(liturgy.items.length).toBeGreaterThan(0)
+    expect(liturgy.items.length).toBe(0)
     expect(existsSync(testFilePath)).toBe(true)
   })
 
@@ -58,11 +58,29 @@ describe('LiturgyRepository (daemon)', () => {
 
   it('reordena os itens corretamente mantendo a consistência dos dados', () => {
     const repo = new LiturgyRepository(testFilePath)
-    repo.getCurrentLiturgy() // Gera o padrão com 4 itens
+    repo.addItem({
+      id: 'item-a',
+      type: 'COUNTDOWN',
+      title: 'Contagem',
+      targetDurationSeconds: 300,
+    })
+    repo.addItem({
+      id: 'item-b',
+      type: 'SONG',
+      title: 'Hino 1',
+      songId: 'song-1',
+    })
+    repo.addItem({
+      id: 'item-c',
+      type: 'BIBLE',
+      title: 'Leitura',
+      reference: 'jo 3 16',
+      version: 'ACF',
+    })
 
     const initial = repo.getCurrentLiturgy()
     const itemIds = initial.items.map((item) => item.id)
-    expect(itemIds.length).toBeGreaterThanOrEqual(3)
+    expect(itemIds.length).toBe(3)
 
     // Inverte a ordem
     const reversedIds = [...itemIds].reverse()

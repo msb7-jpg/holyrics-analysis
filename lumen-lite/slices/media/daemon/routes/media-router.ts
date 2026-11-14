@@ -137,7 +137,50 @@ export async function handleMediaRoutes(
     })
   }
 
-  // 5. GET /api/media/:id - Detalhes de uma mídia específica
+  // 5. POST /api/media/upload - Upload de arquivo de mídia via JSON (base64) ou FormData
+  if (pathname === '/api/media/upload' && request.method === 'POST') {
+    try {
+      const contentType = request.headers.get('content-type') || ''
+      if (contentType.includes('multipart/form-data')) {
+        const formData = await request.formData()
+        const uploadedFile = formData.get('file')
+        if (!uploadedFile || typeof uploadedFile === 'string') {
+          return jsonResponse({ ok: false, error: 'Arquivo não fornecido no formulário' }, 400)
+        }
+        const arrayBuffer = await uploadedFile.arrayBuffer()
+        const savedItem = context.mediaRepo.saveUploadedMedia(uploadedFile.name, new Uint8Array(arrayBuffer))
+        return jsonResponse({ ok: true, data: savedItem })
+      }
+
+      const payload = (await request.json()) as { filename?: string; base64Data?: string }
+      if (!payload.filename || !payload.base64Data) {
+        return jsonResponse({ ok: false, error: 'Campos filename e base64Data são obrigatórios' }, 400)
+      }
+      const cleanBase64 = payload.base64Data.includes(',')
+        ? payload.base64Data.split(',')[1] || ''
+        : payload.base64Data
+      const binaryBuffer = Buffer.from(cleanBase64, 'base64')
+      const savedItem = context.mediaRepo.saveUploadedMedia(payload.filename, new Uint8Array(binaryBuffer))
+      return jsonResponse({ ok: true, data: savedItem })
+    } catch (error: unknown) {
+      return jsonResponse(
+        { ok: false, error: error instanceof Error ? error.message : 'Falha no upload de mídia' },
+        400,
+      )
+    }
+  }
+
+  // 6. DELETE /api/media/:id - Remove uma mídia do catálogo
+  if (pathname.startsWith('/api/media/') && request.method === 'DELETE') {
+    const mediaId = decodeURIComponent(pathname.replace('/api/media/', ''))
+    const deleted = context.mediaRepo.deleteMediaItem(mediaId)
+    if (!deleted) {
+      return jsonResponse({ ok: false, error: 'Item de mídia não encontrado' }, 404)
+    }
+    return jsonResponse({ ok: true, deletedId: mediaId })
+  }
+
+  // 7. GET /api/media/:id - Detalhes de uma mídia específica
   if (pathname.startsWith('/api/media/') && request.method === 'GET') {
     const mediaId = pathname.replace('/api/media/', '')
     const mediaItem = context.mediaRepo.getMediaById(mediaId)

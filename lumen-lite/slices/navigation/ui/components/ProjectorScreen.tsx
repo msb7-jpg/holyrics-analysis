@@ -3,7 +3,7 @@
  * @description Telão completo de projeção HDMI integrando background em loop, texto auto-fit, Lower Thirds e máscaras de pânico.
  */
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import type { ScreenState } from '@lumen/core'
 import type { LowerThirdAlert } from '@slices/stage/contracts/stage-contracts'
 import { LowerThirdOverlay } from '@slices/stage/ui/components/LowerThirdOverlay'
@@ -20,7 +20,7 @@ export interface ProjectorScreenProps {
 }
 
 /**
- * Componente do telão HDMI com suporte integral à FSM, Lower Thirds e máscaras de pânico.
+ * Componente do telão HDMI com suporte integral à FSM, Lower Thirds e escalonamento proporcional 16:9 no modo preview.
  *
  * @param props - Propriedades contendo o estado da tela, alertas e configurações.
  * @param props.state - Estado atômico da projeção.
@@ -36,6 +36,8 @@ export function ProjectorScreen({
   isPreview = false,
 }: ProjectorScreenProps) {
   const frozenStateRef = useRef<ScreenState>(state)
+  const previewWrapperRef = useRef<HTMLDivElement | null>(null)
+  const [previewScale, setPreviewScale] = useState(0.2)
 
   useEffect(() => {
     if (!state.panic.freeze) {
@@ -43,17 +45,83 @@ export function ProjectorScreen({
     }
   }, [state])
 
+  useEffect(() => {
+    if (!isPreview) return
+    const wrapper = previewWrapperRef.current
+    if (!wrapper) return
+
+    const updateScale = () => {
+      const width = wrapper.clientWidth
+      if (width > 0) {
+        setPreviewScale(width / 1920)
+      }
+    }
+
+    updateScale()
+    const observer = new ResizeObserver(updateScale)
+    observer.observe(wrapper)
+    return () => observer.disconnect()
+  }, [isPreview])
+
   const effectiveState = state.panic.freeze ? frozenStateRef.current : state
   const { panic, background, foreground, mode } = effectiveState
 
   // 1. Blackout Total
   if (panic.blackout) {
     return (
-      <div className="relative h-full w-full bg-black flex items-center justify-center select-none overflow-hidden">
+      <div
+        ref={previewWrapperRef}
+        className="relative h-full w-full bg-black flex items-center justify-center select-none overflow-hidden"
+      >
         {isPreview && (
           <span className="text-[10px] font-mono font-bold tracking-widest text-red-500/80 uppercase">
             BLACKOUT ATIVO
           </span>
+        )}
+      </div>
+    )
+  }
+
+  if (isPreview) {
+    return (
+      <div
+        ref={previewWrapperRef}
+        className="relative h-full w-full bg-black overflow-hidden select-none"
+      >
+        <div
+          style={{
+            width: '1920px',
+            height: '1080px',
+            transform: `scale(${previewScale})`,
+            transformOrigin: 'top left',
+          }}
+          className="relative bg-black overflow-hidden"
+        >
+          {!panic.clearBg ? (
+            <BackgroundVideoLoop
+              background={background}
+              crossfadeDurationMs={config.videoCrossfadeDurationMs}
+            />
+          ) : (
+            <div className="absolute inset-0 bg-slate-950" />
+          )}
+
+          {!panic.clearText && (
+            <ForegroundTextDisplay
+              foreground={foreground}
+              mode={mode}
+              config={config}
+              isPreview={false}
+            />
+          )}
+
+          <LowerThirdOverlay alert={activeAlert} />
+        </div>
+
+        {panic.freeze && (
+          <div className="absolute top-2 right-2 z-40 rounded bg-cyan-500/20 px-1.5 py-0.5 text-[9px] font-mono text-cyan-300 border border-cyan-500/30">
+            CONGELADO
+          </div>
         )}
       </div>
     )
@@ -77,19 +145,12 @@ export function ProjectorScreen({
           foreground={foreground}
           mode={mode}
           config={config}
-          isPreview={isPreview}
+          isPreview={false}
         />
       )}
 
-      {/* Camada 3: Alertas Instantâneos & Lower Thirds (RF-24) */}
+      {/* Camada 3: Alertas Instantâneos & Lower Thirds */}
       <LowerThirdOverlay alert={activeAlert} />
-
-      {/* Badge discreto de FREEZE no modo de preview */}
-      {isPreview && panic.freeze && (
-        <div className="absolute top-2 right-2 z-40 rounded bg-cyan-500/20 px-1.5 py-0.5 text-[9px] font-mono text-cyan-300 border border-cyan-500/30">
-          CONGELADO
-        </div>
-      )}
     </div>
   )
 }

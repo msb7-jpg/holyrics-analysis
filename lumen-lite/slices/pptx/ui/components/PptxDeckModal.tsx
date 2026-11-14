@@ -108,7 +108,7 @@ export function PptxDeckModal({ isOpen, onClose, dispatch }: PptxDeckModalProps)
           <div className="flex items-center gap-2">
             <Presentation className="h-4 w-4 text-sky-400" />
             <h2 className="text-sm font-semibold text-white">
-              Apresentações PowerPoint (.pptx) & PDF com Notas do Orador (RF-21)
+              Apresentações PowerPoint (.pptx) & PDF com Notas do Orador
             </h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>

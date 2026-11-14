@@ -8,39 +8,8 @@ import { dirname, resolve } from 'node:path'
 import { z } from 'zod'
 import { PptxPresentationSchema, type PptxPresentation } from '../contracts/pptx-contracts'
 
-const DEFAULT_SERMON_DECK: PptxPresentation = {
-  id: 'pptx-default-sermon',
-  title: 'Mensagem Pastoral: Fé Inabalável',
-  filename: 'fe-inabalavel.pptx',
-  format: 'PPTX',
-  createdAt: Date.now(),
-  slides: [
-    {
-      index: 0,
-      title: 'Fé Inabalável em Tempos de Tempestade',
-      textLines: ['Fé Inabalável', 'Hebreus 11:1 — O fundamento da nossa esperança'],
-      speakerNotes:
-        'Cumprimentar a igreja e introduzir o contexto da carta aos Hebreus. Lembrar do testemunho missionário.',
-    },
-    {
-      index: 1,
-      title: '1. O Olhar Fixo no Autor da Fé',
-      textLines: ['1. O Olhar Fixo no Autor da Fé', 'Olhando firmemente para Jesus (Hebreus 12:2)'],
-      speakerNotes:
-        'Enfatizar que Pedro afundou apenas quando tirou os olhos de Cristo para olhar para o vento.',
-    },
-    {
-      index: 2,
-      title: '2. A Perseverança que Produz Fruto',
-      textLines: ['2. A Perseverança que Produz Fruto', 'A prova da vossa fé opera a paciência (Tiago 1:3)'],
-      speakerNotes:
-        'Chamar a equipe de louvor ao palco neste último slide para transição suave.',
-    },
-  ],
-}
-
 /**
- * Repositório de apresentações `.pptx` e `.pdf` com persistência em JSON atômico.
+ * Repositório de apresentações `.pptx` e `.pdf` com persistência em JSON atômico (sem mocks iniciais).
  */
 export class PptxRepository {
   private readonly filePath: string
@@ -63,13 +32,13 @@ export class PptxRepository {
   listAll(): PptxPresentation[] {
     try {
       if (!existsSync(this.filePath)) {
-        return [DEFAULT_SERMON_DECK]
+        return []
       }
       const rawContent = readFileSync(this.filePath, 'utf-8')
       const parsed = z.array(PptxPresentationSchema).safeParse(JSON.parse(rawContent))
-      return parsed.success ? parsed.data : [DEFAULT_SERMON_DECK]
+      return parsed.success ? parsed.data : []
     } catch {
-      return [DEFAULT_SERMON_DECK]
+      return []
     }
   }
 
@@ -112,7 +81,7 @@ export class PptxRepository {
 
   private ensureSeed(): void {
     if (!existsSync(this.filePath)) {
-      this.writeAtomic([DEFAULT_SERMON_DECK])
+      this.writeAtomic([])
     }
   }
 

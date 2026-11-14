@@ -1,6 +1,6 @@
 /**
  * @module @slices/navigation/ui/components/PanicToolbar
- * @description Barra de botões de pânico e cortes rápidos de emergência do telão (F1, F2, F3).
+ * @description Barra de controles críticos de saída ao vivo (F1, F2, F3).
  */
 
 import { EyeOff, FileText, Snowflake } from 'lucide-react'
@@ -13,18 +13,18 @@ export interface PanicToolbarProps {
 }
 
 /**
- * Componente com as três ações de pânico fundamentais do operador.
+ * Componente com os três controles imediatos de saída ao vivo do operador.
  *
  * @param props - Propriedades da barra.
- * @returns Elemento JSX com botões estilizados.
+ * @returns Elemento JSX com botões de controle de saída.
  */
 export function PanicToolbar({ panic, onTogglePanic }: PanicToolbarProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       <Button
         variant={panic.blackout ? 'activePanic' : 'secondary'}
         onClick={() => onTogglePanic('blackout')}
-        title="F1: Alternar Blackout (Telão Preto)"
+        title="Escurecer completamente o telão (F1)"
       >
         <EyeOff className="h-3.5 w-3.5" />
         <span>Blackout</span>
@@ -33,7 +33,7 @@ export function PanicToolbar({ panic, onTogglePanic }: PanicToolbarProps) {
       <Button
         variant={panic.clearText ? 'activeInfo' : 'secondary'}
         onClick={() => onTogglePanic('clearText')}
-        title="F2: Ocultar Letra preservando o fundo em vídeo"
+        title="Ocultar texto do telão mantendo o fundo (F2)"
       >
         <FileText className="h-3.5 w-3.5" />
         <span>Ocultar Letra</span>
@@ -42,7 +42,7 @@ export function PanicToolbar({ panic, onTogglePanic }: PanicToolbarProps) {
       <Button
         variant={panic.freeze ? 'activeInfo' : 'secondary'}
         onClick={() => onTogglePanic('freeze')}
-        title="F3: Congelar Projeção (Freeze)"
+        title="Congelar imagem atual do telão na saída (F3)"
       >
         <Snowflake className="h-3.5 w-3.5" />
         <span>Congelar</span>

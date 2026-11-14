@@ -2,7 +2,7 @@ import { describe, it, expect, afterAll, beforeAll } from 'bun:test'
 import { join } from 'node:path'
 import { existsSync, unlinkSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { MediaRepository } from '../media-repository'
-import { DEFAULT_AUDIO_PLAYLISTS, DEFAULT_MEDIA_ITEMS } from '../../contracts/media-contracts'
+import { DEFAULT_AUDIO_PLAYLISTS } from '../../contracts/media-contracts'
 
 describe('MediaRepository (slices/media/daemon)', () => {
   const testPlaylistsPath = join(process.cwd(), 'slices/media/daemon/__tests__/test-media-playlists.json')
@@ -27,7 +27,7 @@ describe('MediaRepository (slices/media/daemon)', () => {
     }
   })
 
-  it('carrega mídias padrão e gera media-playlists.json se inexistente', () => {
+  it('carrega mídias reais do diretório e gera media-playlists.json vazio se inexistente', () => {
     const repo = new MediaRepository(testPlaylistsPath, testMediaDir)
     const playlists = repo.listPlaylists()
 
@@ -35,7 +35,7 @@ describe('MediaRepository (slices/media/daemon)', () => {
     expect(existsSync(testPlaylistsPath)).toBe(true)
 
     const allMedia = repo.listMedia()
-    expect(allMedia.length).toBeGreaterThanOrEqual(DEFAULT_MEDIA_ITEMS.length)
+    expect(allMedia.length).toBe(3)
   })
 
   it('filtra mídias por tipo VIDEO e IMAGE', () => {
@@ -43,24 +43,31 @@ describe('MediaRepository (slices/media/daemon)', () => {
     const videoItems = repo.listMedia({ type: 'VIDEO' })
     const imageItems = repo.listMedia({ type: 'IMAGE' })
 
-    expect(videoItems.length).toBeGreaterThan(0)
+    expect(videoItems.length).toBe(1)
     expect(videoItems.every((item) => item.type === 'VIDEO')).toBe(true)
 
-    expect(imageItems.length).toBeGreaterThan(0)
+    expect(imageItems.length).toBe(1)
     expect(imageItems.every((item) => item.type === 'IMAGE')).toBe(true)
   })
 
   it('filtra mídias por busca textual', () => {
     const repo = new MediaRepository(testPlaylistsPath, testMediaDir)
-    const searchResults = repo.listMedia({ query: 'nuvens' })
+    const searchResults = repo.listMedia({ query: 'cross' })
 
     expect(searchResults.length).toBe(1)
-    expect(searchResults[0].id).toBe('bg-video-sky-clouds')
+    expect(searchResults[0].id).toBe('media-cross_vector')
   })
 
   it('adiciona faixa a uma playlist existente com persistência atômica', () => {
     const repo = new MediaRepository(testPlaylistsPath, testMediaDir)
-    const targetPlaylistId = DEFAULT_AUDIO_PLAYLISTS[0].id
+    const targetPlaylistId = 'playlist-ambiente-1'
+    repo.upsertPlaylist({
+      id: targetPlaylistId,
+      name: 'Ambiente Culto',
+      repeatMode: 'all',
+      shuffle: false,
+      tracks: [],
+    })
 
     const newTrack = {
       id: 'custom-track-cello',

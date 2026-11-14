@@ -20,7 +20,6 @@ import { handleDisplayRoutes } from '@slices/navigation'
 import { handleStageRoutes } from '@slices/stage'
 import { handleRemoteRoutes } from '@slices/remote'
 import { handlePptxRoutes } from '@slices/pptx'
-import { handlePlaybackRoutes } from '@slices/playback'
 
 /**
  * Cria a interface do roteador da API com injeção de dependências do contexto.
@@ -81,10 +80,6 @@ export function createApiRouter(context: ApiContext) {
       // Delegação para o roteador de apresentações PPTX/PDF (@slices/pptx)
       const pptxResponse = await handlePptxRoutes(request, targetUrl, context)
       if (pptxResponse) return pptxResponse
-
-      // Delegação para o roteador de playback sincronizado (@slices/playback)
-      const playbackResponse = await handlePlaybackRoutes(request, targetUrl, context)
-      if (playbackResponse) return playbackResponse
 
       // Delegação para o roteador de músicas da fatia @slices/songs
       const songsResponse = await handleSongsRoute(request, targetUrl, context)

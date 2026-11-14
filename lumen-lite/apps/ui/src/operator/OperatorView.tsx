@@ -1,11 +1,15 @@
 /**
  * @module @ui/operator/OperatorView
- * @description Console principal de operação litúrgica do LumenLite.
- * Orquestrador declarativo enxuto montando o layout de 4 colunas Slate Pro Studio e os modais de fatias.
+ * @description Console principal de operação litúrgica do LumenLite (4 colunas Slate Pro Studio).
+ *
+ * ## Responsabilidades:
+ * - Orquestrar o fluxo Preparar (Esquerda) -> Operar (Centro) -> Monitorar (Direita) com proporção 20% | 22% | 33% | 25%.
+ * - Aplicar hierarquia de superfícies (#090D14 -> #0F1622 -> #131C2B) e semântica Preview (Azul) vs Ao Vivo (Esmeralda).
+ * - Coordenar modais de ferramentas secundárias e diagnóstico sem vazamentos técnicos na interface principal.
  */
 
 import { useState } from 'react'
-import { Search, Loader2, History, Upload, Disc3 } from 'lucide-react'
+import { Search, Loader2, History, Upload } from 'lucide-react'
 import type { ScreenState, ActionCommand } from '@lumen/core'
 import {
   INITIAL_LIVE_STAGE_STATE,
@@ -14,16 +18,20 @@ import {
 import { StageControlModal } from '@slices/stage/ui/components/StageControlModal'
 import { RemotePairingModal } from '@slices/remote/ui/components/RemotePairingModal'
 import { PptxDeckModal } from '@slices/pptx/ui/components/PptxDeckModal'
-import { PlaybackSyncModal } from '@slices/playback/ui/components/PlaybackSyncModal'
 import { SongHistoryModal } from '@slices/songs/ui/components/SongHistoryModal'
 import { SongImporterModal } from '@slices/songs/ui/components/SongImporterModal'
 import { BibleDownloadModal } from '@slices/bible/ui/components/BibleDownloadModal'
 import { Input } from '@ui/components/ui/input'
 import { Button } from '@ui/components/ui/button'
-import { Kbd } from '@ui/components/ui/kbd'
 import { OperatorTopBar } from '@slices/navigation/ui/components/OperatorTopBar'
 import { OutputMonitorPanel } from '@slices/navigation/ui/components/OutputMonitorPanel'
+import { DiagnosticsModal } from '@slices/navigation/ui/components/DiagnosticsModal'
 import { LiturgyScheduleColumn } from '@slices/liturgy/ui/components/LiturgyScheduleColumn'
+import {
+  useCurrentLiturgyQuery,
+  useUpdateLiturgyTitleMutation,
+} from '@slices/liturgy/ui/queries/liturgy-queries'
+import type { LiturgyItem } from '@slices/liturgy/contracts/liturgy-schema'
 import { SongSearchList } from '@slices/songs/ui/components/SongSearchList'
 import { SongStanzaGrid } from '@slices/songs/ui/components/SongStanzaGrid'
 import { BibleQuickLookupCard } from '@slices/bible/ui/components/BibleQuickLookupCard'
@@ -56,6 +64,9 @@ export function OperatorView({
   connected,
   dispatch,
 }: OperatorViewProps) {
+  const { data: currentLiturgy } = useCurrentLiturgyQuery()
+  const { mutate: updateLiturgyTitle } = useUpdateLiturgyTitleMutation()
+
   const {
     query,
     setQuery,
@@ -85,85 +96,105 @@ export function OperatorView({
   const [isBibleDownloadsOpen, setIsBibleDownloadsOpen] = useState(false)
   const [isSongHistoryOpen, setIsSongHistoryOpen] = useState(false)
   const [isSongImporterOpen, setIsSongImporterOpen] = useState(false)
-  const [isPlaybackSyncOpen, setIsPlaybackSyncOpen] = useState(false)
+  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false)
+  const [selectedLiturgyItemId, setSelectedLiturgyItemId] = useState<string | null>(null)
+
+  const handleSelectItemFromRoteiro = (item: LiturgyItem) => {
+    setSelectedLiturgyItemId(item.id)
+    if (item.type === 'MEDIA') {
+      dispatch({
+        type: 'SET_BACKGROUND',
+        background: {
+          type: item.mediaType === 'VIDEO' ? 'video' : 'image',
+          source: item.mediaSrc,
+          loop: item.mediaType === 'VIDEO',
+          muted: true,
+        },
+      })
+      return
+    }
+    if (item.type === 'PPTX') {
+      setIsPptxOpen(true)
+      return
+    }
+    handleSelectLiturgyItem(item)
+  }
 
   return (
-    <div className="flex h-screen w-screen flex-col bg-slate-900 text-slate-100 select-none">
-      {/* TopBar Sóbria com Pânico, Multi-Monitor, Palco, QR Code e Status */}
+    <div className="flex h-screen w-screen flex-col bg-[#090D14] text-slate-100 select-none overflow-hidden">
+      {/* 1. Barra Superior Redesenha (Esquerda: Evento Editável | Centro: Busca Global | Direita: Saída + Ferramentas) */}
       <OperatorTopBar
-        connected={connected}
+        isConnected={connected}
         panic={state.panic}
+        eventTitle={currentLiturgy?.title || 'Culto de Celebração'}
+        onChangeEventTitle={(nextTitle) => updateLiturgyTitle(nextTitle)}
+        onTogglePanic={(target) => dispatch({ type: 'TOGGLE_PANIC', target })}
         onOpenSpotlight={() => setIsSpotlightOpen(true)}
         onOpenAutomation={() => setIsAutomationOpen(true)}
         onOpenKeymap={() => setIsKeymapOpen(true)}
         onOpenStageControl={() => setIsStageControlOpen(true)}
         onOpenRemotePairing={() => setIsRemotePairingOpen(true)}
-        onOpenPptxDeck={() => setIsPptxOpen(true)}
+        onOpenPptxModal={() => setIsPptxOpen(true)}
         onOpenBibleDownloads={() => setIsBibleDownloadsOpen(true)}
-        onTogglePanic={(target) => dispatch({ type: 'TOGGLE_PANIC', target })}
+        onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
       />
 
-      {/* Grid Principal: 4 Colunas Redimensionáveis */}
-      <main className="grid flex-1 grid-cols-12 gap-px bg-white/5 overflow-hidden">
-        {/* Coluna 1: Roteiro Litúrgico (22%) */}
+      {/* 2. Grid Principal de 4 Colunas (Proporção: 20% | 22% | 33% | 25%) */}
+      <main className="grid flex-1 grid-cols-1 lg:grid-cols-[20fr_22fr_33fr_25fr] overflow-hidden">
+        {/* Coluna 1 (20%): Roteiro do Culto & Abas de Mídia/Arquivos (Esquerda) */}
         <LiturgyScheduleColumn
           state={state}
           selectedSong={currentSong}
           activeBible={activeBible}
-          onSelectItem={handleSelectLiturgyItem}
+          selectedLiturgyItemId={selectedLiturgyItemId}
+          onSelectItem={handleSelectItemFromRoteiro}
+          onSelectBackground={(background) => dispatch({ type: 'SET_BACKGROUND', background })}
+          onSelectPptxDeck={() => setIsPptxOpen(true)}
         />
 
-        {/* Coluna 2: Acervo Musical & Pesquisa FTS5 (25%) */}
-        <section className="col-span-3 flex flex-col bg-slate-900 p-3 border-l border-white/5 overflow-hidden">
-          <div className="relative mb-2">
+        {/* Coluna 2 (22%): Biblioteca / Catálogo de Músicas & Bíblia */}
+        <section className="flex flex-col bg-[#0F1622] p-3 border-r border-white/5 overflow-hidden">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Biblioteca ({songs.length})
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsSongImporterOpen(true)}
+                title="Importar pacote de músicas ou colar letra"
+              >
+                <Upload className="h-3 w-3 text-sky-400" />
+                <span>Importar</span>
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsSongHistoryOpen(true)}
+                title="Consultar histórico e músicas mais cantadas"
+              >
+                <History className="h-3 w-3 text-slate-400" />
+                <span>Histórico</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="relative mb-2.5">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <Input
-              placeholder="Buscar hino ou versículo (ex: jo 3 16)..."
+              placeholder="Filtrar hino ou versículo (ex: jo 3 16)..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="pl-8 pr-8"
+              className="pl-8 pr-8 bg-[#192334] border-transparent focus:border-sky-500/50"
             />
             {isLoadingSongs && (
               <Loader2 className="absolute right-2.5 top-2.5 h-3.5 w-3.5 animate-spin text-slate-400" />
             )}
           </div>
 
-          {/* Barra de Ferramentas do Acervo Musical (Importador RF-11, Histórico RF-12 e Playback RF-22) */}
-          <div className="mb-2 flex items-center justify-between gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSongImporterOpen(true)}
-              title="Importar Backup .zip ou Letras do Holyrics (RF-11)"
-            >
-              <Upload className="h-3 w-3 text-sky-400" />
-              <span>Importar</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSongHistoryOpen(true)}
-              title="Histórico e Mais Cantadas (RF-12)"
-            >
-              <History className="h-3 w-3 text-slate-400" />
-              <span>Histórico</span>
-            </Button>
-
-            {currentSong && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsPlaybackSyncOpen(true)}
-                title="Playback Musical Sincronizado (RF-22)"
-              >
-                <Disc3 className="h-3 w-3 text-amber-400" />
-                <span>Playback</span>
-              </Button>
-            )}
-          </div>
-
-          <div className="flex flex-1 flex-col gap-1 overflow-y-auto text-xs">
+          <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto text-xs pr-0.5">
             {bibleLookupResult && (
               <BibleQuickLookupCard
                 lookup={bibleLookupResult}
@@ -175,14 +206,15 @@ export function OperatorView({
               songs={songs}
               isLoading={isLoadingSongs}
               selectedSongId={selectedSongId}
+              liveSongId={state.mode === 'SONG' ? state.activeItemId : null}
               onSelectSong={handleSelectSong}
             />
           </div>
         </section>
 
-        {/* Coluna 3: Estrofes da Música ou Versículos Bíblicos (35%) */}
-        <section className="col-span-4 flex flex-col bg-slate-900 p-3 border-l border-white/5 overflow-y-auto">
-          {state.mode === 'BIBLE' && activeBible ? (
+        {/* Coluna 3 (33%): Palco / Slides da Música ou Versículos (Superfície #131C2B mais clara para foco) */}
+        <section className="flex flex-col bg-[#131C2B] p-4 overflow-y-auto">
+          {activeBible ? (
             <BibleVerseGrid
               activeBible={activeBible}
               activeSlideIndex={state.foreground.slideIndex}
@@ -203,35 +235,20 @@ export function OperatorView({
               onSelectStanza={handleSelectSection}
             />
           ) : (
-            <div className="py-10 text-center text-xs text-slate-500">
-              Nenhuma música selecionada
+            <div className="flex flex-1 items-center justify-center text-xs text-slate-400">
+              Selecione uma música ou referência bíblica para visualizar e projetar
             </div>
           )}
         </section>
 
-        {/* Coluna 4: Monitor do Telão & Áudio Ambiente (18%) */}
+        {/* Coluna 4 (25%): Monitor de Saída 16:9 & Áudio Ambiente */}
         <OutputMonitorPanel
           state={state}
           onSelectBackground={(background) => dispatch({ type: 'SET_BACKGROUND', background })}
         />
       </main>
 
-      {/* Footer de Atalhos Sóbrio */}
-      <footer className="flex h-7 items-center justify-between border-t border-white/10 px-4 bg-slate-900 text-[10px] text-slate-500 font-mono">
-        <div className="flex items-center gap-4">
-          <span>⌨️ <Kbd>⌘K</Kbd> Spotlight</span>
-          <span><Kbd>Espaço</Kbd> Próximo</span>
-          <span><Kbd>Backspace</Kbd> Retornar</span>
-          <span><Kbd>F1</Kbd> Blackout</span>
-          <span><Kbd>⌘/</Kbd> Ver Atalhos</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span>Versão FSM: {state.version}</span>
-          <span className="text-emerald-400">Latência IPC: &lt;1ms</span>
-        </div>
-      </footer>
-
-      {/* Modais das Fatias Verticais */}
+      {/* 3. Modais de Ferramentas Secundárias e Diagnóstico */}
       <SpotlightDialog
         isOpen={isSpotlightOpen}
         onClose={() => setIsSpotlightOpen(false)}
@@ -268,11 +285,11 @@ export function OperatorView({
         isOpen={isSongImporterOpen}
         onClose={() => setIsSongImporterOpen(false)}
       />
-      <PlaybackSyncModal
-        isOpen={isPlaybackSyncOpen}
-        song={currentSong || null}
-        onClose={() => setIsPlaybackSyncOpen(false)}
-        dispatch={dispatch}
+      <DiagnosticsModal
+        isOpen={isDiagnosticsOpen}
+        isConnected={connected}
+        state={state}
+        onClose={() => setIsDiagnosticsOpen(false)}
       />
     </div>
   )

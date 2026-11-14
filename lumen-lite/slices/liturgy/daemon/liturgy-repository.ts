@@ -21,51 +21,18 @@ import {
 const logger = createLogger('liturgy-repo')
 
 /**
- * Liturgia padrão gerada automaticamente caso o arquivo não exista no primeiro boot.
+ * Liturgia inicial limpa gerada automaticamente caso o arquivo não exista no primeiro boot.
  */
 const DEFAULT_LITURGY: LiturgyFile = {
   $schema: './liturgy.schema.json',
   id: 'culto-domingo',
-  title: 'Culto de Celebração & Adoração',
+  title: 'Culto de Celebração',
   date: new Date().toISOString().split('T')[0],
   theme: {
     fontFamily: 'Inter',
     textColor: '#FFFFFF',
   },
-  items: [
-    {
-      id: 'item-countdown-1',
-      type: 'COUNTDOWN',
-      title: 'Contagem Regressiva 5min',
-      targetDurationSeconds: 300,
-      description: 'Pré-culto e recepção',
-    },
-    {
-      id: 'item-song-1',
-      type: 'SONG',
-      title: 'Porque Ele Vive',
-      songId: 'song-1042',
-      artist: 'Harpa Cristã',
-    },
-    {
-      id: 'item-bible-1',
-      type: 'BIBLE',
-      title: 'Leitura Bíblica: João 3:16',
-      reference: 'jo 3 16',
-      version: 'ACF',
-    },
-    {
-      id: 'item-text-1',
-      type: 'TEXT',
-      title: 'Avisos & Boas-Vindas',
-      content: [
-        'Sejam todos bem-vindos à nossa celebração!',
-        'Reunião de oração às quartas-feiras às 19:30.',
-        'Escola Bíblica Dominical todos os domingos às 09:00.',
-      ],
-      category: 'ANNOUNCEMENT',
-    },
-  ],
+  items: [],
   hooksEnabled: true,
 }
 
@@ -216,6 +183,21 @@ export class LiturgyRepository {
     return this.saveLiturgy({
       ...current,
       items,
+    })
+  }
+
+  /**
+   * Atualiza o título do roteiro de culto ativo.
+   *
+   * @param nextTitle - Novo título do culto.
+   * @returns Liturgia atualizada.
+   */
+  updateTitle(nextTitle: string): LiturgyFile {
+    const current = this.getCurrentLiturgy()
+    const trimmedTitle = nextTitle.trim() || 'Culto de Celebração'
+    return this.saveLiturgy({
+      ...current,
+      title: trimmedTitle,
     })
   }
 }

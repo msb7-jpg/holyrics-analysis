@@ -1,9 +1,13 @@
 /**
  * @module @slices/songs/ui/components/SongStanzaGrid
- * @description Exibição das estrofes numeradas e navegação de slides de uma canção.
+ * @description Grid central de estrofes de uma música selecionada (Coluna 3 do Operador).
+ *
+ * ## Responsabilidades:
+ * - Exibir as estrofes de forma limpa, sem badges intrusivos ("NO AR" ou "[CORO]").
+ * - Aplicar hierarquia de superfície (#192334 sem bordas externas) e semântica de estado (Esmeralda #10B981 quando ao vivo).
+ * - Tipografia legível de cabine (15px, line-height 1.5, alto contraste #F8FAFC no ar vs #94A3B8 inativo).
  */
 
-import { Badge } from '@ui/components/ui/badge'
 import type { Song } from '../../contracts/song-contracts'
 
 export interface SongStanzaGridProps {
@@ -14,10 +18,14 @@ export interface SongStanzaGridProps {
 }
 
 /**
- * Grid de estrofes de uma música selecionada para o operador.
+ * Grid de estrofes da música no painel central do operador.
  *
  * @param props - Propriedades do componente.
- * @returns Elemento JSX com estrofes ordenadas.
+ * @param props.song - Objeto da música selecionada.
+ * @param props.activeSlideIndex - Índice da estrofe atualmente projetada.
+ * @param props.isLiveOnScreen - Se esta música é o item efetivamente ao vivo no telão.
+ * @param props.onSelectStanza - Callback disparado ao clicar em uma estrofe.
+ * @returns Elemento JSX com os cartões de estrofes.
  */
 export function SongStanzaGrid({
   song,
@@ -27,40 +35,54 @@ export function SongStanzaGrid({
 }: SongStanzaGridProps) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="mb-2 flex items-center justify-between text-xs font-semibold text-slate-400">
-        <span className="uppercase truncate">{song.title}</span>
-        <span className="text-[10px] text-slate-500 font-mono">
-          {song.sections.length} estrofes
+      <div className="mb-2 flex items-center justify-between text-xs font-semibold">
+        <div className="flex items-center gap-2 truncate">
+          <span
+            className={`inline-block h-2 w-2 rounded-full shrink-0 ${
+              isLiveOnScreen ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-sky-400'
+            }`}
+            title={isLiveOnScreen ? 'Música ao vivo no telão' : 'Música em visualização (Preview)'}
+          />
+          <span className="uppercase tracking-wide text-slate-100 truncate">
+            {song.title} <span className="text-slate-400 font-normal">— {song.artist}</span>
+          </span>
+        </div>
+        <span className="text-[11px] text-slate-400 font-mono shrink-0 ml-2">
+          {song.sections.length} {song.sections.length === 1 ? 'estrofe' : 'estrofes'}
         </span>
       </div>
 
-      {song.sections.map((section, idx) => {
-        const isCurrent = isLiveOnScreen && activeSlideIndex === idx
+      {song.sections.map((section, index) => {
+        const isCurrentLive = Boolean(isLiveOnScreen && activeSlideIndex === index)
         return (
           <div
             key={section.id}
-            onClick={() => onSelectStanza(idx)}
-            className={`group relative flex cursor-pointer rounded-lg border p-3 transition select-none ${
-              isCurrent
-                ? 'border-sky-500/50 bg-slate-800/90 shadow-sm'
-                : 'border-white/5 bg-slate-800/40 hover:bg-slate-800/70'
+            onClick={() => onSelectStanza(index)}
+            className={`group relative flex cursor-pointer rounded-[6px] p-3.5 transition select-none ${
+              isCurrentLive
+                ? 'bg-[#1D2D3E] ring-1 ring-emerald-500/50 shadow-sm'
+                : 'bg-[#192334] hover:bg-[#1E2B40]'
             }`}
           >
-            {isCurrent && (
-              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l bg-sky-400" />
+            {isCurrentLive && (
+              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[6px] bg-emerald-500" />
             )}
 
-            <span className="mr-3 font-mono text-xs text-slate-500 group-hover:text-slate-300">
-              {section.index}
+            <span
+              className={`mr-3.5 font-mono text-xs font-semibold pt-0.5 select-none ${
+                isCurrentLive ? 'text-emerald-400' : 'text-slate-500 group-hover:text-slate-400'
+              }`}
+            >
+              {String(index + 1).padStart(2, '0')}
             </span>
 
-            <div className="flex-1">
-              <pre className="font-sans text-xs leading-relaxed text-slate-200 whitespace-pre-wrap">
-                {section.lines.join('\n')}
-              </pre>
-            </div>
-
-            {isCurrent && <Badge variant="live">NO AR</Badge>}
+            <p
+              className={`flex-1 whitespace-pre-line font-sans text-[15px] leading-[1.5] transition-colors ${
+                isCurrentLive ? 'text-[#F8FAFC] font-medium' : 'text-[#94A3B8] group-hover:text-slate-200'
+              }`}
+            >
+              {section.lines.join('\n')}
+            </p>
           </div>
         )
       })}

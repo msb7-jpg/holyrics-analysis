@@ -1,16 +1,10 @@
 /**
  * @module @slices/navigation/ui/components/OutputMonitorPanel
- * @description Coluna 4 do console com preview 16:9 em tempo real, player de áudio litúrgico e galeria de fundos.
- *
- * ## Responsabilidades:
- * - Renderizar o preview fiel do projetor HDMI com proporção 16:9 via ProjectorScreen.
- * - Permitir ao operador abrir a janela `/projector` em uma nova aba/janela externa.
- * - Integrar o reprodutor de áudio Web Audio API (AudioPlayerPanel) para trilhas de oração e recepção.
- * - Integrar a galeria de fundos (MediaGridPanel) para seleção rápida de loops de vídeo e imagens.
+ * @description Coluna 4 do console com preview 16:9 fiel, seletor unificado de saída, player de áudio ambiente e galeria de fundos.
  */
 
 import { useState } from 'react'
-import { ExternalLink, Music, Film } from 'lucide-react'
+import { ExternalLink, Music, Film, Monitor } from 'lucide-react'
 import type { ScreenState, BackgroundLayer } from '@lumen/core'
 import { ProjectorScreen } from './ProjectorScreen'
 import { AudioPlayerPanel } from '@slices/media/ui/components/AudioPlayerPanel'
@@ -22,7 +16,7 @@ export interface OutputMonitorPanelProps {
 }
 
 /**
- * Painel da Coluna 4 do operador contendo preview de saída, áudio ambiente e mídia.
+ * Painel da Coluna 4 do operador contendo preview de saída 16:9, áudio ambiente e mídias.
  *
  * @param props - Propriedades do painel.
  * @param props.state - Estado reativo da projeção FSM.
@@ -31,58 +25,75 @@ export interface OutputMonitorPanelProps {
  */
 export function OutputMonitorPanel({ state, onSelectBackground }: OutputMonitorPanelProps) {
   const [activeTab, setActiveTab] = useState<'AUDIO' | 'MEDIA'>('AUDIO')
+  const isOutputLive = state.mode !== 'EMPTY' && !state.panic.blackout
 
   const handleOpenProjectorWindow = () => {
     window.open('/projector', 'LumenLiteProjector', 'width=1280,height=720,menubar=no,toolbar=no')
   }
 
   return (
-    <section className="col-span-2 flex flex-col bg-slate-900 p-3 border-l border-white/5 justify-between overflow-y-auto">
-      <div>
-        <div className="mb-2 flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-slate-400">
-          <span>Monitor de Saída</span>
+    <section className="flex flex-col bg-[#0F1622] p-3 border-l border-white/5 justify-between overflow-y-auto">
+      <div className="flex flex-col gap-2.5">
+        {/* Header Unificado do Monitor de Saída */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span
+              className={`h-2 w-2 rounded-full shrink-0 ${
+                state.panic.blackout
+                  ? 'bg-rose-500'
+                  : isOutputLive
+                    ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
+                    : 'bg-emerald-500/60'
+              }`}
+            />
+            <Monitor className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+            <span className="truncate text-[11px] font-semibold text-slate-200">
+              Saída: Telão Principal (1080p)
+            </span>
+          </div>
+
           <button
             type="button"
             onClick={handleOpenProjectorWindow}
-            title="Abrir janela externa do projetor HDMI"
-            className="flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-mono normal-case text-sky-400 hover:bg-slate-700 hover:text-sky-300 transition"
+            title="Abrir janela externa de projeção para o segundo monitor ou telão"
+            className="flex items-center gap-1 rounded-md bg-[#192334] px-2 py-1 text-[10px] font-medium text-sky-400 hover:bg-[#1E2B40] hover:text-sky-300 transition shrink-0"
           >
-            <ExternalLink className="h-2.5 w-2.5" />
-            Abrir Telão
+            <ExternalLink className="h-3 w-3" />
+            <span>Abrir Telão</span>
           </button>
         </div>
 
-        {/* Preview 16:9 Fiel */}
-        <div className="relative aspect-video w-full rounded border border-white/10 bg-black overflow-hidden shadow-inner">
+        {/* Canvas do Monitor de Saída (16:9 Real com Escalonamento Proporcional) */}
+        <div
+          data-testid="output-monitor-canvas"
+          className={`relative aspect-video w-full rounded-md bg-black overflow-hidden shadow-inner transition ${
+            isOutputLive ? 'ring-1 ring-emerald-500/50' : 'ring-1 ring-white/10'
+          }`}
+        >
           <ProjectorScreen state={state} isPreview={true} />
         </div>
 
-        <div className="mt-1.5 mb-3 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-          <span>1920x1080 @ 60FPS</span>
-          <span className="text-emerald-400 font-medium">HDMI ATIVO</span>
-        </div>
-
-        {/* Alternador de Abas: Áudio Litúrgico vs Fundos de Mídia */}
-        <div className="flex rounded border border-white/10 bg-slate-950/60 p-0.5 mb-2 text-xs">
+        {/* Alternador de Abas: Áudio Ambiente vs Fundos de Mídia */}
+        <div className="flex rounded-md bg-[#090D14] p-0.5 text-xs">
           <button
             type="button"
             onClick={() => setActiveTab('AUDIO')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded py-1 text-[11px] font-medium transition ${
-              activeTab === 'AUDIO' ? 'bg-sky-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'AUDIO' ? 'bg-[#192334] text-sky-400 shadow-xs' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Music className="h-3 w-3" />
-            <span>Áudio</span>
+            <span>Áudio Ambiente</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('MEDIA')}
             className={`flex flex-1 items-center justify-center gap-1.5 rounded py-1 text-[11px] font-medium transition ${
-              activeTab === 'MEDIA' ? 'bg-sky-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'
+              activeTab === 'MEDIA' ? 'bg-[#192334] text-sky-400 shadow-xs' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <Film className="h-3 w-3" />
-            <span>Mídias & Loops</span>
+            <span>Fundos & Loops</span>
           </button>
         </div>
 

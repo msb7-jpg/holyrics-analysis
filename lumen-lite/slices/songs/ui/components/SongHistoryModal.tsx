@@ -53,7 +53,7 @@ export function SongHistoryModal({ isOpen, onClose, onSelectSong }: SongHistoryM
           <div className="flex items-center gap-2">
             <History className="h-4 w-4 text-sky-400" />
             <h2 className="text-sm font-semibold text-white">
-              Histórico & Relatório de Execução Musical (RF-12)
+              Histórico & Relatório de Execução Musical
             </h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>

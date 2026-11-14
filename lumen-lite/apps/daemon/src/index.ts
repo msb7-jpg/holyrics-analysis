@@ -27,7 +27,6 @@ import { DisplayRepository } from '@slices/navigation'
 import { StageEngine } from '@slices/stage'
 import { RemoteAuthManager } from '@slices/remote'
 import { PptxRepository } from '@slices/pptx'
-import { PlaybackRepository } from '@slices/playback'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import defaultSongs from '../../../slices/songs/default-songs.json'
@@ -53,7 +52,6 @@ const displayRepo = new DisplayRepository()
 const stageEngine = new StageEngine()
 const remoteAuth = new RemoteAuthManager(PORT, 3000)
 const pptxRepo = new PptxRepository()
-const playbackRepo = new PlaybackRepository()
 
 // Inicializa cliente OBS Studio v5 conforme o grafo ativo
 const activeAutomationGraph = automationRepo.load()
@@ -96,7 +94,6 @@ const apiRouter = createApiRouter({
   stageEngine,
   remoteAuth,
   pptxRepo,
-  playbackRepo,
   obsClient,
 })
 const wsHandler = createWebSocketHandler({ fsm, stageEngine, logger })

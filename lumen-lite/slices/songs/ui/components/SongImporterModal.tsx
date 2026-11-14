@@ -97,7 +97,7 @@ export function SongImporterModal({ isOpen, onClose, onImported }: SongImporterM
           <div className="flex items-center gap-2">
             <FileArchive className="h-4 w-4 text-sky-400" />
             <h2 className="text-sm font-semibold text-white">
-              Importador Holyrics Legado (.zip / Tags &lt;c&gt;, &lt;t&gt; - RF-11)
+              Importador de Acervo e Letras
             </h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>

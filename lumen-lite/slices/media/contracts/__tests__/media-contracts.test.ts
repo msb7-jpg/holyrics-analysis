@@ -10,19 +10,41 @@ import {
 } from '../media-contracts'
 
 describe('Media Contracts (slices/media/contracts)', () => {
-  it('valida a lista padrão de mídias com Zod v4', () => {
-    for (const item of DEFAULT_MEDIA_ITEMS) {
-      const parseResult = MediaItemSchema.safeParse(item)
-      expect(parseResult.success).toBe(true)
+  it('inicia listas padrão vazias (zero mocks) e valida itens reais com Zod v4', () => {
+    expect(DEFAULT_MEDIA_ITEMS.length).toBe(0)
+    const sampleItem = {
+      id: 'media-loop-1',
+      name: 'Loop Céu Noturno',
+      path: '/assets/media/loop.mp4',
+      type: 'VIDEO',
+      sizeBytes: 102400,
+      mimeType: 'video/mp4',
+      tags: ['video', 'mp4'],
     }
+    const parseResult = MediaItemSchema.safeParse(sampleItem)
+    expect(parseResult.success).toBe(true)
   })
 
-  it('valida as playlists de áudio padrão com Zod v4', () => {
-    for (const playlist of DEFAULT_AUDIO_PLAYLISTS) {
-      const parseResult = AudioPlaylistSchema.safeParse(playlist)
-      expect(parseResult.success).toBe(true)
-      expect(playlist.tracks.length).toBeGreaterThan(0)
+  it('inicia playlists padrão vazias (zero mocks) e valida playlist real com Zod v4', () => {
+    expect(DEFAULT_AUDIO_PLAYLISTS.length).toBe(0)
+    const samplePlaylist = {
+      id: 'playlist-custom',
+      name: 'Recepção',
+      repeatMode: 'all',
+      shuffle: false,
+      tracks: [
+        {
+          id: 'track-1',
+          title: 'Instrumental 1',
+          artist: 'Local',
+          durationSeconds: 180,
+          url: '/api/media/stream/media-1',
+          tags: ['mp3'],
+        },
+      ],
     }
+    const parseResult = AudioPlaylistSchema.safeParse(samplePlaylist)
+    expect(parseResult.success).toBe(true)
   })
 
   it('valida e impõe limites de decibéis no equalizador (-12dB a +12dB)', () => {

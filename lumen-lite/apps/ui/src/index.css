@@ -2,24 +2,43 @@
 @source "../../../slices";
 @source "../src";
 
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-slate-950: #090D14;
+  --color-slate-900: #0F1622;
+  --color-slate-800: #192334;
+}
+
 @layer base {
-  :root {
-    --bg-app: #0f172a;        /* Slate 900 */
-    --bg-surface: #1e293b;    /* Slate 800 */
-    --bg-elevated: #334155;   /* Slate 700 */
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-strong: rgba(255, 255, 255, 0.16);
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --accent: #38bdf8;        /* Sky 400 */
+  body {
+    background-color: #090D14;
+    color: #F8FAFC;
+    font-family: var(--font-sans);
+    overflow: hidden;
   }
 
-  body {
-    background-color: var(--bg-app);
-    color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    overflow: hidden;
-    user-select: none;
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.28);
   }
 }

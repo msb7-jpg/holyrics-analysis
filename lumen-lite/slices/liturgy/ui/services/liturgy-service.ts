@@ -1,13 +1,6 @@
 /**
  * @module @slices/liturgy/ui/services/liturgy-service
- * @description Serviço assíncrono para operações de rede da liturgia de culto (`culto.json`).
- *
- * ## Responsabilidades:
- * - Obter o roteiro do culto ativo com validação Zod.
- * - Salvar alterações na liturgia completa.
- * - Reordenar itens (Drag & Drop).
- * - Adicionar ou remover itens polimórficos.
- * - Disparar projeção de texto avulso de emergência (Quick Text - RF-22A).
+ * @description Serviço assíncrono para operações de rede do roteiro de culto.
  */
 
 import { httpClient } from '@ui/core/network/http-client'
@@ -47,6 +40,24 @@ export const liturgyService = {
   },
 
   /**
+   * Atualiza o título do culto ativo.
+   *
+   * @param title - Novo título do evento/culto.
+   * @param signal - Sinal de cancelamento.
+   * @returns Liturgia atualizada.
+   */
+  async updateTitle(title: string, signal?: AbortSignal): Promise<LiturgyFile> {
+    return httpClient.post<LiturgyFile>(
+      '/api/liturgy/title',
+      { title },
+      {
+        signal,
+        schema: LiturgyFileSchema,
+      },
+    )
+  },
+
+  /**
    * Reordena os itens da liturgia com base em uma nova lista ordenada de IDs.
    *
    * @param itemIds - Lista ordenada dos identificadores dos itens.
@@ -60,7 +71,7 @@ export const liturgyService = {
       {
         signal,
         schema: LiturgyFileSchema,
-      }
+      },
     )
   },
 
@@ -79,7 +90,7 @@ export const liturgyService = {
       {
         signal,
         schema: LiturgyFileSchema,
-      }
+      },
     )
   },
 
@@ -98,7 +109,7 @@ export const liturgyService = {
   },
 
   /**
-   * Dispara a projeção imediata de um texto avulso de emergência (RF-22A).
+   * Dispara a projeção imediata de um texto avulso de emergência.
    *
    * @param payload - Parâmetros do texto e categoria.
    * @param signal - Sinal de cancelamento.

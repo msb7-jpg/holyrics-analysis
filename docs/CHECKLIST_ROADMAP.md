@@ -6,6 +6,27 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
+### [v1.1.0] - Refatoração Comercial de Produto & UI/UX, Fluxo Roteiro/Mídias Universal, Remoção de Mocks/Playback e Suíte E2E Playwright
+- **Faxina de Vazamentos Técnicos (*Implementation Leaks*):**
+  - Remoção de todos os códigos `RF-*` de tooltips, botões e cabeçalhos de modais, substituídos por microcopy orientada à ação e domínio de cabine.
+  - Substituição do badge `culto.json` por título editável do evento na barra superior (`Culto de Celebração`) com indicador de salvamento automático (`POST /api/liturgy/title`).
+  - Ocultação do badge `Daemon Conectado` em operação normal (exibindo alerta discreto apenas quando desconectado) e migração da telemetria de rodapé (`Versão FSM`, `Latência IPC`) para o modal dedicado `DiagnosticsModal` (`Ferramentas -> Diagnóstico / Sobre`).
+  - Unificação dos indicadores duplicados de resolução/HDMI no cabeçalho do Monitor de Saída (`Saída: Telão Principal (1080p)`).
+- **Redesenho da Topbar, Proporção de Cabine & Coluna 1 com Abas (`Roteiro | Imagens | Vídeos | Arquivos`):**
+  - Barra de busca global (`Spotlight`) centralizada na `OperatorTopBar` e agrupamento de ferramentas secundárias no menu dropdown `Ferramentas`.
+  - Proporção das 4 colunas ajustada para `20% | 22% | 33% | 25%` (`lg:grid-cols-[20fr_22fr_33fr_25fr]`).
+  - Coluna 1 (Esquerda) equipada com abas rápidas `Roteiro`, `Imagens`, `Vídeos` e `Arquivos`, suporte a **Drag & Drop universal** (arraste de músicas, mídias, apresentações e arquivos externos do SO via `POST /api/media/upload`) e **Menu de Contexto rico** no botão direito (`LiturgyContextMenu` com projeção imediata, duplicação, movimentação e adição de músicas, leituras, avisos, contagens, mídias e arquivos).
+- **Hierarquia de Superfícies, Semântica Preview vs. Ao Vivo e Polimento Visual:**
+  - Hierarquia por luminância de superfície (`#090D14` base, `#0F1622` painéis laterais, `#131C2B` palco central e `#192334` cards sem bordas externas) e scrollbar escura customizada de `5px`.
+  - Diferenciação estrita entre item **Selecionado em Preview (Azul `#3B82F6`)** e item **Ao Vivo no Telão (Esmeralda `#10B981`)**, removendo os badges repetitivos `NO AR` das estrofes e versículos e ampliando a tipografia das letras para `15px` (`line-height: 1.5`).
+  - Escalonamento proporcional 16:9 (`1920x1080` virtual via `ResizeObserver` + `transform: scale`) no `ProjectorScreen` em modo preview, eliminando cortes verticais.
+  - Compactação do `AudioPlayerPanel` com arte minimalista de onda sonora (`AudioLines`) e importação de trilhas locais.
+- **Remoção Total de Mocks e Exclusão do Módulo Playback:**
+  - Exclusão completa da fatia `slices/playback`, rotas `/api/playback` e modal de playback.
+  - Remoção de todos os itens fictícios pré-populados de mídia (`DEFAULT_MEDIA_ITEMS`), playlists (`DEFAULT_AUDIO_PLAYLISTS`), roteiro (`DEFAULT_LITURGY.items`) e apresentações (`DEFAULT_SERMON_DECK`), mantendo o acervo de demonstração de 50 hinos e a Bíblia offline.
+- **Suíte E2E Automatizada com Playwright (`e2e/operator-console.e2e.ts`):**
+  - 3 cenários E2E completos validando ausência de vazamentos técnicos, navegação entre abas e menu de contexto do roteiro, semântica Preview vs. Ao Vivo e fidelidade 16:9 do Monitor de Saída no Chromium headless (`bun run test:e2e`).
+
 ### [v1.0.0] - Conclusão de 100% do Roadmap: Stage View, Remotos Mobile LAN, Lower Thirds, Importador Holyrics, Dual Version Bíblica, PPTX/PDF Nativo & Playback Sincronizado
 - **Monitor de Retorno de Palco, Alertas Lower Thirds & Cronômetros (`slices/stage` - RF-02, RF-24, RF-25):**
   - Contratos Zod v4 em `stage-contracts.ts` e motor determinístico `StageEngine` inspirado em `StageViewUtils.java`, `AlertController.java` e `CountdownUtils.java`.
@@ -277,10 +298,9 @@ Legenda de Status:
 - [x] **RF-19: Culto como Código (`culto.json`)** (Schema Zod v4 estrito, `liturgy.schema.json` Draft 2020-12, persistência atômica via `LiturgyRepository` e validador de integridade).
 - [x] **RF-20: Pilha de Interrupção (Return Stack)** (Implementação LIFO completa no `@lumen/core` com testes de unidade).
 - [x] **RF-21: Ingestão Nativa de PPTX & PDF** (Extração direta em memória com `fflate` + `fast-xml-parser` de slides e `notesSlides` em `pptx-extractor.ts`, `PptxRepository` e `PptxDeckModal`).
-- [x] **RF-22: Playback Sincronizado** (`PlaybackRepository`, resolvedor determinístico `resolvePlaybackSlideIndex` sincronizado com a Web Audio API e `PlaybackSyncModal`).
 - [x] **RF-22A: Projeção Rápida de Texto Avulso (Quick Text)** (Modal `QuickTextModal`, endpoint no daemon `/api/liturgy/quick-text` e projeção imediata na FSM).
-- [x] **RF-22B: Menu de Contexto no Roteiro Litúrgico** (Menu suspenso com botão direito `LiturgyContextMenu` para inserção de contagens, anotações pastorais e projeção direta).
-- [x] **RF-22C: Ingestão por Arraste e Solte (Drag & Drop)** (Reordenação de itens por Drag & Drop nativo do HTML5 com sincronização atômica em disco).
+- [x] **RF-22B: Menu de Contexto no Roteiro Litúrgico** (Menu completo no botão direito `LiturgyContextMenu` para projeção, duplicação, reordenação e inserção de músicas, leituras bíblicas, contagens, mídias, arquivos e anotações).
+- [x] **RF-22C: Ingestão por Arraste e Solte (Drag & Drop)** (Abas `Roteiro | Imagens | Vídeos | Arquivos` na Coluna 1 com Drag & Drop universal de itens internos e upload direto de arquivos do sistema operacional).
 
 ### Módulo 5: Transmissão ao Vivo, Palco & Conectividade
 - [x] **RF-23: Streaming Transparente para OBS** (Rota `/broadcast` servindo aplicação React dedicada com conexão WebSocket pub/sub, Lower Thirds e renderizador com canal alfa transparente `rgba(0,0,0,0)`).
@@ -351,8 +371,13 @@ Legenda de Status:
    - Renderizador dedicado para overlay transparente de letras e terços inferiores (Lower Thirds) com canal alfa para OBS Studio.
    - Telão de retorno de palco para ministros e músicos (`/stage`) com relógio sincronizado, slide atual e próximo slide.
    - Púlpito do pregador com notas e cronômetro (`/remote/preacher`).
-9. **[CONCLUÍDO] Etapa 9: Consolidação v1.0.0 — Importador Holyrics, Dual Version Bíblica, PPTX/PDF Nativo & Playback Sincronizado (v1.0.0):**
+9. **[CONCLUÍDO] Etapa 9: Consolidação v1.0.0 — Importador Holyrics, Dual Version Bíblica & PPTX/PDF Nativo (v1.0.0):**
    - Importador completo de pacotes `.zip`/`.hrm` do Holyrics e histórico automático de execução com deduplicação de 30 minutos (`slices/songs`).
    - Projeção bíblica em tela dividida (Dual Version) e gerenciador de downloads de traduções em tempo de execução (`slices/bible`).
-   - Extração nativa de apresentações `.pptx`/`.pdf` com notas do orador (`slices/pptx`) e sincronizador de playback musical (`slices/playback`).
-   - 100% dos Requisitos Funcionais (RF-01 a RF-34) e Não-Funcionais (RNF-01 a RNF-06) concluídos e validados.
+   - Extração nativa de apresentações `.pptx`/`.pdf` com notas do orador (`slices/pptx`).
+   - 100% dos Requisitos Funcionais e Não-Funcionais concluídos e validados.
+10. **[CONCLUÍDO] Etapa 10: Refatoração de Produto & UI/UX Comercial, Zero Mocks & Testes E2E Playwright (v1.1.0):**
+    - Remoção de vazamentos técnicos (`RF-*`, `culto.json`, `Daemon Conectado`, `Versão FSM`), redesenho da Topbar e hierarquia de superfícies por luminância (`#090D14` -> `#0F1622` -> `#131C2B` -> `#192334`).
+    - Coluna 1 (Esquerda) com abas `Roteiro | Imagens | Vídeos | Arquivos`, Drag & Drop universal e menu de contexto completo no botão direito.
+    - Exclusão completa da fatia `slices/playback` e de todos os dados mockados de mídia, áudio, roteiro e PPTX.
+    - Suíte de testes End-to-End com Playwright (`bun run test:e2e`) validada com 100% de aprovação.

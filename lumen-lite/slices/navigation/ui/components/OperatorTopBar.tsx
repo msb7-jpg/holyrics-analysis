@@ -1,142 +1,301 @@
 /**
  * @module @slices/navigation/ui/components/OperatorTopBar
- * @description Barra superior do console do operador com status de hardware, multi-monitor, remotos QR Code, palco, PPTX e pânico.
+ * @description Barra superior do console do operador com identidade limpa, título editável do evento, busca global centralizada e controles críticos de saída.
  */
 
+import { useState, useRef, useEffect } from 'react'
 import {
-  Monitor,
-  Radio,
   Search,
-  Cpu,
   Keyboard,
-  QrCode,
+  Workflow,
   Timer,
-  Presentation,
+  QrCode,
   BookOpen,
+  Presentation,
+  SlidersHorizontal,
+  Activity,
+  Check,
+  WifiOff,
+  ChevronDown,
 } from 'lucide-react'
 import { Button } from '@ui/components/ui/button'
-import { Kbd } from '@ui/components/ui/kbd'
 import { PanicToolbar } from './PanicToolbar'
-import { useMultiMonitor } from '../hooks/useMultiMonitor'
 import type { PanicMask } from '@lumen/core'
 
 export interface OperatorTopBarProps {
-  connected: boolean
+  isConnected: boolean
   panic: PanicMask
+  eventTitle?: string
+  onChangeEventTitle?: (nextTitle: string) => void
+  onTogglePanic: (target: 'blackout' | 'clearText' | 'freeze') => void
   onOpenSpotlight: () => void
-  onOpenAutomation?: () => void
   onOpenKeymap?: () => void
+  onOpenAutomation?: () => void
   onOpenStageControl?: () => void
   onOpenRemotePairing?: () => void
-  onOpenPptxDeck?: () => void
   onOpenBibleDownloads?: () => void
-  onTogglePanic: (target: 'blackout' | 'clearText' | 'freeze') => void
+  onOpenPptxModal?: () => void
+  onOpenDiagnostics?: () => void
 }
 
 /**
- * Cabeçalho principal com telemetria, gerenciamento multi-monitor (RF-01) e controles rápidos.
+ * Renderiza o cabeçalho superior do operador com hierarquia Preparar -> Operar -> Monitorar.
  *
- * @param props - Propriedades do cabeçalho.
- * @param props.connected - Se o WebSocket está conectado.
- * @param props.panic - Máscara de pânico ativa.
- * @param props.onOpenSpotlight - Abertura do Spotlight.
- * @param props.onOpenAutomation - Abertura do editor visual DAG de automações.
- * @param props.onOpenKeymap - Abertura do modal de atalhos.
- * @param props.onOpenStageControl - Abertura do modal de Palco, Timers e Lower Thirds.
- * @param props.onOpenRemotePairing - Abertura do modal de QR Code Mobile.
- * @param props.onOpenPptxDeck - Abertura do gerenciador de apresentações PPTX/PDF.
- * @param props.onOpenBibleDownloads - Abertura do gerenciador de traduções bíblicas.
- * @param props.onTogglePanic - Disparo de máscaras de pânico.
- * @returns Elemento JSX com a TopBar estilizada.
+ * @param props - Propriedades da barra superior.
+ * @returns Elemento JSX da barra superior.
  */
 export function OperatorTopBar({
-  connected,
+  isConnected,
   panic,
+  eventTitle = 'Culto de Celebração',
+  onChangeEventTitle,
+  onTogglePanic,
   onOpenSpotlight,
-  onOpenAutomation,
   onOpenKeymap,
+  onOpenAutomation,
   onOpenStageControl,
   onOpenRemotePairing,
-  onOpenPptxDeck,
   onOpenBibleDownloads,
-  onTogglePanic,
+  onOpenPptxModal,
+  onOpenDiagnostics,
 }: OperatorTopBarProps) {
-  const { openProjectorWindow } = useMultiMonitor()
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [draftTitle, setDraftTitle] = useState(eventTitle)
+  const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false)
+  const toolsMenuRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    setDraftTitle(eventTitle)
+  }, [eventTitle])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (toolsMenuRef.current && !toolsMenuRef.current.contains(event.target as Node)) {
+        setIsToolsMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleCommitTitle = () => {
+    setIsEditingTitle(false)
+    const trimmed = draftTitle.trim()
+    if (trimmed && trimmed !== eventTitle) {
+      onChangeEventTitle?.(trimmed)
+    } else {
+      setDraftTitle(eventTitle)
+    }
+  }
 
   return (
-    <header className="flex h-12 items-center justify-between border-b border-white/10 px-4 bg-slate-900/90 backdrop-blur">
-      <div className="flex items-center gap-4 text-xs font-medium">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-sky-400"></span>
-          <span className="font-semibold text-white tracking-wide">LUMENLITE</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={openProjectorWindow}
-          title="Abrir Projetor HDMI no 2º Monitor (RF-01)"
+    <header className="relative z-30 flex h-12 items-center justify-between border-b border-white/5 bg-[#090D14] px-4 select-none gap-4">
+      {/* Esquerda: Logomark minimalista + Nome editável do evento com Auto-save */}
+      <div className="flex items-center gap-3 min-w-0">
+        <div
+          className="flex items-center gap-2 text-slate-100 font-semibold text-xs tracking-tight shrink-0"
+          title="LumenLite — Console de Projeção"
         >
-          <Monitor className="h-3.5 w-3.5 text-sky-400" />
-          <span>HDMI 2: 1080p@60Hz</span>
-        </Button>
-        <div className="flex items-center gap-1.5 text-slate-400">
-          <Radio className="h-3.5 w-3.5" />
-          <span className={connected ? 'text-emerald-400' : 'text-amber-400'}>
-            {connected ? 'Daemon Conectado' : 'Conectando...'}
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-sky-500/15 border border-sky-500/30">
+            <span className="h-2.5 w-2.5 rounded-full bg-sky-400" />
           </span>
+          <span className="hidden sm:inline text-slate-300 font-medium">LumenLite</span>
         </div>
+
+        <span className="text-slate-700">/</span>
+
+        {isEditingTitle ? (
+          <input
+            type="text"
+            value={draftTitle}
+            autoFocus
+            onChange={(event) => setDraftTitle(event.target.value)}
+            onBlur={handleCommitTitle}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') handleCommitTitle()
+              if (event.key === 'Escape') {
+                setDraftTitle(eventTitle)
+                setIsEditingTitle(false)
+              }
+            }}
+            className="rounded bg-[#192334] px-2 py-0.5 text-xs font-medium text-white outline-none ring-1 ring-sky-500/60 w-48"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsEditingTitle(true)}
+            title="Clique para renomear o evento atual"
+            className="group flex items-center gap-2 rounded px-2 py-1 text-xs font-semibold text-slate-100 hover:bg-[#192334] transition truncate max-w-[220px]"
+          >
+            <span className="truncate">{eventTitle}</span>
+            <span
+              className="flex items-center gap-1 text-[10px] font-normal text-emerald-400/80 shrink-0"
+              title="Alterações salvas automaticamente"
+            >
+              <Check className="h-3 w-3" />
+            </span>
+          </button>
+        )}
+
+        {/* Alerta discreto exibido APENAS se perder conexão com o serviço local */}
+        {!isConnected && (
+          <div
+            className="flex items-center gap-1.5 rounded-md bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[11px] font-medium text-amber-300"
+            title="Reconectando ao serviço de projeção em segundo plano"
+          >
+            <WifiOff className="h-3 w-3 animate-pulse" />
+            <span>Reconectando...</span>
+          </div>
+        )}
       </div>
 
-      <div className="flex items-center gap-1.5">
-        {onOpenPptxDeck && (
-          <Button variant="ghost" size="sm" onClick={onOpenPptxDeck} title="Apresentações PPTX e PDF (RF-21)">
-            <Presentation className="h-3.5 w-3.5 text-sky-400" />
-            <span>PPTX/PDF</span>
-          </Button>
-        )}
+      {/* Centro: Barra de Busca Global (Spotlight) */}
+      <div className="flex flex-1 justify-center max-w-md">
+        <button
+          type="button"
+          onClick={onOpenSpotlight}
+          title="Busca rápida de músicas, versículos e ações (Ctrl+K)"
+          className="flex w-full items-center justify-between rounded-lg bg-[#131C2B] hover:bg-[#192334] px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition border border-white/5"
+        >
+          <span className="flex items-center gap-2 truncate">
+            <Search className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+            <span className="truncate">Buscar hino, versículo ou mídia...</span>
+          </span>
+          <kbd className="ml-2 rounded bg-[#090D14]/80 px-1.5 py-0.5 font-mono text-[10px] text-slate-400 shrink-0">
+            Ctrl+K
+          </kbd>
+        </button>
+      </div>
 
-        {onOpenBibleDownloads && (
-          <Button variant="ghost" size="sm" onClick={onOpenBibleDownloads} title="Traduções Bíblicas Offline (RF-17)">
-            <BookOpen className="h-3.5 w-3.5 text-slate-400" />
-            <span>Bíblias</span>
-          </Button>
-        )}
-
-        {onOpenStageControl && (
-          <Button variant="ghost" size="sm" onClick={onOpenStageControl} title="Palco, Cronômetros e Lower Thirds (RF-02, RF-24, RF-25)">
-            <Timer className="h-3.5 w-3.5 text-amber-400" />
-            <span>Palco & Alertas</span>
-          </Button>
-        )}
-
-        {onOpenRemotePairing && (
-          <Button variant="ghost" size="sm" onClick={onOpenRemotePairing} title="Parear Celular via QR Code (RF-26A, RF-26B)">
-            <QrCode className="h-3.5 w-3.5 text-sky-400" />
-            <span>QR Remote</span>
-          </Button>
-        )}
-
-        {onOpenKeymap && (
-          <Button variant="ghost" size="sm" onClick={onOpenKeymap} title="Atalhos de Teclado (⌘/)">
-            <Keyboard className="h-3.5 w-3.5 text-slate-400" />
-            <span>Atalhos</span>
-          </Button>
-        )}
-
-        {onOpenAutomation && (
-          <Button variant="ghost" size="sm" onClick={onOpenAutomation} title="Configurar Automações (OBS, DMX, Webhooks)">
-            <Cpu className="h-3.5 w-3.5 text-sky-400" />
-            <span>Automações</span>
-          </Button>
-        )}
-
-        <Button variant="secondary" size="sm" onClick={onOpenSpotlight}>
-          <Search className="h-3.5 w-3.5 text-sky-400" />
-          <span>Spotlight</span>
-          <Kbd>⌘K</Kbd>
-        </Button>
-
+      {/* Direita: Controles Críticos de Saída + Menu de Ferramentas */}
+      <div className="flex items-center gap-2 shrink-0">
         <PanicToolbar panic={panic} onTogglePanic={onTogglePanic} />
+
+        <div className="h-4 w-px bg-white/10 mx-0.5" />
+
+        {/* Menu Gaveta de Ferramentas Secundárias */}
+        <div className="relative" ref={toolsMenuRef}>
+          <Button
+            variant="secondary"
+            onClick={() => setIsToolsMenuOpen((previous) => !previous)}
+            title="Abrir ferramentas de apoio, palco, controle remoto e configurações"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5 text-sky-400" />
+            <span>Ferramentas</span>
+            <ChevronDown className="h-3 w-3 text-slate-400" />
+          </Button>
+
+          {isToolsMenuOpen && (
+            <div className="absolute right-0 mt-1.5 w-60 rounded-xl border border-white/10 bg-[#0F1622] p-1.5 shadow-2xl z-50 text-xs text-slate-200">
+              <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                Operação & Apoio
+              </div>
+
+              {onOpenStageControl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false)
+                    onOpenStageControl()
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                >
+                  <Timer className="h-3.5 w-3.5 text-sky-400" />
+                  <span>Palco, Cronômetros & Alertas</span>
+                </button>
+              )}
+
+              {onOpenPptxModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false)
+                    onOpenPptxModal()
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                >
+                  <Presentation className="h-3.5 w-3.5 text-orange-400" />
+                  <span>Apresentações (PPTX / PDF)</span>
+                </button>
+              )}
+
+              {onOpenBibleDownloads && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false)
+                    onOpenBibleDownloads()
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                >
+                  <BookOpen className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Traduções Bíblicas Offline</span>
+                </button>
+              )}
+
+              {onOpenRemotePairing && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false)
+                    onOpenRemotePairing()
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                >
+                  <QrCode className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Controle Remoto via QR Code</span>
+                </button>
+              )}
+
+              <div className="my-1 border-t border-white/5" />
+              <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                Configurações & Sistema
+              </div>
+
+              {onOpenKeymap && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false)
+                    onOpenKeymap()
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                >
+                  <Keyboard className="h-3.5 w-3.5 text-slate-400" />
+                  <span>Atalhos de Teclado</span>
+                </button>
+              )}
+
+              {onOpenAutomation && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false)
+                    onOpenAutomation()
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                >
+                  <Workflow className="h-3.5 w-3.5 text-purple-400" />
+                  <span>Automações & OBS Studio</span>
+                </button>
+              )}
+
+              {onOpenDiagnostics && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsToolsMenuOpen(false)
+                    onOpenDiagnostics()
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                >
+                  <Activity className="h-3.5 w-3.5 text-slate-400" />
+                  <span>Diagnóstico / Sobre</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )

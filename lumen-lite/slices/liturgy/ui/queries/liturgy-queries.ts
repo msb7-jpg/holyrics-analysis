@@ -1,6 +1,6 @@
 /**
  * @module @slices/liturgy/ui/queries/liturgy-queries
- * @description Hooks de consulta e mutação do TanStack Query v5 para a liturgia de culto (`culto.json`).
+ * @description Hooks de consulta e mutação do TanStack Query v5 para o roteiro de culto.
  */
 
 import { queryOptions, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -22,12 +22,28 @@ export function currentLiturgyQueryOptions() {
 }
 
 /**
- * Hook para leitura reativa da liturgia ativa (`culto.json`).
+ * Hook para leitura reativa da liturgia ativa.
  *
  * @returns Resultado da query com os dados e status de carregamento.
  */
 export function useCurrentLiturgyQuery() {
   return useQuery(currentLiturgyQueryOptions())
+}
+
+/**
+ * Hook de mutação para atualizar o título do evento/culto ativo.
+ *
+ * @returns Mutation do TanStack Query.
+ */
+export function useUpdateLiturgyTitleMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (title: string) => liturgyService.updateTitle(title),
+    onSuccess: (updatedLiturgy) => {
+      queryClient.setQueryData(liturgyKeys.current(), updatedLiturgy)
+    },
+  })
 }
 
 /**
@@ -80,7 +96,7 @@ export function useRemoveLiturgyItemMutation() {
 }
 
 /**
- * Hook de mutação para disparo de Quick Text (RF-22A).
+ * Hook de mutação para disparo de aviso rápido (Quick Text).
  *
  * @returns Mutation para despachar o texto de emergência.
  */

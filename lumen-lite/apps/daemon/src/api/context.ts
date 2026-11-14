@@ -14,7 +14,6 @@ import type { DisplayRepository } from '@slices/navigation'
 import type { StageEngine } from '@slices/stage'
 import type { RemoteAuthManager } from '@slices/remote'
 import type { PptxRepository } from '@slices/pptx'
-import type { PlaybackRepository } from '@slices/playback'
 
 /**
  * Contexto compartilhado de dependências injetado nos roteadores da API.
@@ -34,7 +33,6 @@ export interface ApiContext {
   stageEngine?: StageEngine
   remoteAuth?: RemoteAuthManager
   pptxRepo?: PptxRepository
-  playbackRepo?: PlaybackRepository
   obsClient?: ObsClient | null
 }
 

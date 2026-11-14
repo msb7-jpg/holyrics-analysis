@@ -12,7 +12,7 @@
  * - Consumido pelo `handleMediaRoutes` em `/api/media/*` e pelo daemon LumenLite.
  */
 
-import { existsSync, readFileSync, renameSync, unlinkSync, writeFileSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync, readdirSync, statSync } from 'node:fs'
 import { join, extname, basename } from 'node:path'
 import { createLogger } from '@lumen/core'
 import {
@@ -192,6 +192,64 @@ export class MediaRepository {
     } else {
       this.mediaItems.push(item)
     }
+  }
+
+  /**
+   * Salva um arquivo binário enviado pelo operador no diretório de mídias e indexa no catálogo.
+   *
+   * @param fileName - Nome original do arquivo enviado.
+   * @param contentBuffer - Bytes do arquivo de mídia.
+   * @returns O item de mídia indexado e pronto para uso.
+   */
+  public saveUploadedMedia(fileName: string, contentBuffer: Uint8Array): MediaItem {
+    if (!existsSync(this.mediaDirectory)) {
+      mkdirSync(this.mediaDirectory, { recursive: true })
+    }
+
+    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const fileExt = extname(sanitizedFileName).toLowerCase()
+    const mediaType = this.resolveMediaType(fileExt) ?? 'IMAGE'
+    const filePath = join(this.mediaDirectory, sanitizedFileName)
+
+    writeFileSync(filePath, contentBuffer)
+    const fileBaseName = basename(sanitizedFileName, fileExt)
+    const mediaId = `media-${fileBaseName.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}-${Date.now()}`
+
+    const createdItem: MediaItem = {
+      id: mediaId,
+      name: fileBaseName.replace(/[-_]/g, ' '),
+      path: filePath,
+      type: mediaType,
+      sizeBytes: contentBuffer.byteLength,
+      mimeType: this.resolveMimeType(fileExt),
+      resolution: mediaType === 'AUDIO' ? undefined : '1920x1080',
+      tags: [mediaType.toLowerCase(), fileExt.replace('.', '')],
+    }
+
+    this.upsertMediaItem(createdItem)
+    return createdItem
+  }
+
+  /**
+   * Remove um item de mídia do catálogo e do disco se existir.
+   *
+   * @param itemId - Identificador do item de mídia.
+   * @returns Verdadeiro se foi removido.
+   */
+  public deleteMediaItem(itemId: string): boolean {
+    const target = this.getMediaById(itemId)
+    if (!target) return false
+
+    if (existsSync(target.path)) {
+      try {
+        unlinkSync(target.path)
+      } catch (error) {
+        logger.warn({ error, path: target.path }, 'Não foi possível excluir arquivo físico de mídia')
+      }
+    }
+
+    this.mediaItems = this.mediaItems.filter((item) => item.id !== itemId)
+    return true
   }
 
   /**
