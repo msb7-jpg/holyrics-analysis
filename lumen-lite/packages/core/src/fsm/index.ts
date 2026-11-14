@@ -3,9 +3,10 @@ export type {
   PanicMask,
   BackgroundLayer,
   ForegroundLayer,
+  SlideItem,
   ScreenState,
 } from './screen-state'
-export { INITIAL_SCREEN_STATE, ForegroundLayerSchema } from './screen-state'
+export { INITIAL_SCREEN_STATE, ForegroundLayerSchema, SlideItemSchema } from './screen-state'
 
 export type { ActionCommand } from './commands'
 

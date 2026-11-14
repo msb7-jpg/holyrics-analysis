@@ -3,17 +3,18 @@
  * @description Headless Controller principal da tela do operador (OperatorView).
  *
  * ## Responsabilidades:
- * - Coordenar a seleção de músicas e capítulos bíblicos.
- * - Despachar apresentações de slides (PRESENT_ITEM) para a FSM.
+ * - Coordenar a seleção de músicas e capítulos bíblicos (incluindo Dual Version - RF-14).
+ * - Despachar apresentações de slides (PRESENT_ITEM) para a FSM com array `slides` indexado.
  * - Conectar atalhos globais de teclado (useOperatorShortcuts).
  * - Sincronizar estado da busca e primeiro item do acervo automaticamente.
  */
 
 import { useState, useEffect } from 'react'
 import { useDebounceValue } from '@siberiacancode/reactuse'
-import type { ActionCommand, ScreenState } from '@lumen/core'
+import type { ActionCommand, ScreenState, SlideItem } from '@lumen/core'
 import { useSongSearchQuery, useSongDetailQuery } from '@slices/songs/ui/queries/songs-queries'
 import { useBibleLookupQuery } from '@slices/bible/ui/queries/bible-queries'
+import { bibleService } from '@slices/bible/ui/services/bible-service'
 import { useOperatorShortcuts } from '@slices/keymap/ui/hooks/useOperatorShortcuts'
 import type { BibleLookupResponse } from '@slices/bible/contracts/bible-contracts'
 import type { LiturgyItem } from '@slices/liturgy/contracts/liturgy-schema'
@@ -21,6 +22,27 @@ import type { LiturgyItem } from '@slices/liturgy/contracts/liturgy-schema'
 export interface UseOperatorControllerOptions {
   state: ScreenState
   dispatch: (cmd: ActionCommand) => void
+}
+
+/**
+ * Monta o vetor indexado `SlideItem[]` a partir de uma consulta bíblica (suportando Dual Version - RF-14).
+ *
+ * @param lookup - Resposta da consulta bíblica.
+ * @returns Lista de slides prontos para o `ForegroundLayer`.
+ */
+function buildBibleSlides(lookup: BibleLookupResponse): SlideItem[] {
+  return lookup.verses.map((verseItem, idx) => {
+    const secondaryVerse = lookup.secondaryVerses?.[idx]
+    return {
+      content: [verseItem.text],
+      secondaryContent: secondaryVerse ? [secondaryVerse.text] : undefined,
+      reference: `${lookup.reference} (v.${verseItem.verse}) [${lookup.version}]`,
+      secondaryReference:
+        secondaryVerse && lookup.dualVersion
+          ? `${lookup.reference} (v.${secondaryVerse.verse}) [${lookup.dualVersion}]`
+          : undefined,
+    }
+  })
 }
 
 /**
@@ -37,6 +59,7 @@ export function useOperatorController({ state, dispatch }: UseOperatorController
 
   const [selectedSongId, setSelectedSongId] = useState<string | null>(null)
   const [activeBible, setActiveBible] = useState<BibleLookupResponse | null>(null)
+  const [dualBibleVersion, setDualBibleVersion] = useState<string | null>(null)
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false)
 
   // 1. Busca textual de canções na Coluna 2
@@ -55,25 +78,28 @@ export function useOperatorController({ state, dispatch }: UseOperatorController
     }
   }, [songs, selectedSongId, activeBible])
 
-  // Despacha apresentação do primeiro slide de uma música
   const handleSelectSong = (id: string) => {
     setActiveBible(null)
     setSelectedSongId(id)
   }
 
-  // Quando os dados da música chegarem, se for uma nova seleção, despacha o slide inicial
+  // Quando os dados da música chegarem, se for uma nova seleção, despacha o slide inicial com `slides` populado
   useEffect(() => {
     if (currentSong && state.mode !== 'SONG') {
       if (currentSong.sections.length > 0) {
+        const songSlides: SlideItem[] = currentSong.sections.map((section) => ({
+          content: section.lines,
+        }))
         dispatch({
           type: 'PRESENT_ITEM',
           itemId: currentSong.id,
           mode: 'SONG',
           foreground: {
             title: currentSong.title,
-            content: currentSong.sections[0].lines,
+            content: songSlides[0].content,
+            slides: songSlides,
             slideIndex: 0,
-            totalSlides: currentSong.sections.length,
+            totalSlides: songSlides.length,
           },
         })
       }
@@ -86,6 +112,10 @@ export function useOperatorController({ state, dispatch }: UseOperatorController
     const section = currentSong.sections[index]
     if (!section) return
 
+    const songSlides: SlideItem[] = currentSong.sections.map((sec) => ({
+      content: sec.lines,
+    }))
+
     dispatch({
       type: 'PRESENT_ITEM',
       itemId: currentSong.id,
@@ -93,8 +123,9 @@ export function useOperatorController({ state, dispatch }: UseOperatorController
       foreground: {
         title: currentSong.title,
         content: section.lines,
+        slides: songSlides,
         slideIndex: index,
-        totalSlides: currentSong.sections.length,
+        totalSlides: songSlides.length,
       },
     })
   }
@@ -105,25 +136,46 @@ export function useOperatorController({ state, dispatch }: UseOperatorController
     setActiveBible(lookup)
 
     if (lookup.verses.length > 0) {
+      const bibleSlides = buildBibleSlides(lookup)
       dispatch({
         type: 'PRESENT_ITEM',
         itemId: `bible_${lookup.reference}`,
         mode: 'BIBLE',
         foreground: {
           title: lookup.reference,
-          reference: lookup.reference,
-          content: [lookup.verses[0].text],
+          reference: bibleSlides[0].reference,
+          secondaryReference: bibleSlides[0].secondaryReference,
+          content: bibleSlides[0].content,
+          secondaryContent: bibleSlides[0].secondaryContent,
+          slides: bibleSlides,
           slideIndex: 0,
-          totalSlides: lookup.verses.length,
+          totalSlides: bibleSlides.length,
         },
       })
+    }
+  }
+
+  // Alterna 2ª Tradução em Tela Dividida (Dual Version - RF-14)
+  const handleChangeDualVersion = async (nextDualVersion: string | null) => {
+    setDualBibleVersion(nextDualVersion)
+    if (!activeBible) return
+
+    const updatedLookup = await bibleService.lookup(
+      activeBible.reference,
+      activeBible.version,
+      undefined,
+      nextDualVersion || undefined,
+    )
+    if (updatedLookup) {
+      handleSelectBible(updatedLookup)
     }
   }
 
   // Despacha versículo específico
   const handleSelectVerse = (index: number) => {
     if (!activeBible || !activeBible.verses[index]) return
-    const currentVerse = activeBible.verses[index]
+    const bibleSlides = buildBibleSlides(activeBible)
+    const targetSlide = bibleSlides[index]
 
     dispatch({
       type: 'PRESENT_ITEM',
@@ -131,10 +183,13 @@ export function useOperatorController({ state, dispatch }: UseOperatorController
       mode: 'BIBLE',
       foreground: {
         title: activeBible.reference,
-        reference: `${activeBible.reference} (v.${currentVerse.verse})`,
-        content: [currentVerse.text],
+        reference: targetSlide.reference,
+        secondaryReference: targetSlide.secondaryReference,
+        content: targetSlide.content,
+        secondaryContent: targetSlide.secondaryContent,
+        slides: bibleSlides,
         slideIndex: index,
-        totalSlides: activeBible.verses.length,
+        totalSlides: bibleSlides.length,
       },
     })
   }
@@ -147,26 +202,17 @@ export function useOperatorController({ state, dispatch }: UseOperatorController
         break
       }
       case 'BIBLE': {
-        // Dispara busca bíblica e projeta
-        setActiveBible({
-          reference: item.reference,
-          book: item.reference,
-          chapter: 1,
-          verseStart: 1,
-          version: item.version || 'ACF',
-          verses: [
-            {
-              id: `${item.reference}_1`,
-              bibleId: item.version || 'ACF',
-              bookNumber: 1,
-              bookName: item.reference,
-              bookAbbrev: item.reference,
-              chapter: 1,
-              verse: 1,
-              text: `Carregando ${item.reference}...`,
-            },
-          ],
-        })
+        bibleService
+          .lookup(item.reference, item.version || 'ACF', undefined, item.dualVersion)
+          .then((lookup) => {
+            if (lookup) {
+              setDualBibleVersion(item.dualVersion || null)
+              handleSelectBible(lookup)
+            }
+          })
+          .catch(() => {
+            // Fallback local imediato
+          })
         break
       }
       case 'TEXT': {
@@ -234,12 +280,14 @@ export function useOperatorController({ state, dispatch }: UseOperatorController
     isLoadingSongDetail,
     selectedSongId,
     activeBible,
+    dualBibleVersion,
     bibleLookupResult,
     isSpotlightOpen,
     setIsSpotlightOpen,
     handleSelectSong,
     handleSelectSection,
     handleSelectBible,
+    handleChangeDualVersion,
     handleSelectVerse,
     handleSelectLiturgyItem,
   }

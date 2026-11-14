@@ -4,15 +4,17 @@
  *
  * ## Responsabilidades:
  * - Manter conexão singleton resiliente com reconexão automática e backoff exponencial.
- * - Manter snapshot imutável do ScreenState da projeção.
+ * - Manter snapshot imutável do ScreenState da projeção e do LiveStageState (alertas e cronômetros).
  * - Prover métodos subscribe() e getSnapshot() compatíveis com useSyncExternalStore do React 19.
  * - Despachar comandos tipados ActionCommand sem acoplamento a componentes visuais.
  */
 
 import { INITIAL_SCREEN_STATE, type ActionCommand, type ScreenState } from '@lumen/core'
+import { INITIAL_LIVE_STAGE_STATE, type LiveStageState } from '@slices/stage/contracts/stage-contracts'
 
 export type ConnectionListener = (connected: boolean) => void
 export type StateListener = (state: ScreenState) => void
+export type StageStateListener = (stageState: LiveStageState) => void
 
 /**
  * Store external singleton para controle e sincronização de eventos WebSocket.
@@ -20,6 +22,7 @@ export type StateListener = (state: ScreenState) => void
 export class LumenWebSocketStore {
   private socket: WebSocket | null = null
   private screenState: ScreenState = INITIAL_SCREEN_STATE
+  private stageState: LiveStageState = INITIAL_LIVE_STAGE_STATE
   private isConnected = false
   private retryDelayMs = 1500
   private maxRetryDelayMs = 10000
@@ -27,6 +30,7 @@ export class LumenWebSocketStore {
   private explicitDisconnect = false
 
   private stateListeners = new Set<StateListener>()
+  private stageListeners = new Set<StageStateListener>()
   private connectionListeners = new Set<ConnectionListener>()
 
   /**
@@ -59,8 +63,17 @@ export class LumenWebSocketStore {
         try {
           const payload = JSON.parse(event.data)
           if (payload.type === 'SYNC_STATE' || payload.type === 'STATE_CHANGED') {
-            this.screenState = payload.state as ScreenState
-            this.notifyState(this.screenState)
+            if (payload.state) {
+              this.screenState = payload.state as ScreenState
+              this.notifyState(this.screenState)
+            }
+            if (payload.stageState) {
+              this.stageState = payload.stageState as LiveStageState
+              this.notifyStageState(this.stageState)
+            }
+          } else if (payload.type === 'STAGE_STATE_CHANGED' && payload.stageState) {
+            this.stageState = payload.stageState as LiveStageState
+            this.notifyStageState(this.stageState)
           }
         } catch {
           // Ignora mensagens malformadas
@@ -128,6 +141,15 @@ export class LumenWebSocketStore {
   }
 
   /**
+   * Retorna o snapshot atual do LiveStageState (alertas e cronômetros).
+   *
+   * @returns Snapshot imutável do estado do palco.
+   */
+  public getStageSnapshot = (): LiveStageState => {
+    return this.stageState
+  }
+
+  /**
    * Retorna o estado booleano de conexão para useSyncExternalStore.
    *
    * @returns Verdadeiro se o socket estiver conectado.
@@ -146,6 +168,19 @@ export class LumenWebSocketStore {
     this.stateListeners.add(listener)
     return () => {
       this.stateListeners.delete(listener)
+    }
+  }
+
+  /**
+   * Inscreve um ouvinte para alterações no LiveStageState.
+   *
+   * @param listener - Callback disparado ao receber novo estado de palco/alertas.
+   * @returns Função de cancelamento da inscrição.
+   */
+  public subscribeStageState = (listener: StageStateListener): (() => void) => {
+    this.stageListeners.add(listener)
+    return () => {
+      this.stageListeners.delete(listener)
     }
   }
 
@@ -174,6 +209,12 @@ export class LumenWebSocketStore {
   private notifyState(state: ScreenState): void {
     for (const listener of this.stateListeners) {
       listener(state)
+    }
+  }
+
+  private notifyStageState(stageState: LiveStageState): void {
+    for (const listener of this.stageListeners) {
+      listener(stageState)
     }
   }
 

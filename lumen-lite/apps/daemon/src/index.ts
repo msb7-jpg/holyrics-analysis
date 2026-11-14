@@ -4,19 +4,19 @@
  *
  * ## Responsabilidades:
  * - Inicializar persistência SQLite WAL e semente do acervo musical offline.
- * - Compor dependências (`FsmEngine`, `DbClient`, repositórios e clientes de fatias).
+ * - Compor dependências (`FsmEngine`, `DbClient`, repositórios e motores de fatias).
  * - Instanciar o roteador de API REST (`createApiRouter`) e o manipulador WebSocket (`createWebSocketHandler`).
  * - Inicializar o servidor HTTP e WebSocket de ultra-baixa latência (`Bun.serve`).
  *
  * ## Comunicação e Fronteiras:
  * - **Expõe:** Endpoints REST e conexões WebSocket bidirecionais com canais dedicados (`operator`, `projector`, `stage`, `broadcast`).
- * - **Conecta:** Despacha requisições para os módulos de fatias (`@slices/songs`) e reflete transições da FSM (`@lumen/core`).
+ * - **Conecta:** Despacha requisições para os módulos de fatias e reflete transições da FSM (`@lumen/core`).
  */
 
 import { FsmEngine } from '@lumen/core'
 import { createLogger } from '@lumen/core/logger'
 import { DbClient } from './db/db-client'
-import { SongRepository, VagalumeClient } from '@slices/songs'
+import { SongRepository, SongHistoryRepository, VagalumeClient } from '@slices/songs'
 import type { Song } from '@slices/songs'
 import { BibleRepository } from '@slices/bible'
 import { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
@@ -24,6 +24,10 @@ import { AutomationRepository, DagRunner, ObsClient } from '@slices/automation'
 import { KeymapRepository } from '@slices/keymap'
 import { MediaRepository } from '@slices/media'
 import { DisplayRepository } from '@slices/navigation'
+import { StageEngine } from '@slices/stage'
+import { RemoteAuthManager } from '@slices/remote'
+import { PptxRepository } from '@slices/pptx'
+import { PlaybackRepository } from '@slices/playback'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import defaultSongs from '../../../slices/songs/default-songs.json'
@@ -38,6 +42,7 @@ const PORT = parseInt(process.env.PORT || '4040', 10)
 const fsm = new FsmEngine()
 const dbClient = new DbClient()
 const songRepo = new SongRepository(dbClient.getDb())
+const songHistoryRepo = new SongHistoryRepository(dbClient.getDb())
 const vagalumeClient = new VagalumeClient()
 const bibleRepo = new BibleRepository(dbClient.getDb())
 const liturgyRepo = new LiturgyRepository()
@@ -45,6 +50,10 @@ const automationRepo = new AutomationRepository()
 const keymapRepo = new KeymapRepository()
 const mediaRepo = new MediaRepository()
 const displayRepo = new DisplayRepository()
+const stageEngine = new StageEngine()
+const remoteAuth = new RemoteAuthManager(PORT, 3000)
+const pptxRepo = new PptxRepository()
+const playbackRepo = new PlaybackRepository()
 
 // Inicializa cliente OBS Studio v5 conforme o grafo ativo
 const activeAutomationGraph = automationRepo.load()
@@ -75,6 +84,7 @@ if (!bibleRepo.hasBibles()) {
 const apiRouter = createApiRouter({
   fsm,
   songRepo,
+  songHistoryRepo,
   vagalumeClient,
   bibleRepo,
   liturgyRepo,
@@ -83,9 +93,13 @@ const apiRouter = createApiRouter({
   keymapRepo,
   mediaRepo,
   displayRepo,
+  stageEngine,
+  remoteAuth,
+  pptxRepo,
+  playbackRepo,
   obsClient,
 })
-const wsHandler = createWebSocketHandler({ fsm, logger })
+const wsHandler = createWebSocketHandler({ fsm, stageEngine, logger })
 
 // 3. Servidor Bun Thin Shell
 logger.info({ port: PORT }, 'Inicializando Daemon LumenLite...')
@@ -97,11 +111,20 @@ const server = Bun.serve<WebSocketData>({
   websocket: wsHandler.websocket,
 })
 
-// 4. Integração do ciclo de vida FSM -> Clientes WebSocket & DAG Runner
+// 4. Integração do ciclo de vida FSM -> Clientes WebSocket, Histórico Musical & DAG Runner
 wsHandler.bindFsm(server)
 
-// Disparo assíncrono e desacoplado de eventos da FSM para o DAG Runner (0ms de impacto na projeção - RNF-04)
 fsm.subscribe((nextState, previousState) => {
+  // Gravação automática no histórico musical (RF-12 - janela de deduplicação de 30min de History.java)
+  if (nextState.mode === 'SONG' && nextState.activeItemId) {
+    const songDetails = songRepo.getById(nextState.activeItemId)
+    songHistoryRepo.recordPlay(
+      nextState.activeItemId,
+      songDetails?.title || nextState.foreground.title || nextState.activeItemId,
+      songDetails?.artist,
+    )
+  }
+
   const isSlideChanged =
     nextState.foreground.slideIndex !== previousState.foreground.slideIndex ||
     nextState.foreground.content.join('\n') !== previousState.foreground.content.join('\n')
@@ -138,4 +161,3 @@ fsm.subscribe((nextState, previousState) => {
 })
 
 logger.info({ port: server.port, url: `http://localhost:${server.port}` }, 'Daemon LumenLite ativo e pronto')
-

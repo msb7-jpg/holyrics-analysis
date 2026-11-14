@@ -35,6 +35,8 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@xyflow/react": "^12.12.1",
+    "fast-xml-parser": "^5.12.1",
+    "fflate": "^0.8.3",
     "lucide-react": "^0.475.0",
     "pino": "^10.4.0",
     "react": "^19.0.0",

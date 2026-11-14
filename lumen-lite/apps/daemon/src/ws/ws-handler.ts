@@ -1,10 +1,11 @@
 /**
  * @module @lumen/daemon/ws/ws-handler
- * @description Manipulador de ciclo de vida das conexões WebSocket e sincronização reativa com a FSM.
+ * @description Manipulador de ciclo de vida das conexões WebSocket e sincronização reativa com a FSM e StageEngine.
  */
 
 import type { Server, ServerWebSocket } from 'bun'
 import type { ActionCommand, FsmEngine, ScreenState } from '@lumen/core'
+import type { StageEngine, LiveStageState } from '@slices/stage'
 import type { Logger } from 'pino'
 
 /**
@@ -20,17 +21,18 @@ export interface WebSocketData {
  */
 export interface WebSocketHandlerParams {
   fsm: FsmEngine
+  stageEngine?: StageEngine
   logger: Logger
 }
 
 /**
  * Cria a estrutura de handlers para conexões WebSocket gerenciadas pelo Bun.
  *
- * @param params - Instâncias da máquina de estados e do logger Pino.
+ * @param params - Instâncias da máquina de estados, motor de palco e do logger Pino.
  * @returns Manipuladores de eventos de socket e função de vinculação à FSM.
  */
 export function createWebSocketHandler(params: WebSocketHandlerParams) {
-  const { fsm, logger } = params
+  const { fsm, stageEngine, logger } = params
 
   return {
     websocket: {
@@ -42,8 +44,14 @@ export function createWebSocketHandler(params: WebSocketHandlerParams) {
       open(socket: ServerWebSocket<WebSocketData>) {
         socket.subscribe('screen-state')
         logger.info({ clientType: socket.data.clientType, id: socket.data.id }, 'Cliente WebSocket conectado')
-        // Envia snapshot do estado atual imediatamente na conexão
-        socket.send(JSON.stringify({ type: 'SYNC_STATE', state: fsm.getState() }))
+        // Envia snapshot do estado atual da FSM e do Stage imediatamente na conexão
+        socket.send(
+          JSON.stringify({
+            type: 'SYNC_STATE',
+            state: fsm.getState(),
+            stageState: stageEngine?.getState(),
+          }),
+        )
       },
 
       /**
@@ -76,14 +84,33 @@ export function createWebSocketHandler(params: WebSocketHandlerParams) {
     },
 
     /**
-     * Vincula a emissão de novos estados da FSM ao canal de pub/sub do servidor Bun.
+     * Vincula a emissão de novos estados da FSM e do StageEngine ao canal de pub/sub do servidor Bun.
      *
      * @param serverInstance - Instância ativa do servidor Bun.
      */
     bindFsm(serverInstance: Server<WebSocketData>) {
       fsm.subscribe((newState: ScreenState) => {
-        serverInstance.publish('screen-state', JSON.stringify({ type: 'STATE_CHANGED', state: newState }))
+        serverInstance.publish(
+          'screen-state',
+          JSON.stringify({
+            type: 'STATE_CHANGED',
+            state: newState,
+            stageState: stageEngine?.getState(),
+          }),
+        )
       })
+
+      if (stageEngine) {
+        stageEngine.subscribe((newStageState: LiveStageState) => {
+          serverInstance.publish(
+            'screen-state',
+            JSON.stringify({
+              type: 'STAGE_STATE_CHANGED',
+              stageState: newStageState,
+            }),
+          )
+        })
+      }
     },
   }
 }

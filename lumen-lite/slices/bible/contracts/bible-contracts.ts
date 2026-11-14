@@ -1,6 +1,6 @@
 /**
  * @module @slices/bible/contracts
- * @description Contratos de dados e schemas Zod v4 para o motor bíblico do LumenLite.
+ * @description Contratos de dados e schemas Zod v4 para o motor bíblico, Dual Version (RF-14) e Gerenciador de Downloads (RF-17).
  */
 
 import { z } from 'zod'
@@ -69,9 +69,25 @@ export const BibleLookupResponseSchema = z.object({
   verseEnd: z.number().int().positive().optional(),
   version: z.string(),
   verses: z.array(BibleVerseSchema),
+  dualVersion: z.string().optional(),
+  secondaryVerses: z.array(BibleVerseSchema).optional(),
 })
 
 export type BibleLookupResponse = z.infer<typeof BibleLookupResponseSchema>
+
+/**
+ * Item do catálogo de traduções bíblicas disponíveis para download/instalação (baseado em `AvailableDownloads.java` - RF-17).
+ */
+export const AvailableBibleDownloadItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  abbrev: z.string(),
+  language: z.string(),
+  installed: z.boolean(),
+  verseCount: z.number().int(),
+})
+
+export type AvailableBibleDownloadItem = z.infer<typeof AvailableBibleDownloadItemSchema>
 
 export interface ExtractedBibleBook {
   number: number

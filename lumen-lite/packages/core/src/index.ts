@@ -19,6 +19,7 @@ export type {
   PanicMask,
   BackgroundLayer,
   ForegroundLayer,
+  SlideItem,
   ScreenState,
   ActionCommand,
   StateListener,
@@ -35,6 +36,7 @@ export {
   ReturnStack,
   FsmEngine,
   ForegroundLayerSchema,
+  SlideItemSchema,
 } from './fsm'
 
 export {

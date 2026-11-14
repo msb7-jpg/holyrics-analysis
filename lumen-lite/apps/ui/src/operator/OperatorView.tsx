@@ -1,13 +1,25 @@
 /**
  * @module @ui/operator/OperatorView
  * @description Console principal de operação litúrgica do LumenLite.
- * Orquestrador declarativo enxuto (< 100 linhas) montando o layout de 4 colunas Slate Pro Studio.
+ * Orquestrador declarativo enxuto montando o layout de 4 colunas Slate Pro Studio e os modais de fatias.
  */
 
 import { useState } from 'react'
-import { Search, Loader2 } from 'lucide-react'
+import { Search, Loader2, History, Upload, Disc3 } from 'lucide-react'
 import type { ScreenState, ActionCommand } from '@lumen/core'
+import {
+  INITIAL_LIVE_STAGE_STATE,
+  type LiveStageState,
+} from '@slices/stage/contracts/stage-contracts'
+import { StageControlModal } from '@slices/stage/ui/components/StageControlModal'
+import { RemotePairingModal } from '@slices/remote/ui/components/RemotePairingModal'
+import { PptxDeckModal } from '@slices/pptx/ui/components/PptxDeckModal'
+import { PlaybackSyncModal } from '@slices/playback/ui/components/PlaybackSyncModal'
+import { SongHistoryModal } from '@slices/songs/ui/components/SongHistoryModal'
+import { SongImporterModal } from '@slices/songs/ui/components/SongImporterModal'
+import { BibleDownloadModal } from '@slices/bible/ui/components/BibleDownloadModal'
 import { Input } from '@ui/components/ui/input'
+import { Button } from '@ui/components/ui/button'
 import { Kbd } from '@ui/components/ui/kbd'
 import { OperatorTopBar } from '@slices/navigation/ui/components/OperatorTopBar'
 import { OutputMonitorPanel } from '@slices/navigation/ui/components/OutputMonitorPanel'
@@ -16,13 +28,14 @@ import { SongSearchList } from '@slices/songs/ui/components/SongSearchList'
 import { SongStanzaGrid } from '@slices/songs/ui/components/SongStanzaGrid'
 import { BibleQuickLookupCard } from '@slices/bible/ui/components/BibleQuickLookupCard'
 import { BibleVerseGrid } from '@slices/bible/ui/components/BibleVerseGrid'
-import { AutomationModal } from '@slices/automation'
-import { KeymapModal } from '@slices/keymap'
+import { AutomationModal } from '@slices/automation/ui/components/AutomationModal'
+import { KeymapModal } from '@slices/keymap/ui/components/KeymapModal'
 import { SpotlightDialog } from './components/SpotlightDialog'
 import { useOperatorController } from './hooks/useOperatorController'
 
 export interface OperatorViewProps {
   state: ScreenState
+  stageState?: LiveStageState
   connected: boolean
   dispatch: (cmd: ActionCommand) => void
 }
@@ -32,11 +45,17 @@ export interface OperatorViewProps {
  *
  * @param props - Propriedades do componente.
  * @param props.state - Estado atômico da projeção e pânico.
+ * @param props.stageState - Estado sincronizado de alertas e cronômetros de palco.
  * @param props.connected - Flag indicando se o WebSocket está conectado.
  * @param props.dispatch - Despachante tipado de comandos para a FSM.
  * @returns Elemento JSX com o console de controle do operador.
  */
-export function OperatorView({ state, connected, dispatch }: OperatorViewProps) {
+export function OperatorView({
+  state,
+  stageState = INITIAL_LIVE_STAGE_STATE,
+  connected,
+  dispatch,
+}: OperatorViewProps) {
   const {
     query,
     setQuery,
@@ -46,28 +65,41 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
     isLoadingSongDetail,
     selectedSongId,
     activeBible,
+    dualBibleVersion,
     bibleLookupResult,
     isSpotlightOpen,
     setIsSpotlightOpen,
     handleSelectSong,
     handleSelectSection,
     handleSelectBible,
+    handleChangeDualVersion,
     handleSelectVerse,
     handleSelectLiturgyItem,
   } = useOperatorController({ state, dispatch })
 
   const [isAutomationOpen, setIsAutomationOpen] = useState(false)
   const [isKeymapOpen, setIsKeymapOpen] = useState(false)
+  const [isStageControlOpen, setIsStageControlOpen] = useState(false)
+  const [isRemotePairingOpen, setIsRemotePairingOpen] = useState(false)
+  const [isPptxOpen, setIsPptxOpen] = useState(false)
+  const [isBibleDownloadsOpen, setIsBibleDownloadsOpen] = useState(false)
+  const [isSongHistoryOpen, setIsSongHistoryOpen] = useState(false)
+  const [isSongImporterOpen, setIsSongImporterOpen] = useState(false)
+  const [isPlaybackSyncOpen, setIsPlaybackSyncOpen] = useState(false)
 
   return (
     <div className="flex h-screen w-screen flex-col bg-slate-900 text-slate-100 select-none">
-      {/* TopBar Sóbria com Pânico e Status */}
+      {/* TopBar Sóbria com Pânico, Multi-Monitor, Palco, QR Code e Status */}
       <OperatorTopBar
         connected={connected}
         panic={state.panic}
         onOpenSpotlight={() => setIsSpotlightOpen(true)}
         onOpenAutomation={() => setIsAutomationOpen(true)}
         onOpenKeymap={() => setIsKeymapOpen(true)}
+        onOpenStageControl={() => setIsStageControlOpen(true)}
+        onOpenRemotePairing={() => setIsRemotePairingOpen(true)}
+        onOpenPptxDeck={() => setIsPptxOpen(true)}
+        onOpenBibleDownloads={() => setIsBibleDownloadsOpen(true)}
         onTogglePanic={(target) => dispatch({ type: 'TOGGLE_PANIC', target })}
       />
 
@@ -83,7 +115,7 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
 
         {/* Coluna 2: Acervo Musical & Pesquisa FTS5 (25%) */}
         <section className="col-span-3 flex flex-col bg-slate-900 p-3 border-l border-white/5 overflow-hidden">
-          <div className="relative mb-3">
+          <div className="relative mb-2">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
             <Input
               placeholder="Buscar hino ou versículo (ex: jo 3 16)..."
@@ -93,6 +125,41 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
             />
             {isLoadingSongs && (
               <Loader2 className="absolute right-2.5 top-2.5 h-3.5 w-3.5 animate-spin text-slate-400" />
+            )}
+          </div>
+
+          {/* Barra de Ferramentas do Acervo Musical (Importador RF-11, Histórico RF-12 e Playback RF-22) */}
+          <div className="mb-2 flex items-center justify-between gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSongImporterOpen(true)}
+              title="Importar Backup .zip ou Letras do Holyrics (RF-11)"
+            >
+              <Upload className="h-3 w-3 text-sky-400" />
+              <span>Importar</span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSongHistoryOpen(true)}
+              title="Histórico e Mais Cantadas (RF-12)"
+            >
+              <History className="h-3 w-3 text-slate-400" />
+              <span>Histórico</span>
+            </Button>
+
+            {currentSong && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsPlaybackSyncOpen(true)}
+                title="Playback Musical Sincronizado (RF-22)"
+              >
+                <Disc3 className="h-3 w-3 text-amber-400" />
+                <span>Playback</span>
+              </Button>
             )}
           </div>
 
@@ -120,6 +187,8 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
               activeBible={activeBible}
               activeSlideIndex={state.foreground.slideIndex}
               isLiveOnScreen={state.mode === 'BIBLE'}
+              dualVersion={dualBibleVersion}
+              onChangeDualVersion={handleChangeDualVersion}
               onSelectVerse={handleSelectVerse}
             />
           ) : isLoadingSongDetail ? (
@@ -162,7 +231,7 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
         </div>
       </footer>
 
-      {/* Modal Spotlight Universal (Cmd+K) */}
+      {/* Modais das Fatias Verticais */}
       <SpotlightDialog
         isOpen={isSpotlightOpen}
         onClose={() => setIsSpotlightOpen(false)}
@@ -170,17 +239,40 @@ export function OperatorView({ state, connected, dispatch }: OperatorViewProps) 
         onSelectBible={handleSelectBible}
         onTogglePanic={(target) => dispatch({ type: 'TOGGLE_PANIC', target })}
       />
-
-      {/* Modal de Automação Litúrgica DAG */}
-      <AutomationModal
-        isOpen={isAutomationOpen}
-        onClose={() => setIsAutomationOpen(false)}
+      <AutomationModal isOpen={isAutomationOpen} onClose={() => setIsAutomationOpen(false)} />
+      <KeymapModal isOpen={isKeymapOpen} onClose={() => setIsKeymapOpen(false)} />
+      <StageControlModal
+        isOpen={isStageControlOpen}
+        stageState={stageState}
+        onClose={() => setIsStageControlOpen(false)}
       />
-
-      {/* Modal de Atalhos de Teclado (keybindings.json) */}
-      <KeymapModal
-        isOpen={isKeymapOpen}
-        onClose={() => setIsKeymapOpen(false)}
+      <RemotePairingModal
+        isOpen={isRemotePairingOpen}
+        onClose={() => setIsRemotePairingOpen(false)}
+      />
+      <PptxDeckModal
+        isOpen={isPptxOpen}
+        onClose={() => setIsPptxOpen(false)}
+        dispatch={dispatch}
+      />
+      <BibleDownloadModal
+        isOpen={isBibleDownloadsOpen}
+        onClose={() => setIsBibleDownloadsOpen(false)}
+      />
+      <SongHistoryModal
+        isOpen={isSongHistoryOpen}
+        onClose={() => setIsSongHistoryOpen(false)}
+        onSelectSong={handleSelectSong}
+      />
+      <SongImporterModal
+        isOpen={isSongImporterOpen}
+        onClose={() => setIsSongImporterOpen(false)}
+      />
+      <PlaybackSyncModal
+        isOpen={isPlaybackSyncOpen}
+        song={currentSong || null}
+        onClose={() => setIsPlaybackSyncOpen(false)}
+        dispatch={dispatch}
       />
     </div>
   )

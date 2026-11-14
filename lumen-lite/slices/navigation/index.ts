@@ -37,6 +37,8 @@ export type {
 
 export { sanitizeLine, sanitizeSlideLines } from './daemon/text-sanitizer'
 export { useAutoFitText } from './ui/hooks/useAutoFitText'
+export { useMultiMonitor } from './ui/hooks/useMultiMonitor'
+export type { MonitorDeviceInfo } from './ui/hooks/useMultiMonitor'
 export { BackgroundVideoLoop } from './ui/components/BackgroundVideoLoop'
 export { ForegroundTextDisplay } from './ui/components/ForegroundTextDisplay'
 export { ProjectorScreen } from './ui/components/ProjectorScreen'

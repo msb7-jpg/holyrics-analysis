@@ -1,19 +1,12 @@
 /**
  * @module @slices/navigation/ui/components/ProjectorScreen
- * @description Telão completo de projeção HDMI integrando background em loop, texto auto-fit e máscaras de pânico.
- *
- * ## Responsabilidades:
- * - Espelhar fielmente o ScreenState emitido pelo daemon via WebSocket.
- * - Tratar imediatamente ações de pânico:
- *   - blackout: tela preta absoluta instantânea (0ms).
- *   - clearText: suprime texto sem interromper o loop de vídeo em background.
- *   - clearBg: oculta o vídeo de fundo mantendo apenas o texto sobre fundo escuro neutro.
- *   - freeze: congela o frame visual ignorando alterações.
- * - Servir como renderizador compartilhado tanto para a janela cheia (/projector) quanto para o preview (Coluna 4).
+ * @description Telão completo de projeção HDMI integrando background em loop, texto auto-fit, Lower Thirds e máscaras de pânico.
  */
 
 import { useRef, useEffect } from 'react'
 import type { ScreenState } from '@lumen/core'
+import type { LowerThirdAlert } from '@slices/stage/contracts/stage-contracts'
+import { LowerThirdOverlay } from '@slices/stage/ui/components/LowerThirdOverlay'
 import { BackgroundVideoLoop } from './BackgroundVideoLoop'
 import { ForegroundTextDisplay } from './ForegroundTextDisplay'
 import type { ProjectorDisplayConfig } from '../../contracts/projector-contracts'
@@ -21,22 +14,27 @@ import { DEFAULT_PROJECTOR_CONFIG } from '../../contracts/projector-contracts'
 
 export interface ProjectorScreenProps {
   state: ScreenState
+  activeAlert?: LowerThirdAlert | null
   config?: ProjectorDisplayConfig
   isPreview?: boolean
 }
 
 /**
- * Componente do telão HDMI com suporte integral à FSM e máscaras de pânico.
+ * Componente do telão HDMI com suporte integral à FSM, Lower Thirds e máscaras de pânico.
  *
- * @param props - Propriedades contendo o estado da tela e configurações.
+ * @param props - Propriedades contendo o estado da tela, alertas e configurações.
+ * @param props.state - Estado atômico da projeção.
+ * @param props.activeAlert - Alerta Lower Third ativo opcional.
+ * @param props.config - Configurações tipográficas e de margem.
+ * @param props.isPreview - Indica se está renderizado na miniatura da Coluna 4.
  * @returns Elemento JSX com a composição visual completa da projeção.
  */
 export function ProjectorScreen({
   state,
+  activeAlert = null,
   config = DEFAULT_PROJECTOR_CONFIG,
   isPreview = false,
 }: ProjectorScreenProps) {
-  // Lógica de congelamento (Freeze)
   const frozenStateRef = useRef<ScreenState>(state)
 
   useEffect(() => {
@@ -73,7 +71,7 @@ export function ProjectorScreen({
         <div className="absolute inset-0 bg-slate-950" />
       )}
 
-      {/* Camada 2: Foreground Text Display */}
+      {/* Camada 2: Foreground Text Display (suporta single e Dual Version) */}
       {!panic.clearText && (
         <ForegroundTextDisplay
           foreground={foreground}
@@ -81,6 +79,9 @@ export function ProjectorScreen({
           config={config}
         />
       )}
+
+      {/* Camada 3: Alertas Instantâneos & Lower Thirds (RF-24) */}
+      <LowerThirdOverlay alert={activeAlert} />
 
       {/* Badge discreto de FREEZE no modo de preview */}
       {isPreview && panic.freeze && (

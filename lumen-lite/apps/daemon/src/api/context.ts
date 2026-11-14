@@ -4,13 +4,17 @@
  */
 
 import type { FsmEngine } from '@lumen/core'
-import type { SongRepository, VagalumeClient } from '@slices/songs'
+import type { SongRepository, SongHistoryRepository, VagalumeClient } from '@slices/songs'
 import type { BibleRepository } from '@slices/bible'
 import type { LiturgyRepository } from '@slices/liturgy/daemon/liturgy-repository'
 import type { AutomationRepository, DagRunner, ObsClient } from '@slices/automation'
 import type { KeymapRepository } from '@slices/keymap'
 import type { MediaRepository } from '@slices/media'
 import type { DisplayRepository } from '@slices/navigation'
+import type { StageEngine } from '@slices/stage'
+import type { RemoteAuthManager } from '@slices/remote'
+import type { PptxRepository } from '@slices/pptx'
+import type { PlaybackRepository } from '@slices/playback'
 
 /**
  * Contexto compartilhado de dependências injetado nos roteadores da API.
@@ -18,6 +22,7 @@ import type { DisplayRepository } from '@slices/navigation'
 export interface ApiContext {
   fsm: FsmEngine
   songRepo: SongRepository
+  songHistoryRepo?: SongHistoryRepository
   vagalumeClient: VagalumeClient
   bibleRepo: BibleRepository
   liturgyRepo: LiturgyRepository
@@ -26,6 +31,10 @@ export interface ApiContext {
   keymapRepo: KeymapRepository
   mediaRepo: MediaRepository
   displayRepo: DisplayRepository
+  stageEngine?: StageEngine
+  remoteAuth?: RemoteAuthManager
+  pptxRepo?: PptxRepository
+  playbackRepo?: PlaybackRepository
   obsClient?: ObsClient | null
 }
 
@@ -34,7 +43,7 @@ export interface ApiContext {
  */
 export const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 } as const
 

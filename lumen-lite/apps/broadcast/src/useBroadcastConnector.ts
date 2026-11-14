@@ -1,16 +1,23 @@
+/**
+ * @module @lumen/broadcast/useBroadcastConnector
+ * @description Hook reativo para conexão WebSocket da aplicação de Broadcast (OBS Browser Source) com o daemon.
+ */
+
 import { useState, useEffect, useRef } from 'react'
 import type { ScreenState } from '@lumen/core'
 import { INITIAL_SCREEN_STATE } from '@lumen/core'
+import { INITIAL_LIVE_STAGE_STATE, type LiveStageState } from '@slices/stage/contracts/stage-contracts'
 
 const WEBSOCKET_URL = 'ws://localhost:4040/ws?type=broadcast'
 
 /**
- * Hook para conectar a uma fonte de estado da FSM via WebSocket.
+ * Hook para conectar a uma fonte de estado da FSM e Stage via WebSocket.
  *
- * @returns Um objeto contendo o estado atualizado e o status da conexão.
+ * @returns Um objeto contendo o estado atualizado da tela, estado de alertas e o status da conexão.
  */
 export function useBroadcastConnector() {
   const [state, setState] = useState<ScreenState>(INITIAL_SCREEN_STATE)
+  const [stageState, setStageState] = useState<LiveStageState>(INITIAL_LIVE_STAGE_STATE)
   const [isConnected, setIsConnected] = useState(false)
   const websocketRef = useRef<WebSocket | null>(null)
 
@@ -20,23 +27,30 @@ export function useBroadcastConnector() {
 
       websocketRef.current.onopen = () => {
         setIsConnected(true)
-        console.log('Broadcast connected to LumenLite Daemon')
       }
 
       websocketRef.current.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data)
-          if (message.type === 'FSM_STATE_UPDATE') {
-            setState(message.payload)
+          if (message.type === 'SYNC_STATE' || message.type === 'STATE_CHANGED') {
+            if (message.state) {
+              setState(message.state as ScreenState)
+            }
+            if (message.stageState) {
+              setStageState(message.stageState as LiveStageState)
+            }
+          } else if (message.type === 'FSM_STATE_UPDATE' && message.payload) {
+            setState(message.payload as ScreenState)
+          } else if (message.type === 'STAGE_STATE_CHANGED' && message.stageState) {
+            setStageState(message.stageState as LiveStageState)
           }
-        } catch (error) {
-          console.error('Failed to parse WebSocket message', error)
+        } catch {
+          // Ignora mensagens malformadas
         }
       }
 
       websocketRef.current.onclose = () => {
         setIsConnected(false)
-        // Tenta reconectar após 3 segundos
         setTimeout(connect, 3000)
       }
 
@@ -52,5 +66,5 @@ export function useBroadcastConnector() {
     }
   }, [])
 
-  return { state, isConnected }
+  return { state, stageState, isConnected }
 }

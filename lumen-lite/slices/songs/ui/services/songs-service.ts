@@ -1,20 +1,22 @@
 /**
  * @module @slices/songs/ui/services/songs-service
- * @description Serviço assíncrono para operações de rede relacionadas ao acervo de músicas.
- *
- * ## Responsabilidades:
- * - Realizar buscas FTS5 no acervo via HTTP client.
- * - Obter detalhes e estrofes de uma música por ID.
- * - Inserir ou atualizar músicas no banco de dados SQLite do daemon.
+ * @description Serviço assíncrono para operações de rede relacionadas ao acervo de músicas, importador Holyrics (RF-11) e histórico (RF-12).
  */
 
 import { z } from 'zod'
 import { httpClient } from '@ui/core/network/http-client'
 import {
+  SongHistoryEntrySchema,
+  SongImportReportSchema,
   SongSchema,
   SongSearchResultSchema,
+  SongUsageStatSchema,
+  type LegacyHolyricsSong,
   type Song,
+  type SongHistoryEntry,
+  type SongImportReport,
   type SongSearchResult,
+  type SongUsageStat,
 } from '../../contracts/song-contracts'
 
 export const songsService = {
@@ -59,6 +61,53 @@ export const songsService = {
     return httpClient.post<Song>('/api/songs', song, {
       signal,
       schema: SongSchema,
+    })
+  },
+
+  /**
+   * Importa um pacote de músicas legadas do Holyrics (via base64 ZIP ou lista JSON - RF-11).
+   *
+   * @param payload - Objeto contendo `zipBase64` ou array `songs`.
+   * @param payload.zipBase64 - Conteúdo binário do `.zip`/`.hrm` codificado em Base64.
+   * @param payload.songs - Lista direta de músicas no formato legado do Holyrics.
+   * @returns Relatório de importação com músicas salvas.
+   */
+  async importHolyrics(payload: {
+    zipBase64?: string
+    songs?: LegacyHolyricsSong[]
+  }): Promise<SongImportReport> {
+    return httpClient.post<SongImportReport>('/api/songs/import', payload, {
+      schema: SongImportReportSchema,
+    })
+  },
+
+  /**
+   * Obtém o histórico cronológico recente de músicas executadas nos cultos (RF-12).
+   *
+   * @param limit - Quantidade máxima de registros.
+   * @param signal - Sinal de cancelamento opcional.
+   * @returns Lista de execuções recentes.
+   */
+  async getHistory(limit = 50, signal?: AbortSignal): Promise<SongHistoryEntry[]> {
+    return httpClient.get<SongHistoryEntry[]>('/api/songs/history', {
+      searchParams: { limit },
+      signal,
+      schema: z.array(SongHistoryEntrySchema),
+    })
+  },
+
+  /**
+   * Obtém as estatísticas de frequência de execução de músicas (RF-12).
+   *
+   * @param limit - Quantidade máxima de músicas no ranking.
+   * @param signal - Sinal de cancelamento opcional.
+   * @returns Lista de estatísticas por música.
+   */
+  async getUsageStats(limit = 30, signal?: AbortSignal): Promise<SongUsageStat[]> {
+    return httpClient.get<SongUsageStat[]>('/api/songs/history/stats', {
+      searchParams: { limit },
+      signal,
+      schema: z.array(SongUsageStatSchema),
     })
   },
 }

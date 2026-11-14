@@ -1,5 +1,36 @@
-import type { ScreenState } from './screen-state'
+import type { ForegroundLayer, ScreenState } from './screen-state'
 import type { ActionCommand } from './commands'
+
+/**
+ * Resolve os campos derivados de um slide específico quando o array `slides` está presente.
+ *
+ * @param foreground - Camada foreground atual.
+ * @param targetIndex - Índice do slide alvo.
+ * @returns Nova camada foreground sincronizada com o slide alvo e preview do próximo slide.
+ */
+function resolveForegroundSlide(foreground: ForegroundLayer, targetIndex: number): ForegroundLayer {
+  const slides = foreground.slides
+  if (!slides || slides.length === 0 || !slides[targetIndex]) {
+    return {
+      ...foreground,
+      slideIndex: targetIndex,
+    }
+  }
+
+  const currentSlide = slides[targetIndex]
+  const nextSlide = slides[targetIndex + 1]
+
+  return {
+    ...foreground,
+    slideIndex: targetIndex,
+    content: currentSlide.content,
+    secondaryContent: currentSlide.secondaryContent,
+    reference: currentSlide.reference ?? foreground.reference,
+    secondaryReference: currentSlide.secondaryReference ?? foreground.secondaryReference,
+    speakerNotes: currentSlide.speakerNotes ?? foreground.speakerNotes,
+    nextSlideContent: nextSlide ? nextSlide.content : undefined,
+  }
+}
 
 /**
  * Reducer puro da Máquina de Estados Finita (FSM).
@@ -26,10 +57,7 @@ export function fsmReducer(state: ScreenState, action: ActionCommand): ScreenSta
         ...state,
         version,
         timestamp,
-        foreground: {
-          ...state.foreground,
-          slideIndex: nextSlide,
-        },
+        foreground: resolveForegroundSlide(state.foreground, nextSlide),
       }
     }
 
@@ -42,10 +70,7 @@ export function fsmReducer(state: ScreenState, action: ActionCommand): ScreenSta
         ...state,
         version,
         timestamp,
-        foreground: {
-          ...state.foreground,
-          slideIndex: prevSlide,
-        },
+        foreground: resolveForegroundSlide(state.foreground, prevSlide),
       }
     }
 
@@ -60,10 +85,7 @@ export function fsmReducer(state: ScreenState, action: ActionCommand): ScreenSta
         ...state,
         version,
         timestamp,
-        foreground: {
-          ...state.foreground,
-          slideIndex: target,
-        },
+        foreground: resolveForegroundSlide(state.foreground, target),
       }
     }
 
@@ -106,13 +128,17 @@ export function fsmReducer(state: ScreenState, action: ActionCommand): ScreenSta
     }
 
     case 'PRESENT_ITEM': {
+      const normalizedForeground = resolveForegroundSlide(
+        action.foreground,
+        action.foreground.slideIndex
+      )
       return {
         ...state,
         version,
         timestamp,
         mode: action.mode,
         activeItemId: action.itemId,
-        foreground: action.foreground,
+        foreground: normalizedForeground,
         background: action.background ?? state.background,
         panic: {
           ...state.panic,

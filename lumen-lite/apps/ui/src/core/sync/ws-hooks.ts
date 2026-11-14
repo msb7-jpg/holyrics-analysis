@@ -5,6 +5,7 @@
 
 import { useSyncExternalStore, useCallback } from 'react'
 import type { ActionCommand, ScreenState } from '@lumen/core'
+import type { LiveStageState } from '@slices/stage/contracts/stage-contracts'
 import { wsStore } from './ws-client'
 
 /**
@@ -14,6 +15,15 @@ import { wsStore } from './ws-client'
  */
 export function useScreenState(): ScreenState {
   return useSyncExternalStore(wsStore.subscribeState, wsStore.getSnapshot)
+}
+
+/**
+ * Retorna o LiveStageState atual (alertas Lower Thirds, cronômetro e recado de púlpito).
+ *
+ * @returns Estado de palco e alertas em tempo real.
+ */
+export function useStageState(): LiveStageState {
+  return useSyncExternalStore(wsStore.subscribeStageState, wsStore.getStageSnapshot)
 }
 
 /**

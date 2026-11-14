@@ -17,6 +17,10 @@ import { handleAutomationRoutes } from '@slices/automation'
 import { handleKeymapRoutes } from '@slices/keymap'
 import { handleMediaRoutes } from '@slices/media'
 import { handleDisplayRoutes } from '@slices/navigation'
+import { handleStageRoutes } from '@slices/stage'
+import { handleRemoteRoutes } from '@slices/remote'
+import { handlePptxRoutes } from '@slices/pptx'
+import { handlePlaybackRoutes } from '@slices/playback'
 
 /**
  * Cria a interface do roteador da API com injeção de dependências do contexto.
@@ -66,6 +70,22 @@ export function createApiRouter(context: ApiContext) {
       const displayResponse = await handleDisplayRoutes(request, targetUrl, context)
       if (displayResponse) return displayResponse
 
+      // Delegação para o roteador de palco, alertas e cronômetros (@slices/stage)
+      const stageResponse = await handleStageRoutes(request, targetUrl, context)
+      if (stageResponse) return stageResponse
+
+      // Delegação para o roteador de controle remoto e QR Code (@slices/remote)
+      const remoteResponse = await handleRemoteRoutes(request, targetUrl, context)
+      if (remoteResponse) return remoteResponse
+
+      // Delegação para o roteador de apresentações PPTX/PDF (@slices/pptx)
+      const pptxResponse = await handlePptxRoutes(request, targetUrl, context)
+      if (pptxResponse) return pptxResponse
+
+      // Delegação para o roteador de playback sincronizado (@slices/playback)
+      const playbackResponse = await handlePlaybackRoutes(request, targetUrl, context)
+      if (playbackResponse) return playbackResponse
+
       // Delegação para o roteador de músicas da fatia @slices/songs
       const songsResponse = await handleSongsRoute(request, targetUrl, context)
       if (songsResponse) return songsResponse
@@ -75,7 +95,7 @@ export function createApiRouter(context: ApiContext) {
       if (vagalumeResponse) return vagalumeResponse
 
       // Delegação para o roteador bíblico da fatia @slices/bible
-      const bibleResponse = handleBibleRoutes(targetUrl, context)
+      const bibleResponse = await handleBibleRoutes(targetUrl, context, request)
       if (bibleResponse) return bibleResponse
 
       // Delegação para o roteador de liturgia da fatia @slices/liturgy

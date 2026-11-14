@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'node:path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,8 +11,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@lumen/core': '../../packages/core/src',
-      '@slices': '../../slices',
+      '@lumen/core': path.resolve(__dirname, '../../packages/core/src/index.ts'),
+      '@slices': path.resolve(__dirname, '../../slices'),
     },
   },
 })

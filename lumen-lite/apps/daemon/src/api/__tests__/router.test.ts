@@ -94,7 +94,7 @@ describe('Daemon API Router', () => {
     expect(response).toBeDefined()
     expect(response?.status).toBe(200)
     expect(response?.headers.get('Access-Control-Allow-Origin')).toBe('*')
-    expect(response?.headers.get('Access-Control-Allow-Methods')).toContain('GET, POST, OPTIONS')
+    expect(response?.headers.get('Access-Control-Allow-Methods')).toContain('GET, POST, PUT, DELETE, OPTIONS')
   })
 
   it('deve retornar métricas e integridade no endpoint /api/status', async () => {

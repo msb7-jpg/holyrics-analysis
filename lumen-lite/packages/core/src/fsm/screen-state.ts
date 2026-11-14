@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 export type MasterMode = 'SONG' | 'BIBLE' | 'PPTX' | 'MEDIA' | 'EMPTY'
 
 export interface PanicMask {
@@ -14,12 +16,28 @@ export interface BackgroundLayer {
   loop?: boolean
 }
 
-import { z } from 'zod'
+/**
+ * Representa um slide individual dentro de uma sequência apresentável na FSM.
+ */
+export const SlideItemSchema = z.object({
+  content: z.array(z.string()),
+  secondaryContent: z.array(z.string()).optional(),
+  reference: z.string().optional(),
+  secondaryReference: z.string().optional(),
+  speakerNotes: z.string().optional(),
+})
+
+export type SlideItem = z.infer<typeof SlideItemSchema>
 
 export const ForegroundLayerSchema = z.object({
   title: z.string().optional(),
   reference: z.string().optional(),
+  secondaryReference: z.string().optional(),
   content: z.array(z.string()),
+  secondaryContent: z.array(z.string()).optional(),
+  nextSlideContent: z.array(z.string()).optional(),
+  speakerNotes: z.string().optional(),
+  slides: z.array(SlideItemSchema).optional(),
   activeLineIndex: z.number().optional(),
   slideIndex: z.number(),
   totalSlides: z.number(),
@@ -28,7 +46,12 @@ export const ForegroundLayerSchema = z.object({
 export interface ForegroundLayer extends z.infer<typeof ForegroundLayerSchema> {
   title?: string
   reference?: string
+  secondaryReference?: string
   content: string[]
+  secondaryContent?: string[]
+  nextSlideContent?: string[]
+  speakerNotes?: string
+  slides?: SlideItem[]
   activeLineIndex?: number
   slideIndex: number
   totalSlides: number

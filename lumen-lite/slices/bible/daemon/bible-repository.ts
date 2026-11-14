@@ -346,4 +346,30 @@ export class BibleRepository {
       .get()
     return (result?.count || 0) > 0
   }
+
+  /**
+   * Remove uma tradução bíblica e seus versículos/índices FTS5 (impede remoção caso seja a única instalada).
+   *
+   * @param versionId - ID da versão a ser removida (ex: 'NVI').
+   * @returns Verdadeiro se foi removida com sucesso.
+   */
+  removeVersion(versionId: string): boolean {
+    const targetId = versionId.trim().toUpperCase()
+    const totalVersions = this.database
+      .query<{ count: number }, []>('SELECT count(*) as count FROM bibles')
+      .get()
+    if ((totalVersions?.count || 0) <= 1) {
+      return false
+    }
+
+    const transaction = this.database.transaction(() => {
+      this.database.prepare('DELETE FROM bible_verses_fts WHERE bible_id = ?').run(targetId)
+      this.database.prepare('DELETE FROM bible_verses WHERE bible_id = ?').run(targetId)
+      this.database.prepare('DELETE FROM bible_books WHERE bible_id = ?').run(targetId)
+      this.database.prepare('DELETE FROM bibles WHERE id = ?').run(targetId)
+    })
+
+    transaction()
+    return true
+  }
 }

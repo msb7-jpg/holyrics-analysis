@@ -87,6 +87,14 @@ function printHelp(): void {
   \x1b[33maudio\x1b[0m
     lumen audio playlists        Lista as playlists litúrgicas de áudio ativas
 
+  \x1b[33mstage\x1b[0m
+    lumen stage alert <texto>    Envia alerta Lower Third para telão/palco
+    lumen stage countdown <seg>  Inicia cronômetro regressivo de culto
+    lumen stage message <texto>  Envia mensagem privada ao monitor do pastor
+
+  \x1b[33mremote\x1b[0m
+    lumen remote info            Exibe tokens e URLs LAN para pareamento mobile
+
 \x1b[1mOPÇÕES:\x1b[0m
   -j, --json                     Retorna a saída formatada em JSON estruturado
   --url <daemonUrl>              URL do daemon LumenLite (padrão: http://localhost:4040)
@@ -483,6 +491,99 @@ if (primary === 'audio') {
         console.log(`  \x1b[33m${playlist.name}\x1b[0m (ID: ${playlist.id}) - ${playlist.tracks.length} faixa(s)`)
       })
       console.log()
+    }
+    process.exit(0)
+  }
+}
+
+// 11. Domínio de Palco, Alertas e Cronômetro (stage)
+if (primary === 'stage') {
+  if (secondary === 'alert') {
+    const text = positionals.slice(2).join(' ')
+    if (!text) {
+      console.error('Uso: lumen stage alert "<texto do aviso>"')
+      process.exit(1)
+    }
+    const result = await requestApi<{ id: string; text: string }>('/api/stage/alert', {
+      method: 'POST',
+      body: JSON.stringify({
+        text,
+        durationSeconds: 15,
+        position: 'BOTTOM',
+        showOnProjector: true,
+        showOnStage: true,
+        showOnBroadcast: true,
+      }),
+    })
+    if (isJson) {
+      console.log(JSON.stringify(result))
+    } else {
+      console.log(`\x1b[32m✔\x1b[0m Alerta Lower Third enfileirado: "${result.text}"`)
+    }
+    process.exit(0)
+  }
+
+  if (secondary === 'countdown') {
+    const seconds = parseInt(tertiary || '300', 10)
+    const result = await requestApi('/api/stage/countdown', {
+      method: 'POST',
+      body: JSON.stringify({
+        mode: 'DURATION',
+        durationSeconds: isNaN(seconds) ? 300 : seconds,
+        label: 'Início do Culto',
+        showOnProjectorOverlay: true,
+        showOnStage: true,
+        isRunning: true,
+      }),
+    })
+    if (isJson) {
+      console.log(JSON.stringify(result))
+    } else {
+      console.log(`\x1b[32m✔\x1b[0m Cronômetro iniciado (${seconds}s).`)
+    }
+    process.exit(0)
+  }
+
+  if (secondary === 'message') {
+    const text = positionals.slice(2).join(' ')
+    if (!text) {
+      console.error('Uso: lumen stage message "<mensagem ao pastor>"')
+      process.exit(1)
+    }
+    const result = await requestApi<{ id: string; text: string }>('/api/stage/message', {
+      method: 'POST',
+      body: JSON.stringify({
+        text,
+        urgent: true,
+        durationSeconds: 60,
+      }),
+    })
+    if (isJson) {
+      console.log(JSON.stringify(result))
+    } else {
+      console.log(`\x1b[32m✔\x1b[0m Mensagem enviada ao monitor de palco: "${result.text}"`)
+    }
+    process.exit(0)
+  }
+}
+
+// 12. Pareamento Remoto LAN (remote)
+if (primary === 'remote') {
+  if (secondary === 'info' || !secondary) {
+    const result = await requestApi<{
+      lanIp: string
+      port: number
+      preacherUrl: string
+      operatorUrl: string
+      stageUrl: string
+    }>('/api/remote/info')
+    if (isJson) {
+      console.log(JSON.stringify(result, null, 2))
+    } else {
+      console.log('\n\x1b[1m--- ACESSO REMOTO LAN (QR / TOKENS) ---\x1b[0m')
+      console.log(`Pregador (Passador):  \x1b[36m${result.preacherUrl}\x1b[0m`)
+      console.log(`Operador Mobile:      \x1b[33m${result.operatorUrl}\x1b[0m`)
+      console.log(`Stage View (Palco):   \x1b[32m${result.stageUrl}\x1b[0m\n`)
     }
     process.exit(0)
   }

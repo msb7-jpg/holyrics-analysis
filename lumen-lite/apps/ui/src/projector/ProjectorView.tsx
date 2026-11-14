@@ -4,29 +4,31 @@
  *
  * ## Responsabilidades:
  * - Renderização em tela cheia sem barras de navegação ou cursor do mouse.
- * - Integração do ProjectorScreen com auto-fit, seamless loop e máscaras de pânico.
- * - Suporte a atalhos de emergência diretamente da janela do projetor (F1 = Blackout, Esc = Fechar tela cheia).
+ * - Integração do ProjectorScreen com auto-fit, seamless loop, Lower Thirds e máscaras de pânico.
+ * - Suporte a atalhos de emergência diretamente da janela do projetor (F1 = Blackout, F2 = Clear Text).
  */
 
 import { useEffect } from 'react'
 import type { ScreenState, ActionCommand } from '@lumen/core'
-import { ProjectorScreen } from '@slices/navigation'
+import type { LiveStageState } from '@slices/stage/contracts/stage-contracts'
+import { ProjectorScreen } from '@slices/navigation/ui/components/ProjectorScreen'
 
 export interface ProjectorViewProps {
   state: ScreenState
+  stageState?: LiveStageState
   dispatch?: (command: ActionCommand) => void
 }
 
 /**
  * Visualização pública do Projetor HDMI (/projector).
  *
- * @param props - Propriedades com o estado da tela e despachante opcional.
+ * @param props - Propriedades com o estado da tela, alertas de palco e despachante opcional.
  * @param props.state - Estado da tela compartilhado da FSM.
+ * @param props.stageState - Estado sincronizado de alertas Lower Thirds.
  * @param props.dispatch - Função de despacho de comandos de pânico/navegação.
  * @returns Elemento JSX em tela cheia.
  */
-export function ProjectorView({ state, dispatch }: ProjectorViewProps) {
-  // Oculta o cursor do mouse e gerencia fullscreen ao pressionar F11 ou clique duplo
+export function ProjectorView({ state, stageState, dispatch }: ProjectorViewProps) {
   useEffect(() => {
     document.title = 'LumenLite — Projetor HDMI'
 
@@ -49,7 +51,11 @@ export function ProjectorView({ state, dispatch }: ProjectorViewProps) {
 
   return (
     <div className="h-screen w-screen bg-black overflow-hidden cursor-none select-none">
-      <ProjectorScreen state={state} isPreview={false} />
+      <ProjectorScreen
+        state={state}
+        activeAlert={stageState?.activeAlert ?? null}
+        isPreview={false}
+      />
     </div>
   )
 }

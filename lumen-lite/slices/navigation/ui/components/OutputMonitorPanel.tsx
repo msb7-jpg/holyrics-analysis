@@ -13,7 +13,8 @@ import { useState } from 'react'
 import { ExternalLink, Music, Film } from 'lucide-react'
 import type { ScreenState, BackgroundLayer } from '@lumen/core'
 import { ProjectorScreen } from './ProjectorScreen'
-import { AudioPlayerPanel, MediaGridPanel } from '@slices/media'
+import { AudioPlayerPanel } from '@slices/media/ui/components/AudioPlayerPanel'
+import { MediaGridPanel } from '@slices/media/ui/components/MediaGridPanel'
 
 export interface OutputMonitorPanelProps {
   state: ScreenState
