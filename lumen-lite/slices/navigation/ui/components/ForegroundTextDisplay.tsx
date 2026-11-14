@@ -15,6 +15,7 @@ export interface ForegroundTextDisplayProps {
   foreground: ForegroundLayer
   mode: MasterMode
   config?: ProjectorDisplayConfig
+  isPreview?: boolean
 }
 
 /**
@@ -24,12 +25,14 @@ export interface ForegroundTextDisplayProps {
  * @param props.foreground - Camada de texto ativa na FSM.
  * @param props.mode - Modo mestre da projeção.
  * @param props.config - Configurações tipográficas do telão.
+ * @param props.isPreview - Indica se é a miniatura 16:9 do console do operador.
  * @returns Elemento JSX com o texto auto-ajustado e metadados sóbrios.
  */
 export function ForegroundTextDisplay({
   foreground,
   mode,
   config = DEFAULT_PROJECTOR_CONFIG,
+  isPreview = false,
 }: ForegroundTextDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -48,8 +51,8 @@ export function ForegroundTextDisplay({
   const { fontSize } = useAutoFitText({
     containerRef,
     content: longestColumnLines,
-    minFontSize: 22,
-    maxFontSize: isDualBible ? 64 : 86,
+    minFontSize: isPreview ? 8 : 22,
+    maxFontSize: isPreview ? 24 : (isDualBible ? 64 : 86),
     lineHeightMultiplier: 1.3,
   })
 

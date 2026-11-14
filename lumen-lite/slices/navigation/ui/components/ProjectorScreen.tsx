@@ -77,6 +77,7 @@ export function ProjectorScreen({
           foreground={foreground}
           mode={mode}
           config={config}
+          isPreview={isPreview}
         />
       )}
 
