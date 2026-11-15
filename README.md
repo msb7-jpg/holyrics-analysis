@@ -5,7 +5,40 @@
 [![Nova Arquitetura](https://img.shields.io/badge/Nova%20Geração-Tauri%20v2%20%7C%20React%2019%20%7C%20Bun%20%7C%20Tailwind-blue)](#)
 [![Licença](https://img.shields.io/badge/Engenharia%20Reversa-Pesquisa%20%26%20Interoperabilidade-informational)](#)
 
-Repositório central contendo a **engenharia reversa completa de alta fidelidade do Holyrics** (aplicativo Windows de projeção de letras, bíblia, mídias e liturgia eclesiástica), seu catálogo técnico descompilado, a especificação funcional em 8 domínios e o projeto da nova plataforma moderna (**LumenLite**), acompanhado de um **protótipo interativo de alta fidelidade em Glassmorphism**.
+Repositório central contendo a **engenharia reversa completa de alta fidelidade do Holyrics** (aplicativo Windows de projeção de letras, bíblia, mídias e liturgia eclesiástica), seu catálogo técnico descompilado, o porte 1:1 em TypeScript e a nova plataforma moderna (**LumenLite**).
+
+---
+
+## 🏛️ Estrutura do Repositório (3 Seções)
+
+O repositório está organizado em três partes claramente separadas:
+
+1. **`holyrics-source/` (Fontes Originais & Engenharia Reversa)**:
+   - Código-fonte Java original descompilado (`legacy-java/com/limagiran`), bytecode e recursos originais extraídos (`extracted_classes/`), bibliotecas dinâmicas nativas (`extracted_dlls/`) e dados legados (`Holyrics/`, `data/`).
+   - Finalidade: Referência pura de engenharia reversa e consulta somente leitura das classes Java originais.
+
+2. **`port-holyrics/` (Porte 1:1 em TypeScript)**:
+   - Porte direto, arquivo por arquivo e tipado do Holyrics original para TypeScript moderno.
+   - Inclui suite de testes unitários (`test/`), scripts de mapeamento (`PORT_MAP.md`, `update_map.ts`, `generate_audit.cjs`) e servidor Vite configurado na porta `3001` (evitando conflito com a porta `3000`).
+   - Comandos: `bun test` e `bun run dev` (porta 3001).
+
+3. **`new-holyrics/` (LumenLite - Nova Geração)**:
+   - Aplicação e ecossistema moderno LumenLite em arquitetura vertical de fatias (`slices/`), núcleo determinístico imutável (`packages/core`), backend com SQLite WAL (`apps/daemon`), interface React 19 Slate Pro Studio (`apps/ui`) e camada de transmissão (`apps/broadcast`).
+   - Comandos: `bun test` e `bun run dev` (porta 3000).
+
+---
+
+## 🚀 Orquestração & Comandos Rápidos (Makefile Raiz)
+
+Na raiz do repositório, utilize os seguintes comandos do `Makefile`:
+
+```bash
+make test         # Executa os testes de ambas as suítes (new-holyrics + port-holyrics)
+make test-new     # Executa os testes do new-holyrics (LumenLite)
+make test-port    # Executa os testes do port-holyrics (Porte 1:1 TS)
+make dev-new      # Inicia o ambiente de desenvolvimento do LumenLite
+make dev-port     # Inicia o servidor Vite do porte 1:1 na porta 3001
+```
 
 ---
 

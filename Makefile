@@ -1,6 +1,6 @@
 .PHONY: help dev build test check lint win-app win-tauri-dev win-tauri-build tauri-dev tauri-build
 
-MONOREPO := lumen-lite
+MONOREPO := new-holyrics
 UI_DIR := $(MONOREPO)/apps/ui
 
 help: ## Mostra todos os comandos disponiveis
