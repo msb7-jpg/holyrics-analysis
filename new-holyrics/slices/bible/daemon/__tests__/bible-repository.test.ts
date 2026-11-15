@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { resolve } from 'node:path'
+import { existsSync } from 'node:fs'
 import { BibleRepository } from '../bible-repository'
 import { parseVerseReference } from '../verse-parser'
 import { extractHolyricsBibFile } from '../bib-extractor'
@@ -8,7 +9,12 @@ import { extractHolyricsBibFile } from '../bib-extractor'
 describe('BibleRepository (FTS5 & SQLite WAL)', () => {
   let database: Database
   let repository: BibleRepository
-  const bibFilePath = resolve(import.meta.dir, '../../../../../src/com/limagiran/bible/database/pt_acrf.bib')
+  const bibCandidates = [
+    resolve(import.meta.dir, '../../pt_acrf.bib'),
+    resolve(import.meta.dir, '../../../../../holyrics-source/legacy-java/com/limagiran/bible/database/pt_acrf.bib'),
+    resolve(import.meta.dir, '../../../../../src/com/limagiran/bible/database/pt_acrf.bib'),
+  ]
+  const bibFilePath = bibCandidates.find((candidate) => existsSync(candidate)) ?? bibCandidates[0]
 
   beforeAll(() => {
     database = new Database(':memory:')
