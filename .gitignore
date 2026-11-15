@@ -31,4 +31,26 @@ extracted_classes/
 # Logs e variáveis de ambiente
 *.log
 .env
+.env.*
+!.env.example
+
+# Caches, testes e relatórios
+.vite/
+.fallow/
+coverage/
+playwright-report/
+test-results/
+.playwright-mcp/
+
+# Dados e estado gerados em runtime pelos apps e testes
+holyrics-source/Holyrics/
+holyrics-source/data/
+new-holyrics/Holyrics/
+new-holyrics/data/
+new-holyrics/apps/daemon/data/
+new-holyrics/apps/daemon/automation.json
+new-holyrics/apps/daemon/culto.json
+new-holyrics/apps/daemon/media-playlists.json
+port-holyrics/Holyrics/
+port-holyrics/data/
 
