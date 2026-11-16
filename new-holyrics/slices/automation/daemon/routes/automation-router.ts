@@ -86,13 +86,32 @@ export async function handleAutomationRoutes(
         triggerType: body.triggerType,
         state: context.fsm.getState(),
       })
-      return jsonResponse({ ok: true, message: `Gatilho ${body.triggerType} executado` })
+      const latest = context.dagRunner.getHistory()[0]
+      return jsonResponse({
+        ok: true,
+        message: latest?.details || `Gatilho ${body.triggerType} executado`,
+        history: context.dagRunner.getHistory().slice(0, 10),
+      })
     } catch (error: unknown) {
       return jsonResponse(
         { ok: false, error: error instanceof Error ? error.message : 'Falha ao testar gatilho' },
         400,
       )
     }
+  }
+
+  // 3b. GET /api/automation/history - Consulta histórico de execução
+  if (pathname === '/api/automation/history' && request.method === 'GET') {
+    return jsonResponse({
+      ok: true,
+      data: context.dagRunner.getHistory(),
+    })
+  }
+
+  // 3c. DELETE /api/automation/history - Limpa histórico de execução
+  if (pathname === '/api/automation/history' && request.method === 'DELETE') {
+    context.dagRunner.clearHistory()
+    return jsonResponse({ ok: true })
   }
 
   // 4. POST /api/automation/webhook/:triggerId - Webhook externo

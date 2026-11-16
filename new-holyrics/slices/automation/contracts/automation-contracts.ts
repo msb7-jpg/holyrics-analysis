@@ -118,6 +118,7 @@ export type AutomationNodeKind = z.infer<typeof AutomationNodeKindSchema>
  */
 export const AutomationNodeSchema = z.object({
   id: z.string().min(1),
+  flowId: z.string().optional(),
   kind: AutomationNodeKindSchema,
   label: z.string().min(1),
   position: z.object({
@@ -152,6 +153,13 @@ export const AutomationEdgeSchema = z.object({
 })
 export type AutomationEdge = z.infer<typeof AutomationEdgeSchema>
 
+export const AutomationFlowSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  enabled: z.boolean().default(true),
+})
+export type AutomationFlow = z.infer<typeof AutomationFlowSchema>
+
 /**
  * Grafo completo de automação serializável em `automation.json`.
  */
@@ -159,6 +167,7 @@ export const AutomationGraphSchema = z.object({
   $schema: z.string().optional(),
   version: z.number().default(1),
   enabled: z.boolean().default(true),
+  flows: z.array(AutomationFlowSchema).optional(),
   obsConnection: ObsConnectionConfigSchema.default({
     host: 'localhost',
     port: 4455,

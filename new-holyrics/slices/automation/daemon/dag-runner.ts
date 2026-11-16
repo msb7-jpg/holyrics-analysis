@@ -30,6 +30,15 @@ export interface AutomationExecutionContext {
   webhookTriggerId?: string
 }
 
+export interface ExecutionHistoryEntry {
+  id: string
+  timestamp: number
+  triggerType: TriggerType
+  nodesExecuted: number
+  status: 'success' | 'error' | 'skipped'
+  details: string
+}
+
 /**
  * Executor assíncrono de grafos acíclicos dirigidos (DAG) para automação desacoplada da projeção.
  */
@@ -37,6 +46,7 @@ export class DagRunner {
   private repository: AutomationRepository
   private obsClient: ObsClient | null
   private fsmDispatch: ((command: ActionCommand) => void) | null
+  private history: ExecutionHistoryEntry[] = []
 
   /**
    * Inicializa o executor DAG com repositório de grafo e clientes de destino.
@@ -55,6 +65,25 @@ export class DagRunner {
     this.fsmDispatch = fsmDispatch
   }
 
+  public getHistory(): ExecutionHistoryEntry[] {
+    return [...this.history]
+  }
+
+  public clearHistory(): void {
+    this.history = []
+  }
+
+  private recordHistory(entry: Omit<ExecutionHistoryEntry, 'id' | 'timestamp'>): void {
+    this.history.unshift({
+      id: `exec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      timestamp: Date.now(),
+      ...entry,
+    })
+    if (this.history.length > 50) {
+      this.history.length = 50
+    }
+  }
+
   /**
    * Dispara a execução de automações associadas a um gatilho específico.
    *
@@ -67,12 +96,23 @@ export class DagRunner {
   ): Promise<void> {
     const graph = this.repository.load()
     if (!graph.enabled || graph.nodes.length === 0) {
+      this.recordHistory({
+        triggerType,
+        nodesExecuted: 0,
+        status: 'skipped',
+        details: 'Motor de automações desativado ou sem nós.',
+      })
       return
     }
+
+    const disabledFlowIds = new Set(
+      (graph.flows || []).filter((f) => !f.enabled).map((f) => f.id),
+    )
 
     // Localiza todos os nós de gatilho correspondentes
     const matchedTriggers = graph.nodes.filter((node) => {
       if (node.kind !== 'TRIGGER' || !node.triggerConfig) return false
+      if (node.flowId && disabledFlowIds.has(node.flowId)) return false
       if (node.triggerConfig.type !== triggerType) return false
 
       if (triggerType === 'ON_HTTP_WEBHOOK') {
@@ -83,6 +123,12 @@ export class DagRunner {
     })
 
     if (matchedTriggers.length === 0) {
+      this.recordHistory({
+        triggerType,
+        nodesExecuted: 0,
+        status: 'skipped',
+        details: 'Nenhum gatilho ativo correspondente.',
+      })
       return
     }
 
@@ -91,11 +137,22 @@ export class DagRunner {
       'Iniciando execução de fluxos DAG...',
     )
 
+    const trace = { executed: 0, errors: 0 }
     const executionPromises = matchedTriggers.map((triggerNode) =>
-      this.executeFromNode(triggerNode.id, graph, context),
+      this.executeFromNode(triggerNode.id, graph, context, trace),
     )
 
     await Promise.allSettled(executionPromises)
+
+    this.recordHistory({
+      triggerType,
+      nodesExecuted: trace.executed,
+      status: trace.errors > 0 ? 'error' : 'success',
+      details:
+        trace.errors > 0
+          ? `${trace.executed} nó(s) executado(s), ${trace.errors} falha(s).`
+          : `${trace.executed} nó(s) executado(s) com sucesso.`,
+    })
   }
 
   /**
@@ -109,11 +166,13 @@ export class DagRunner {
     nodeId: string,
     graph: AutomationGraph,
     context: AutomationExecutionContext,
+    trace?: { executed: number; errors: number },
   ): Promise<void> {
     const currentNode = graph.nodes.find((node) => node.id === nodeId)
     if (!currentNode) return
 
     let conditionResult: boolean | null = null
+    if (trace) trace.executed += 1
 
     try {
       if (currentNode.kind === 'CONDITION') {
@@ -129,6 +188,7 @@ export class DagRunner {
         await new Promise((resolve) => setTimeout(resolve, delayMs))
       }
     } catch (nodeExecutionError) {
+      if (trace) trace.errors += 1
       logger.error(
         { error: nodeExecutionError, nodeId: currentNode.id, kind: currentNode.kind },
         'Falha não fatal na execução de nó DAG',
@@ -149,7 +209,7 @@ export class DagRunner {
 
     if (outgoingEdges.length > 0) {
       const childPromises = outgoingEdges.map((edge) =>
-        this.executeFromNode(edge.target, graph, context),
+        this.executeFromNode(edge.target, graph, context, trace),
       )
       await Promise.allSettled(childPromises)
     }
@@ -214,8 +274,8 @@ export class DagRunner {
    * @param node - Nó com parâmetros do OBS.
    */
   private async executeObsAction(node: AutomationNode): Promise<void> {
-    if (!this.obsClient) {
-      logger.debug('Ação OBS ignorada: cliente OBS não configurado')
+    if (!this.obsClient || !this.obsClient.getStatus().connected) {
+      logger.debug('Ação OBS ignorada: OBS Studio desconectado')
       return
     }
 
