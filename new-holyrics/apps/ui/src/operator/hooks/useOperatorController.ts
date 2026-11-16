@@ -14,6 +14,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useDebounceValue } from '@siberiacancode/reactuse'
 import type { ActionCommand, ScreenState, SlideItem } from '@lumen/core'
 import { useSongSearchQuery, useSongDetailQuery } from '@slices/songs/ui/queries/songs-queries'
+import { songsService } from '@slices/songs/ui/services/songs-service'
 import { useBibleLookupQuery } from '@slices/bible/ui/queries/bible-queries'
 import { bibleService } from '@slices/bible/ui/services/bible-service'
 import { useOperatorShortcuts } from '@slices/keymap/ui/hooks/useOperatorShortcuts'
@@ -192,6 +193,27 @@ export function useOperatorController({ state: _state, dispatch }: UseOperatorCo
       })
     },
     [dispatch]
+  )
+
+  // Dispara diretamente o slide 0 (Capa com Título e Banda) ao selecionar/projetar uma música pelo ID
+  const handleProjectSongById = useCallback(
+    async (songId: string) => {
+      handleSelectSong(songId)
+      let songToProject: Song | null = null
+      if (currentSong && currentSong.id === songId) {
+        songToProject = currentSong
+      } else {
+        try {
+          songToProject = await songsService.getById(songId)
+        } catch {
+          // Fallback silencioso em caso de falha de rede/busca
+        }
+      }
+      if (songToProject) {
+        handleProjectSongStanza(songToProject, 0)
+      }
+    },
+    [currentSong, handleSelectSong, handleProjectSongStanza]
   )
 
   // Dispara versículo bíblico especificamente para o telão (Live)
@@ -392,6 +414,7 @@ export function useOperatorController({ state: _state, dispatch }: UseOperatorCo
     handleChangeDualVersion,
     handleSelectVerse,
     handleInspectPptxDeck,
+    handleProjectSongById,
     handleProjectSongStanza,
     handleProjectBibleVerse,
     handleProjectMediaFullscreen,

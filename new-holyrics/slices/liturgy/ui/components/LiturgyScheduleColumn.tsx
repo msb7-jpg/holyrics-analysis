@@ -55,6 +55,7 @@ export interface LiturgyScheduleColumnProps {
   selectedSongId?: string | null
   bibleLookupResult?: BibleLookupResponse | null
   onSelectSong?: (songId: string) => void
+  onProjectSong?: (songId: string) => void
   onSelectBible?: (lookup: BibleLookupResponse) => void
   onOpenSongImporter?: () => void
   onOpenSongHistory?: () => void
@@ -83,6 +84,7 @@ export function LiturgyScheduleColumn({
   selectedSongId,
   bibleLookupResult,
   onSelectSong,
+  onProjectSong,
   onSelectBible,
   onOpenSongImporter,
   onOpenSongHistory,
@@ -454,7 +456,8 @@ export function LiturgyScheduleColumn({
               isLoading={isLoadingSongs}
               selectedSongId={selectedSongId}
               liveSongId={state.mode === 'SONG' ? state.activeItemId : null}
-              onSelectSong={(id) => onSelectSong?.(id)}
+              onSelectSong={(songId) => onSelectSong?.(songId)}
+              onProjectSong={onProjectSong}
             />
           </div>
         </div>

@@ -127,6 +127,7 @@ export function OperatorView({
     handleSelectBible,
     handleChangeDualVersion,
     handleInspectPptxDeck,
+    handleProjectSongById,
     handleProjectSongStanza,
     handleProjectBibleVerse,
     handleProjectMediaFullscreen,
@@ -189,11 +190,7 @@ export function OperatorView({
       return
     }
     if (item.type === 'SONG') {
-      if (currentSong && currentSong.id === item.songId) {
-        handleProjectSongStanza(currentSong, 0)
-      } else {
-        handleSelectSong(item.songId)
-      }
+      handleProjectSongById(item.songId)
       return
     }
     if (item.type === 'BIBLE') {
@@ -309,6 +306,7 @@ export function OperatorView({
             selectedSongId={selectedSongId}
             bibleLookupResult={bibleLookupResult}
             onSelectSong={handleSelectSong}
+            onProjectSong={handleProjectSongById}
             onSelectBible={handleSelectBible}
             onOpenSongImporter={() => {
               setSongBeingEdited(null)

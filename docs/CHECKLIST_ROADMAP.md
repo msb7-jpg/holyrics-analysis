@@ -6,6 +6,17 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
+### [v1.3.2] - Disparo Direto de Capa (Slide 0) via Duplo Clique em Músicas (Letras e Roteiro)
+- **Disparo Imediato no Slide 0 (`SongSearchList.tsx`, `LiturgyScheduleColumn.tsx`):**
+  - Adição da prop `onProjectSong` em `SongSearchColumnProps` e `LiturgyScheduleColumnProps`.
+  - Duplo clique no card de música na aba Letras (`SongSearchList`) dispara `onProjectSong(song.id)`, enquanto o clique simples mantém a seleção/preparação no workspace central.
+- **Integração no Controlador do Operador (`useOperatorController.ts`, `OperatorView.tsx`):**
+  - Implementação da função `handleProjectSongById(songId)`: seleciona a canção no workspace, obtém o objeto `Song` (via cache local ou busca assíncrona por ID) e dispara imediatamente o slide 0 (Capa com Título e Artista) para o telão.
+  - No duplo clique em item do Roteiro (`handleProjectItemFromRoteiro` em `OperatorView.tsx`), itens do tipo `SONG` disparam `handleProjectSongById(item.songId)` garantindo a projeção instantânea da Capa / Banda.
+- **Testes & Qualidade:**
+  - Testes unitários para `SongSearchList` em `slices/songs/ui/__tests__/song-search-list.test.tsx` validando renderização, clique simples e duplo clique.
+  - 116 testes passando com 100% de sucesso no Bun e zero erros de tipo (`bun run check`).
+
 ### [v1.3.1] - Faxina Visual na Coluna Central, Botão Editar Música no Workspace e Slide 0 de Capa
 - **Despoluição Visual da Coluna Central (`OperatorView.tsx`):**
   - Remoção completa do cabeçalho duplicado no topo da Coluna Central (badge redundante `[AO VIVO NO TELÃO]` e botão `[Apresentar no Telão]`), liberando a altura vertical inteira para as estrofes.

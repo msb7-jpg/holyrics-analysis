@@ -13,6 +13,7 @@ export interface SongSearchColumnProps {
   selectedSongId?: string | null
   liveSongId?: string | null
   onSelectSong: (songId: string) => void
+  onProjectSong?: (songId: string) => void
 }
 
 /**
@@ -27,6 +28,7 @@ export const SongSearchList = memo(function SongSearchList({
   selectedSongId,
   liveSongId,
   onSelectSong,
+  onProjectSong,
 }: SongSearchColumnProps) {
   if (isLoading && songs.length === 0) {
     return (
@@ -66,6 +68,7 @@ export const SongSearchList = memo(function SongSearchList({
               )
             }}
             onClick={() => onSelectSong(song.id)}
+            onDoubleClick={() => onProjectSong?.(song.id)}
             className={`relative flex flex-col gap-0.5 rounded-[6px] p-2.5 cursor-pointer transition select-none ${
               isLive
                 ? 'bg-[#1D2D3E] text-white ring-1 ring-emerald-500/50'
