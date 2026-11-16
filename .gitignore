@@ -47,9 +47,11 @@ holyrics-source/Holyrics/
 holyrics-source/data/
 new-holyrics/Holyrics/
 new-holyrics/data/
+new-holyrics/apps/daemon/assets/
 new-holyrics/apps/daemon/data/
 new-holyrics/apps/daemon/automation.json
 new-holyrics/apps/daemon/culto.json
+new-holyrics/apps/daemon/keybindings.json
 new-holyrics/apps/daemon/media-playlists.json
 port-holyrics/Holyrics/
 port-holyrics/data/
