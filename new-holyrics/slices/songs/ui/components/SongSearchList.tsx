@@ -3,6 +3,7 @@
  * @description Lista de músicas encontradas na busca FTS5 com suporte a Drag & Drop para o Roteiro e semântica Preview (Azul) vs Ao Vivo (Esmeralda).
  */
 
+import { memo } from 'react'
 import { Music, Loader2 } from 'lucide-react'
 import type { SongSearchResult } from '../../contracts/song-contracts'
 
@@ -20,7 +21,7 @@ export interface SongSearchColumnProps {
  * @param props - Propriedades do componente.
  * @returns Elemento JSX com os itens clicáveis e arrastáveis.
  */
-export function SongSearchList({
+export const SongSearchList = memo(function SongSearchList({
   songs,
   isLoading,
   selectedSongId,
@@ -112,4 +113,4 @@ export function SongSearchList({
       })}
     </div>
   )
-}
+})

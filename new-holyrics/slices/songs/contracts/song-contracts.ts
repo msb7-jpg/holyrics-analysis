@@ -9,6 +9,13 @@ export const SongSectionSchema = z.object({
 
 export type SongSection = z.infer<typeof SongSectionSchema>
 
+export const SongBackgroundSchema = z.object({
+  type: z.enum(['color', 'image', 'video']),
+  source: z.string(),
+  muted: z.boolean().optional(),
+  loop: z.boolean().optional(),
+})
+
 export const SongSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -17,6 +24,7 @@ export const SongSchema = z.object({
   timeSignature: z.string().optional(),
   sections: z.array(SongSectionSchema),
   defaultArrangement: z.array(z.string()).optional(), // Lista de Section IDs
+  defaultBackground: SongBackgroundSchema.optional(),
 })
 
 export type Song = z.infer<typeof SongSchema>

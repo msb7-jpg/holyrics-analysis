@@ -49,7 +49,7 @@ export async function handleVagalumeRoute(
     try {
       const targetSong = await context.vagalumeClient.getSongByMusId(musicId)
       if (!targetSong) {
-        return jsonResponse({ ok: false, error: 'Letra não encontrada no Vagalume' }, 404)
+        return jsonResponse({ ok: false, error: 'Letra não encontrada para esta música.' }, 404)
       }
       return jsonResponse({ ok: true, data: targetSong })
     } catch (error) {

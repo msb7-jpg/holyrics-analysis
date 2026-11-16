@@ -97,6 +97,7 @@ export function useOperatorController({ state: _state, dispatch }: UseOperatorCo
       type: 'PRESENT_ITEM',
       itemId: currentSong.id,
       mode: 'SONG',
+      background: currentSong.defaultBackground,
       foreground: {
         title: currentSong.title,
         content: section.lines,

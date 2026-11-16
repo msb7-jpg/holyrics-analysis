@@ -37,9 +37,16 @@ export class SongRepository {
         time_signature TEXT,
         sections_json TEXT NOT NULL,
         arrangement_json TEXT,
+        default_background_json TEXT,
         updated_at INTEGER NOT NULL
       );
     `)
+
+    try {
+      this.database.run('ALTER TABLE songs ADD COLUMN default_background_json TEXT')
+    } catch {
+      // Coluna já existe em bancos atualizados
+    }
 
     // Tabela FTS5 com unindexed id para performance de lookup
     this.database.run(`
@@ -64,6 +71,7 @@ export class SongRepository {
     const now = Date.now()
     const sectionsJson = JSON.stringify(song.sections)
     const arrangementJson = song.defaultArrangement ? JSON.stringify(song.defaultArrangement) : null
+    const defaultBgJson = song.defaultBackground ? JSON.stringify(song.defaultBackground) : null
 
     // Monta o texto puro para busca FTS5 (todas as linhas das estrofes)
     const fullContent = song.sections
@@ -75,8 +83,8 @@ export class SongRepository {
       this.database
         .prepare(
           `
-        INSERT INTO songs (id, title, artist, bpm, time_signature, sections_json, arrangement_json, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO songs (id, title, artist, bpm, time_signature, sections_json, arrangement_json, default_background_json, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           title = excluded.title,
           artist = excluded.artist,
@@ -84,6 +92,7 @@ export class SongRepository {
           time_signature = excluded.time_signature,
           sections_json = excluded.sections_json,
           arrangement_json = excluded.arrangement_json,
+          default_background_json = excluded.default_background_json,
           updated_at = excluded.updated_at
       `
         )
@@ -95,6 +104,7 @@ export class SongRepository {
           song.timeSignature ?? null,
           sectionsJson,
           arrangementJson,
+          defaultBgJson,
           now
         )
 
@@ -217,6 +227,7 @@ export class SongRepository {
           time_signature: string | null
           sections_json: string
           arrangement_json: string | null
+          default_background_json?: string | null
         },
         [string]
       >('SELECT * FROM songs WHERE id = ?')
@@ -232,6 +243,7 @@ export class SongRepository {
       timeSignature: row.time_signature ?? undefined,
       sections: JSON.parse(row.sections_json),
       defaultArrangement: row.arrangement_json ? JSON.parse(row.arrangement_json) : undefined,
+      defaultBackground: row.default_background_json ? JSON.parse(row.default_background_json) : undefined,
     }
   }
 
