@@ -25,6 +25,7 @@ export const SlideItemSchema = z.object({
   reference: z.string().optional(),
   secondaryReference: z.string().optional(),
   speakerNotes: z.string().optional(),
+  imageUrl: z.string().optional(),
 })
 
 export type SlideItem = z.infer<typeof SlideItemSchema>
@@ -37,6 +38,7 @@ export const ForegroundLayerSchema = z.object({
   secondaryContent: z.array(z.string()).optional(),
   nextSlideContent: z.array(z.string()).optional(),
   speakerNotes: z.string().optional(),
+  imageUrl: z.string().optional(),
   slides: z.array(SlideItemSchema).optional(),
   activeLineIndex: z.number().optional(),
   slideIndex: z.number(),
@@ -51,6 +53,7 @@ export interface ForegroundLayer extends z.infer<typeof ForegroundLayerSchema> {
   secondaryContent?: string[]
   nextSlideContent?: string[]
   speakerNotes?: string
+  imageUrl?: string
   slides?: SlideItem[]
   activeLineIndex?: number
   slideIndex: number
@@ -60,6 +63,7 @@ export interface ForegroundLayer extends z.infer<typeof ForegroundLayerSchema> {
 export interface ScreenState {
   version: number
   timestamp: number
+  projectedAt?: number | null
   mode: MasterMode
   panic: PanicMask
   background: BackgroundLayer
@@ -70,6 +74,7 @@ export interface ScreenState {
 export const INITIAL_SCREEN_STATE: ScreenState = {
   version: 1,
   timestamp: Date.now(),
+  projectedAt: null,
   mode: 'EMPTY',
   panic: {
     blackout: false,

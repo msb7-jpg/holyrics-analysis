@@ -17,6 +17,10 @@ import {
   Check,
   WifiOff,
   ChevronDown,
+  Pencil,
+  Download,
+  Upload,
+  FilePlus2,
 } from 'lucide-react'
 import { Button } from '@ui/components/ui/button'
 import { PanicToolbar } from './PanicToolbar'
@@ -27,6 +31,9 @@ export interface OperatorTopBarProps {
   panic: PanicMask
   eventTitle?: string
   onChangeEventTitle?: (nextTitle: string) => void
+  onExportLiturgy?: () => void
+  onImportLiturgy?: (file: File) => void
+  onNewLiturgy?: () => void
   onTogglePanic: (target: 'blackout' | 'clearText' | 'freeze') => void
   onOpenSpotlight: () => void
   onOpenKeymap?: () => void
@@ -49,6 +56,9 @@ export function OperatorTopBar({
   panic,
   eventTitle = 'Culto de Celebração',
   onChangeEventTitle,
+  onExportLiturgy,
+  onImportLiturgy,
+  onNewLiturgy,
   onTogglePanic,
   onOpenSpotlight,
   onOpenKeymap,
@@ -61,8 +71,11 @@ export function OperatorTopBar({
 }: OperatorTopBarProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState(eventTitle)
+  const [isEventMenuOpen, setIsEventMenuOpen] = useState(false)
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false)
+  const eventMenuRef = useRef<HTMLDivElement | null>(null)
   const toolsMenuRef = useRef<HTMLDivElement | null>(null)
+  const importInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     setDraftTitle(eventTitle)
@@ -70,6 +83,9 @@ export function OperatorTopBar({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (eventMenuRef.current && !eventMenuRef.current.contains(event.target as Node)) {
+        setIsEventMenuOpen(false)
+      }
       if (toolsMenuRef.current && !toolsMenuRef.current.contains(event.target as Node)) {
         setIsToolsMenuOpen(false)
       }
@@ -121,20 +137,87 @@ export function OperatorTopBar({
             className="rounded bg-[#192334] px-2 py-0.5 text-xs font-medium text-white outline-none ring-1 ring-sky-500/60 w-48"
           />
         ) : (
-          <button
-            type="button"
-            onClick={() => setIsEditingTitle(true)}
-            title="Clique para renomear o evento atual"
-            className="group flex items-center gap-2 rounded px-2 py-1 text-xs font-semibold text-slate-100 hover:bg-[#192334] transition truncate max-w-[220px]"
-          >
-            <span className="truncate">{eventTitle}</span>
-            <span
-              className="flex items-center gap-1 text-[10px] font-normal text-emerald-400/80 shrink-0"
-              title="Alterações salvas automaticamente"
+          <div className="relative" ref={eventMenuRef}>
+            <button
+              type="button"
+              onClick={() => setIsEventMenuOpen((prev) => !prev)}
+              title="Gerenciar roteiro do culto atual (Renomear, Exportar, Importar, Novo)"
+              className="group flex items-center gap-1.5 rounded px-2 py-1 text-xs font-semibold text-slate-100 hover:bg-[#192334] transition truncate max-w-[240px]"
             >
-              <Check className="h-3 w-3" />
-            </span>
-          </button>
+              <span className="truncate">{eventTitle}</span>
+              <span
+                className="flex items-center gap-1 text-[10px] font-normal text-emerald-400/80 shrink-0"
+                title="Roteiro salvo automaticamente"
+              >
+                <Check className="h-3 w-3" />
+              </span>
+              <ChevronDown className="h-3 w-3 text-slate-400 shrink-0" />
+            </button>
+
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".json,application/json"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (file) {
+                  onImportLiturgy?.(file)
+                }
+                event.target.value = ''
+              }}
+            />
+
+            {isEventMenuOpen && (
+              <div className="absolute left-0 mt-1.5 w-56 rounded-lg border border-white/10 bg-[#0F1622] py-1 shadow-2xl z-50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEventMenuOpen(false)
+                    setIsEditingTitle(true)
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#192334]"
+                >
+                  <Pencil className="h-3.5 w-3.5 text-sky-400" />
+                  <span>Renomear Culto</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEventMenuOpen(false)
+                    onExportLiturgy?.()
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#192334]"
+                >
+                  <Download className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Exportar Roteiro (.json)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEventMenuOpen(false)
+                    importInputRef.current?.click()
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#192334]"
+                >
+                  <Upload className="h-3.5 w-3.5 text-amber-400" />
+                  <span>Importar Roteiro (.json)</span>
+                </button>
+                <div className="my-1 border-t border-white/5" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEventMenuOpen(false)
+                    onNewLiturgy?.()
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-rose-300 hover:bg-rose-500/10"
+                >
+                  <FilePlus2 className="h-3.5 w-3.5 text-rose-400" />
+                  <span>Novo Culto (Limpar Roteiro)</span>
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Alerta discreto exibido APENAS se perder conexão com o serviço local */}

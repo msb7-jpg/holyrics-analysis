@@ -33,12 +33,15 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
   const [alertMessage, setAlertMessage] = useState('')
   const [alertStyle, setAlertStyle] = useState<AlertStyle>('classic')
   const [alertDuration, setAlertDuration] = useState(15)
+  const [alertError, setAlertError] = useState<string | null>(null)
+  const [alertSuccess, setAlertSuccess] = useState(false)
 
   // Estado do formulário de Cronômetro (RF-25)
-  const [timerLabel, setTimerLabel] = useState(stageState.timer.label || 'Pregação')
-  const [timerMinutes, setTimerMinutes] = useState(30)
+  const [timerLabel, setTimerLabel] = useState(stageState.timer.label || 'Cronômetro')
+  const [timerMinutes, setTimerMinutes] = useState('30')
   const [targetTime, setTargetTime] = useState('19:30')
   const [timerMode, setTimerMode] = useState<'DURATION' | 'TARGET_TIME'>('DURATION')
+  const [timerError, setTimerError] = useState<string | null>(null)
 
   // Estado do recado exclusivo ao pastor
   const [pastorNote, setPastorNote] = useState(stageState.pastorMessage?.message || '')
@@ -46,7 +49,12 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
   if (!isOpen) return null
 
   const handleTriggerAlert = async () => {
-    if (!alertMessage.trim()) return
+    if (!alertMessage.trim()) {
+      setAlertError('Digite a mensagem do alerta para disparar.')
+      setAlertSuccess(false)
+      return
+    }
+    setAlertError(null)
     await stageService.triggerAlert({
       label: alertLabel,
       message: alertMessage.trim(),
@@ -54,15 +62,30 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
       durationSeconds: alertDuration,
     })
     setAlertMessage('')
+    setAlertSuccess(true)
+    setTimeout(() => setAlertSuccess(false), 2500)
   }
 
   const handleStartTimer = async (projectOnScreen = false) => {
+    if (timerMode === 'TARGET_TIME') {
+      if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(targetTime.trim())) {
+        setTimerError('Informe um horário válido no formato HH:mm (ex: 17:00).')
+        return
+      }
+    } else {
+      const mins = Number(timerMinutes)
+      if (!Number.isFinite(mins) || mins < 1 || mins > 600) {
+        setTimerError('Informe uma duração entre 1 e 600 minutos.')
+        return
+      }
+    }
+    setTimerError(null)
     await stageService.controlTimer({
       action: 'start',
       mode: timerMode,
       label: timerLabel,
-      durationSeconds: timerMinutes * 60,
-      targetTime: timerMode === 'TARGET_TIME' ? targetTime : undefined,
+      durationSeconds: Math.max(1, Number(timerMinutes) || 30) * 60,
+      targetTime: timerMode === 'TARGET_TIME' ? targetTime.trim() : undefined,
       projectOnScreen,
     })
   }
@@ -90,7 +113,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
               onClick={() => window.open('/stage', '_blank', 'noopener,noreferrer')}
             >
               <ExternalLink className="h-3.5 w-3.5 text-sky-400" />
-              <span>Abrir /stage</span>
+              <span>Abrir Monitor de Palco</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -121,27 +144,43 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
               <label className="text-slate-400">Mensagem de Alerta</label>
               <Input
                 value={alertMessage}
-                onChange={(event) => setAlertMessage(event.target.value)}
+                onChange={(event) => {
+                  setAlertMessage(event.target.value)
+                  if (alertError) setAlertError(null)
+                }}
                 placeholder="Ex: Pais do pequeno Davi, comparecer ao berçário"
+                className={alertError ? 'border-rose-500/80 focus-visible:ring-rose-500/40' : undefined}
               />
+              {alertError && (
+                <p className="text-[11px] font-medium text-rose-400">{alertError}</p>
+              )}
+              {alertSuccess && (
+                <p className="text-[11px] font-medium text-emerald-400">Alerta disparado no telão.</p>
+              )}
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-wrap items-end justify-between gap-3 pt-1">
                 <div>
                   <label className="mb-1 block text-slate-400">Estilo</label>
-                  <div className="flex gap-1">
-                    {(['classic', 'urgent', 'minimal'] as const).map((styleOption) => (
+                  <div className="flex flex-wrap gap-1.5">
+                    {(
+                      [
+                        { id: 'classic', label: 'Clássico' },
+                        { id: 'urgent', label: 'Urgente' },
+                        { id: 'minimal', label: 'Discreto' },
+                      ] as const
+                    ).map((styleOption) => (
                       <Button
-                        key={styleOption}
+                        key={styleOption.id}
                         size="sm"
-                        variant={alertStyle === styleOption ? 'activeInfo' : 'secondary'}
-                        onClick={() => setAlertStyle(styleOption)}
+                        variant={alertStyle === styleOption.id ? 'activeInfo' : 'secondary'}
+                        onClick={() => setAlertStyle(styleOption.id)}
                       >
-                        {styleOption}
+                        {styleOption.label}
                       </Button>
                     ))}
                   </div>
                 </div>
-                <div>
+                <div className="w-28 shrink-0">
                   <label className="mb-1 block text-slate-400">Duração (seg)</label>
                   <Input
                     type="number"
@@ -210,14 +249,20 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
                 <Button
                   size="sm"
                   variant={timerMode === 'DURATION' ? 'activeInfo' : 'secondary'}
-                  onClick={() => setTimerMode('DURATION')}
+                  onClick={() => {
+                    setTimerMode('DURATION')
+                    setTimerError(null)
+                  }}
                 >
-                  Por Duração (Min)
+                  Contagem (Minutos)
                 </Button>
                 <Button
                   size="sm"
                   variant={timerMode === 'TARGET_TIME' ? 'activeInfo' : 'secondary'}
-                  onClick={() => setTimerMode('TARGET_TIME')}
+                  onClick={() => {
+                    setTimerMode('TARGET_TIME')
+                    setTimerError(null)
+                  }}
                 >
                   Até Horário (HH:mm)
                 </Button>
@@ -233,24 +278,36 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
                 </div>
                 {timerMode === 'DURATION' ? (
                   <div>
-                    <label className="mb-1 block text-slate-400">Minutos</label>
+                    <label className="mb-1 block text-slate-400">Minutos (a partir de agora)</label>
                     <Input
                       type="number"
-                      value={String(timerMinutes)}
-                      onChange={(event) => setTimerMinutes(Number(event.target.value) || 5)}
+                      min={1}
+                      max={600}
+                      value={timerMinutes}
+                      onChange={(event) => {
+                        setTimerMinutes(event.target.value)
+                        if (timerError) setTimerError(null)
+                      }}
                     />
                   </div>
                 ) : (
                   <div>
-                    <label className="mb-1 block text-slate-400">Horário Alvo</label>
+                    <label className="mb-1 block text-slate-400">Horário Alvo (ex: 17:00)</label>
                     <Input
+                      type="time"
                       value={targetTime}
-                      onChange={(event) => setTargetTime(event.target.value)}
-                      placeholder="19:30"
+                      onChange={(event) => {
+                        setTargetTime(event.target.value)
+                        if (timerError) setTimerError(null)
+                      }}
+                      className={timerError ? 'border-rose-500/80' : undefined}
                     />
                   </div>
                 )}
               </div>
+              {timerError && (
+                <p className="text-[11px] font-medium text-rose-400">{timerError}</p>
+              )}
 
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 <Button onClick={() => handleStartTimer(false)}>
@@ -283,7 +340,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
             <div className="flex flex-col gap-2.5 rounded-xl border border-white/10 bg-slate-950/50 p-4 text-xs">
               <div className="flex items-center gap-2 font-semibold text-amber-400 uppercase tracking-wider">
                 <MessageSquare className="h-3.5 w-3.5" />
-                <span>Recado Exclusivo ao Púlpito (/stage)</span>
+                <span>Recado Exclusivo ao Púlpito</span>
               </div>
               <div className="flex gap-2">
                 <Input

@@ -28,6 +28,7 @@ function resolveForegroundSlide(foreground: ForegroundLayer, targetIndex: number
     reference: currentSlide.reference ?? foreground.reference,
     secondaryReference: currentSlide.secondaryReference ?? foreground.secondaryReference,
     speakerNotes: currentSlide.speakerNotes ?? foreground.speakerNotes,
+    imageUrl: currentSlide.imageUrl,
     nextSlideContent: nextSlide ? nextSlide.content : undefined,
   }
 }
@@ -136,6 +137,7 @@ export function fsmReducer(state: ScreenState, action: ActionCommand): ScreenSta
         ...state,
         version,
         timestamp,
+        projectedAt: timestamp,
         mode: action.mode,
         activeItemId: action.itemId,
         foreground: normalizedForeground,
@@ -162,6 +164,7 @@ export function fsmReducer(state: ScreenState, action: ActionCommand): ScreenSta
         ...state,
         version,
         timestamp,
+        projectedAt: null,
         mode: 'EMPTY',
         activeItemId: null,
         foreground: {

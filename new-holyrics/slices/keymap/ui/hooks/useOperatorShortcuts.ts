@@ -73,6 +73,11 @@ export function useOperatorShortcuts({
       case 'OPEN_SPOTLIGHT':
         onToggleSpotlight()
         break
+      case 'NAV_CLEAR':
+        if (isSpotlightOpen) {
+          onToggleSpotlight()
+        }
+        break
       case 'OPEN_AUTOMATION':
         onOpenAutomation?.()
         break

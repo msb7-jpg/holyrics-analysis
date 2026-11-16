@@ -6,7 +6,7 @@
 import { queryOptions, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { liturgyKeys } from './liturgy-query-keys'
 import { liturgyService } from '../services/liturgy-service'
-import type { LiturgyItem, QuickTextPayload } from '../../contracts/liturgy-schema'
+import type { LiturgyFile, LiturgyItem, QuickTextPayload } from '../../contracts/liturgy-schema'
 
 /**
  * Cria as opções de consulta da liturgia ativa.
@@ -42,6 +42,22 @@ export function useUpdateLiturgyTitleMutation() {
     mutationFn: (title: string) => liturgyService.updateTitle(title),
     onSuccess: (updatedLiturgy) => {
       queryClient.setQueryData(liturgyKeys.current(), updatedLiturgy)
+    },
+  })
+}
+
+/**
+ * Hook de mutação para salvar/importar/resetar a liturgia completa.
+ *
+ * @returns Mutation do TanStack Query.
+ */
+export function useSaveLiturgyMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (liturgy: LiturgyFile) => liturgyService.saveLiturgy(liturgy),
+    onSuccess: (savedLiturgy) => {
+      queryClient.setQueryData(liturgyKeys.current(), savedLiturgy)
     },
   })
 }

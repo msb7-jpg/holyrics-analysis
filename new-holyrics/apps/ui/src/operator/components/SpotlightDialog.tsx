@@ -8,6 +8,7 @@
  * - Renderizar grupos modulares de Ações Rápidas, Escrituras e Louvores.
  */
 
+import { useEffect } from 'react'
 import { Command } from 'cmdk'
 import { Search, Loader2 } from 'lucide-react'
 import { Kbd } from '@ui/components/ui/kbd'
@@ -62,6 +63,20 @@ export function SpotlightDialog({
     onTogglePanic,
   })
 
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   const isQuickActionsVisible =
@@ -71,7 +86,14 @@ export function SpotlightDialog({
     'congelar'.includes(searchTerm.toLowerCase())
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-100">
+    <div
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose()
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-100"
+    >
       <Command
         shouldFilter={false}
         label="Spotlight Command Menu"
