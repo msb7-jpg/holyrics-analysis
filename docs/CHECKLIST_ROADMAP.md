@@ -6,6 +6,13 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
+### [v1.2.0] - Skill de Domínio Ubíquo, Dicionário Canônico e Mapeamento Espacial de Telas
+- **Linguagem Ubíqua & Dicionário de Domínio (`.opencode/skills/lumen-domain/SKILL.md` e `docs/DOMAIN_DICTIONARY.md`):**
+  - Criação da skill oficial `lumen-domain` do OpenCode mapeando a terminologia física e visual do operador (Topo, Coluna 1, Coluna Central / Workspace, Monitor de Saída 16:9, Painel de Acessórios, Telão HDMI, Palco e Controle Remoto).
+  - Mapeamento detalhado de arquivos fonte e componentes para cada região espacial da tela.
+  - Formalização dos conceitos de domínio: *Workspace vs Live*, *Disparo 1-Clique vs 2-Cliques*, *Fundo de Louvor vs Mídia em Tela Cheia*, *Fundo Padrão*, *Pânico* e Modos da FSM (`ScreenMode`).
+  - Estabelecimento de protocolo obrigatório de governança e auto-atualização contínua da documentação em novos commits.
+
 ### [v1.1.0] - Refatoração Comercial de Produto & UI/UX, Fluxo Roteiro/Mídias Universal, Remoção de Mocks/Playback e Suíte E2E Playwright
 - **Faxina de Vazamentos Técnicos (*Implementation Leaks*):**
   - Remoção de todos os códigos `RF-*` de tooltips, botões e cabeçalhos de modais, substituídos por microcopy orientada à ação e domínio de cabine.
