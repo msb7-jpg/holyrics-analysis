@@ -157,12 +157,23 @@ export function useOperatorController({ state: _state, dispatch }: UseOperatorCo
   // Dispara estrofe de louvor especificamente para o telão (Live)
   const handleProjectSongStanza = useCallback(
     (song: Song, stanzaIndex: number) => {
-      const section = song.sections[stanzaIndex]
-      if (!section) return
+      const coverSlide: SlideItem = {
+        content: [song.title],
+        secondaryContent: song.artist ? [song.artist] : undefined,
+        reference: 'CAPA',
+      }
 
-      const songSlides: SlideItem[] = song.sections.map((sec) => ({
+      const stanzaSlides: SlideItem[] = song.sections.map((sec) => ({
         content: sec.lines,
+        reference: '',
       }))
+
+      const songSlides: SlideItem[] = [coverSlide, ...stanzaSlides]
+
+      if (stanzaIndex < 0 || stanzaIndex >= songSlides.length) return
+
+      const isCover = stanzaIndex === 0
+      const targetSection = !isCover ? song.sections[stanzaIndex - 1] : null
 
       dispatch({
         type: 'PRESENT_ITEM',
@@ -171,7 +182,9 @@ export function useOperatorController({ state: _state, dispatch }: UseOperatorCo
         background: song.defaultBackground,
         foreground: {
           title: song.title,
-          content: section.lines,
+          reference: isCover ? 'CAPA' : '',
+          content: isCover ? [song.title] : (targetSection?.lines ?? []),
+          secondaryContent: isCover && song.artist ? [song.artist] : undefined,
           slides: songSlides,
           slideIndex: stanzaIndex,
           totalSlides: songSlides.length,

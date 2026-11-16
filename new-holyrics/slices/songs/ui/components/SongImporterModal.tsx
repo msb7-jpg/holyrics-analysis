@@ -28,6 +28,7 @@ export interface SongImporterModalProps {
   isOpen: boolean
   onClose: () => void
   onImported?: () => void
+  songToEdit?: Song | null
 }
 
 type ModalTab = 'EDITOR' | 'ONLINE' | 'BACKUP'
@@ -61,7 +62,12 @@ function parseLyricsToBlocks(rawText: string): string[][] {
  * @param props - Propriedades do modal.
  * @returns Elemento JSX do modal ou null.
  */
-export function SongImporterModal({ isOpen, onClose, onImported }: SongImporterModalProps) {
+export function SongImporterModal({
+  isOpen,
+  onClose,
+  onImported,
+  songToEdit,
+}: SongImporterModalProps) {
   const [activeTab, setActiveTab] = useState<ModalTab>('EDITOR')
 
   // Estado do Editor Lado a Lado (BUG-10)
@@ -81,6 +87,22 @@ export function SongImporterModal({ isOpen, onClose, onImported }: SongImporterM
   // Feedback estruturado (BUG-09)
   const [status, setStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) return
+    if (songToEdit) {
+      setTitle(songToEdit.title)
+      setArtist(songToEdit.artist || '')
+      setRawLyrics(songToEdit.sections.map((section) => section.lines.join('\n')).join('\n\n'))
+      setActiveTab('EDITOR')
+    } else {
+      setTitle('')
+      setArtist('')
+      setRawLyrics('')
+      setSelectedBgId('')
+    }
+    setStatus(null)
+  }, [isOpen, songToEdit])
 
   useEffect(() => {
     if (!isOpen) return
@@ -122,10 +144,12 @@ export function SongImporterModal({ isOpen, onClose, onImported }: SongImporterM
         lines,
       }))
 
-      const songId = `song-${title
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`
+      const songId = songToEdit
+        ? songToEdit.id
+        : `song-${title
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`
 
       const defaultBackground = selectedMediaBg
         ? {
@@ -134,32 +158,31 @@ export function SongImporterModal({ isOpen, onClose, onImported }: SongImporterM
             loop: selectedMediaBg.type === 'VIDEO',
             muted: true,
           }
-        : undefined
+        : songToEdit?.defaultBackground
 
       const payload: Song = {
         id: songId,
         title: title.trim(),
         artist: artist.trim() || undefined,
         sections,
-        defaultArrangement: sections.map((s) => s.id),
+        defaultArrangement: sections.map((sec) => sec.id),
         defaultBackground,
       }
 
-      const res = await fetch('/api/songs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const json = (await res.json()) as { ok: boolean; error?: string }
-      if (!res.ok || !json.ok) {
-        throw new Error(json.error || 'Erro ao salvar música')
-      }
+      await songsService.upsert(payload)
 
-      setStatus({ type: 'success', text: `Música "${title.trim()}" salva no acervo com sucesso!` })
-      setTitle('')
-      setArtist('')
-      setRawLyrics('')
-      setSelectedBgId('')
+      setStatus({
+        type: 'success',
+        text: songToEdit
+          ? `Música "${title.trim()}" atualizada com sucesso!`
+          : `Música "${title.trim()}" salva no acervo com sucesso!`,
+      })
+      if (!songToEdit) {
+        setTitle('')
+        setArtist('')
+        setRawLyrics('')
+        setSelectedBgId('')
+      }
       onImported?.()
     } catch (error) {
       setStatus({
@@ -286,7 +309,9 @@ export function SongImporterModal({ isOpen, onClose, onImported }: SongImporterM
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Music className="h-4 w-4 text-sky-400" />
-              <h2 className="text-sm font-semibold text-white">Acervo & Editor de Músicas</h2>
+              <h2 className="text-sm font-semibold text-white">
+                {songToEdit ? `Editar Música: ${title || songToEdit.title}` : 'Acervo & Editor de Músicas'}
+              </h2>
             </div>
 
             <div className="flex items-center gap-1 rounded-lg bg-slate-950/80 p-1 text-xs">
@@ -408,7 +433,13 @@ export function SongImporterModal({ isOpen, onClose, onImported }: SongImporterM
                   onClick={handleSaveEditorSong}
                 >
                   <Save className="h-3.5 w-3.5" />
-                  <span>{isSaving ? 'Salvando...' : 'Salvar Música no Acervo'}</span>
+                  <span>
+                    {isSaving
+                      ? 'Salvando...'
+                      : songToEdit
+                        ? 'Salvar Alterações'
+                        : 'Salvar Música no Acervo'}
+                  </span>
                 </Button>
               </div>
 

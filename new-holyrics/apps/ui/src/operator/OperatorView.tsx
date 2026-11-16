@@ -35,6 +35,7 @@ import {
   useSaveLiturgyMutation,
 } from '@slices/liturgy/ui/queries/liturgy-queries'
 import type { LiturgyItem, LiturgyFile } from '@slices/liturgy/contracts/liturgy-schema'
+import type { Song } from '@slices/songs/contracts/song-contracts'
 import { SongStanzaGrid } from '@slices/songs/ui/components/SongStanzaGrid'
 import { BibleVerseGrid } from '@slices/bible/ui/components/BibleVerseGrid'
 import { AutomationModal } from '@slices/automation/ui/components/AutomationModal'
@@ -141,6 +142,7 @@ export function OperatorView({
   const [isBibleDownloadsOpen, setIsBibleDownloadsOpen] = useState(false)
   const [isSongHistoryOpen, setIsSongHistoryOpen] = useState(false)
   const [isSongImporterOpen, setIsSongImporterOpen] = useState(false)
+  const [songBeingEdited, setSongBeingEdited] = useState<Song | null>(null)
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false)
   const [selectedLiturgyItemId, setSelectedLiturgyItemId] = useState<string | null>(null)
 
@@ -258,23 +260,6 @@ export function OperatorView({
       : state.mode !== 'EMPTY'
   )
 
-  const workspaceTitle =
-    workspaceItem?.type === 'SONG'
-      ? currentSong
-        ? `${currentSong.title} — ${currentSong.artist}`
-        : 'Carregando louvor...'
-      : workspaceItem?.type === 'BIBLE'
-        ? `${workspaceItem.lookup.reference} (${workspaceItem.lookup.version}${
-            workspaceItem.lookup.dualVersion ? ` + ${workspaceItem.lookup.dualVersion}` : ''
-          })`
-        : workspaceItem?.type === 'PPTX'
-          ? workspaceItem.title || 'Apresentação'
-          : currentSong
-            ? `${currentSong.title} — ${currentSong.artist}`
-            : activeBible
-              ? activeBible.reference
-              : state.foreground.title || 'Workspace Central'
-
   return (
     <div className="flex h-screen w-screen flex-col bg-[#090D14] text-slate-100 select-none overflow-hidden">
       {/* 1. Barra Superior Redesenha (Esquerda: Evento Editável | Centro: Busca Global | Direita: Saída + Ferramentas) */}
@@ -325,57 +310,15 @@ export function OperatorView({
             bibleLookupResult={bibleLookupResult}
             onSelectSong={handleSelectSong}
             onSelectBible={handleSelectBible}
-            onOpenSongImporter={() => setIsSongImporterOpen(true)}
+            onOpenSongImporter={() => {
+              setSongBeingEdited(null)
+              setIsSongImporterOpen(true)
+            }}
             onOpenSongHistory={() => setIsSongHistoryOpen(true)}
           />
 
           {/* Coluna 2 (Centro): Workspace Central (Preview) */}
           <section className="flex h-full flex-col bg-[#131C2B] p-4 overflow-y-auto">
-            {/* Cabeçalho do Workspace Central: Título, Status Live vs Preview e Ação Rápida */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-white truncate">
-                      {workspaceTitle}
-                    </h3>
-                    {isWorkspaceItemLive ? (
-                      <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shrink-0">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        AO VIVO NO TELÃO
-                      </span>
-                    ) : (
-                      <span className="rounded bg-sky-500/20 px-2 py-0.5 text-[10px] font-mono font-bold text-sky-300 border border-sky-500/30 flex items-center gap-1.5 shrink-0">
-                        <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-                        EM PREPARAÇÃO (NÃO ESTÁ NO TELÃO)
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                    {workspaceItem?.type === 'SONG' && currentSong
-                      ? `Estrofe em foco: ${workspaceFocusedIndex + 1} de ${currentSong.sections.length} (1 clique foca, 2 cliques projeta)`
-                      : workspaceItem?.type === 'BIBLE'
-                        ? `Versículo em foco: ${workspaceFocusedIndex + 1} de ${workspaceItem.lookup.verses.length} (1 clique foca, 2 cliques projeta)`
-                        : workspaceItem?.type === 'PPTX'
-                          ? `Slide em foco: ${workspaceFocusedIndex + 1} de ${workspaceItem.slides.length} (1 clique foca, 2 cliques projeta)`
-                          : 'Selecione um item no catálogo para preparar'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0 ml-2">
-                <button
-                  type="button"
-                  onClick={handleProjectWorkspaceCurrent}
-                  className="flex items-center gap-1.5 rounded bg-sky-500 hover:bg-sky-400 px-3 py-1.5 text-xs font-semibold text-slate-950 transition shadow-sm active:scale-95"
-                  title="Disparar item e slide focado para o telão (Enter)"
-                >
-                  <Presentation className="h-3.5 w-3.5" />
-                  <span>Apresentar no Telão (Enter)</span>
-                </button>
-              </div>
-            </div>
-
             {/* Renderização do Conteúdo: PPTX, BÍBLIA ou MÚSICA */}
             {workspaceItem?.type === 'PPTX' ||
             (!workspaceItem &&
@@ -549,6 +492,10 @@ export function OperatorView({
                   setWorkspaceFocusedIndex(stanzaIdx)
                   handleProjectSongStanza(currentSong, stanzaIdx)
                 }}
+                onEditSong={(song) => {
+                  setSongBeingEdited(song)
+                  setIsSongImporterOpen(true)
+                }}
               />
             ) : (
               <div className="flex flex-1 items-center justify-center text-xs text-slate-400">
@@ -602,7 +549,11 @@ export function OperatorView({
       />
       <SongImporterModal
         isOpen={isSongImporterOpen}
-        onClose={() => setIsSongImporterOpen(false)}
+        songToEdit={songBeingEdited}
+        onClose={() => {
+          setIsSongImporterOpen(false)
+          setSongBeingEdited(null)
+        }}
         onImported={() => {
           void queryClient.invalidateQueries({ queryKey: songKeys.all })
         }}

@@ -6,6 +6,17 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
+### [v1.3.1] - Faxina Visual na Coluna Central, Botão Editar Música no Workspace e Slide 0 de Capa
+- **Despoluição Visual da Coluna Central (`OperatorView.tsx`):**
+  - Remoção completa do cabeçalho duplicado no topo da Coluna Central (badge redundante `[AO VIVO NO TELÃO]` e botão `[Apresentar no Telão]`), liberando a altura vertical inteira para as estrofes.
+- **Botão de Editar Música no Workspace & Integração com o Editor (`SongStanzaGrid.tsx`, `SongImporterModal.tsx`):**
+  - Botão com ícone `Pencil` do Lucide no cabeçalho do `SongStanzaGrid` abrindo o `SongImporterModal` em modo de edição com os dados da música atual (Título, Artista, Letra formatada com quebra dupla `\n\n` e fundo associado).
+  - Preservação do `id` no salvamento via `songsService.upsert` com invalidação do cache e atualização instantânea no workspace.
+- **Slide 0: Capa da Música com Título & Artista (`SongStanzaGrid.tsx`, `useOperatorController.ts`, `ForegroundTextDisplay.tsx`):**
+  - Card `00 · Capa / Título` no topo da grade de estrofes no workspace central.
+  - Projeção elegante no telão com Título imponente e Artista em subtítulo refinado (`text-sky-300`) durante a introdução instrumental da canção.
+  - Testes unitários dedicados em `song-stanza-grid.test.tsx` e `foreground-text-display.test.tsx`.
+
 ### [v1.3.0] - Separação Arquitetural de Workspace (Preview Central) vs Live (Telão) e Mecânica Anti-Cliques Acidentais
 - **FSM Core & Limpeza de Camadas (`packages/core/src/fsm`):**
   - Ajuste em `PRESENT_ITEM` para `mode === 'MEDIA'`: limpa integralmente o texto e slides de `foreground` (`content: []`, `slides: []`, `totalSlides: 0`), atribuindo o `background` à mídia projetada e ativando `mode: 'MEDIA'`.

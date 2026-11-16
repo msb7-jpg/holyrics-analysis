@@ -41,6 +41,7 @@ export function ForegroundTextDisplay({
     ? sanitizeSlideLines(foreground.secondaryContent)
     : []
   const isDualBible = mode === 'BIBLE' && cleanSecondaryLines.length > 0
+  const isSongCover = mode === 'SONG' && foreground.reference === 'CAPA'
 
   // Se for Dual Version, passamos o maior texto entre as duas colunas para que o auto-fit caiba ambas perfeitamente
   const longestColumnLines =
@@ -52,8 +53,8 @@ export function ForegroundTextDisplay({
     containerRef,
     content: longestColumnLines,
     minFontSize: isPreview ? 8 : 22,
-    maxFontSize: isPreview ? 24 : (isDualBible ? 64 : 86),
-    lineHeightMultiplier: 1.3,
+    maxFontSize: isPreview ? (isSongCover ? 28 : 24) : isDualBible ? 64 : isSongCover ? 96 : 86,
+    lineHeightMultiplier: isSongCover ? 1.2 : 1.3,
   })
 
   if (foreground.imageUrl) {
@@ -70,6 +71,54 @@ export function ForegroundTextDisplay({
 
   if (cleanLines.length === 0) {
     return null
+  }
+
+  if (isSongCover) {
+    return (
+      <div
+        ref={containerRef}
+        className="relative z-30 flex h-full w-full flex-col justify-center items-center text-center select-none"
+        style={{
+          padding: `${config.safeAreaMarginPercent}%`,
+          fontFamily: config.fontFamily,
+        }}
+      >
+        <div className="flex max-w-5xl flex-col items-center justify-center px-4">
+          <h1
+            className="font-extrabold tracking-tight text-white transition-all duration-150"
+            style={{
+              fontSize: `${fontSize}px`,
+              lineHeight: 1.2,
+              textShadow: config.textShadow,
+              letterSpacing: config.letterSpacing,
+              wordBreak: 'break-word',
+            }}
+          >
+            {cleanLines.join(' ')}
+          </h1>
+          {cleanSecondaryLines.length > 0 && (
+            <p
+              className={`font-medium tracking-wide text-sky-300 transition-all duration-150 ${
+                isPreview ? 'mt-1.5 text-[11px]' : 'mt-4 text-2xl md:text-3xl'
+              }`}
+              style={{
+                textShadow: config.textShadow,
+                letterSpacing: '0.05em',
+              }}
+            >
+              {cleanSecondaryLines.join(' ')}
+            </p>
+          )}
+        </div>
+
+        {/* Indicador discreto de slide/estrofe */}
+        {foreground.totalSlides > 1 && (
+          <div className="absolute bottom-4 right-6 text-xs font-mono text-white/30 select-none">
+            {`${foreground.slideIndex + 1} / ${foreground.totalSlides}`}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -168,7 +217,7 @@ export function ForegroundTextDisplay({
       {/* Indicador discreto de slide/estrofe */}
       {(mode === 'SONG' || mode === 'PPTX') && foreground.totalSlides > 1 && (
         <div className="absolute bottom-4 right-6 text-xs font-mono text-white/30 select-none">
-          {foreground.slideIndex + 1} / {foreground.totalSlides}
+          {`${foreground.slideIndex + 1} / ${foreground.totalSlides}`}
         </div>
       )}
     </div>
