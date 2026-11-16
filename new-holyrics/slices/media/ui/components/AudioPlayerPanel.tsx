@@ -145,9 +145,9 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
   }
 
   return (
-    <div className={`flex flex-col rounded-md bg-[#131C2B] text-slate-200 select-none overflow-hidden ${className}`}>
+    <div className={`flex flex-col rounded-lg bg-[#141820] border border-white/5 text-slate-200 select-none overflow-hidden ${className}`}>
       {/* Cabeçalho Compacto do Player */}
-      <div className="flex items-center justify-between border-b border-white/5 bg-[#090D14]/50 px-2.5 py-1.5">
+      <div className="flex items-center justify-between border-b border-white/5 bg-[#0B0D10]/50 px-2.5 py-1.5">
         <div className="flex items-center gap-1.5">
           <Music className="h-3.5 w-3.5 text-sky-400" />
           <span className="text-[11px] font-semibold text-slate-200">Player Ambiente</span>
@@ -158,7 +158,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             <select
               value={currentPlaylist?.id || ''}
               onChange={(event) => selectPlaylist(event.target.value)}
-              className="rounded bg-[#192334] px-2 py-0.5 text-[10px] text-slate-300 focus:outline-none max-w-[120px] truncate"
+              className="rounded bg-[#181C24] px-2 py-0.5 text-[10px] text-slate-300 focus:outline-none max-w-[120px] truncate border border-white/5"
             >
               {playlists.map((playlist) => (
                 <option key={playlist.id} value={playlist.id}>
@@ -180,7 +180,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             disabled={isUploadingAudio}
             onClick={() => audioInputRef.current?.click()}
             title="Adicionar arquivo de áudio local (MP3, WAV, OGG)"
-            className="flex items-center gap-1 rounded bg-[#192334] hover:bg-[#1E2B40] px-1.5 py-0.5 text-[10px] text-sky-400 transition"
+            className="flex items-center gap-1 rounded bg-[#181C24] hover:bg-[#1F242F] px-1.5 py-0.5 text-[10px] text-sky-400 transition border border-white/5"
           >
             <Plus className="h-3 w-3" />
             <span>Áudio</span>
@@ -190,7 +190,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             type="button"
             onClick={() => setIsEqExpanded((previous) => !previous)}
             className={`rounded p-1 text-xs transition ${
-              isEqExpanded ? 'bg-sky-500/20 text-sky-400' : 'text-slate-400 hover:bg-[#192334] hover:text-slate-200'
+              isEqExpanded ? 'bg-sky-500/20 text-sky-400' : 'text-slate-400 hover:bg-[#181C24] hover:text-slate-200'
             }`}
             title="Equalizador de 3 Bandas (Graves, Médios e Agudos)"
           >
@@ -233,9 +233,9 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             step={1}
             value={currentTime}
             onChange={(event) => seekTo(parseFloat(event.target.value))}
-            className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-[#090D14] accent-sky-400"
+            className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-[#0B0D10] accent-sky-400"
           />
-          <div className="flex justify-between text-[9px] font-mono text-slate-400">
+          <div className="flex justify-between text-[9px] tabular-nums font-mono text-slate-400">
             <span>{formatAudioTime(currentTime)}</span>
             <span>{formatAudioTime(duration)}</span>
           </div>
@@ -270,7 +270,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             <button
               type="button"
               onClick={prevTrack}
-              className="rounded p-1 text-slate-400 hover:bg-[#192334] hover:text-slate-100 transition"
+              className="rounded p-1 text-slate-400 hover:bg-[#181C24] hover:text-slate-100 transition"
               title="Faixa anterior"
             >
               <SkipBack className="h-3.5 w-3.5" />
@@ -289,7 +289,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             <button
               type="button"
               onClick={nextTrack}
-              className="rounded p-1 text-slate-400 hover:bg-[#192334] hover:text-slate-100 transition"
+              className="rounded p-1 text-slate-400 hover:bg-[#181C24] hover:text-slate-100 transition"
               title="Próxima faixa"
             >
               <SkipForward className="h-3.5 w-3.5" />
@@ -313,7 +313,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
               step={0.01}
               value={volume}
               onChange={(event) => setVolumeLevel(parseFloat(event.target.value))}
-              className="h-1 w-14 cursor-pointer appearance-none rounded-lg bg-[#090D14] accent-sky-400"
+              className="h-1 w-14 cursor-pointer appearance-none rounded-lg bg-[#0B0D10] accent-sky-400"
               title={`Volume: ${Math.round(volume * 100)}%`}
             />
           </div>
@@ -322,7 +322,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
 
       {/* Equalizador de 3 Bandas (Colapsável) */}
       {isEqExpanded && (
-        <div className="border-t border-white/5 bg-[#090D14]/60 px-2.5 py-2">
+        <div className="border-t border-white/5 bg-[#0B0D10]/60 px-2.5 py-2">
           <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             <span>Equalizador (3 Bandas)</span>
             <button
@@ -341,7 +341,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
               const labels = { low: 'Graves', mid: 'Médios', high: 'Agudos' }
               const bandValue = equalizer[band]
               return (
-                <div key={band} className="flex flex-col items-center rounded bg-[#192334] p-1.5">
+                <div key={band} className="flex flex-col items-center rounded bg-[#181C24] p-1.5 border border-white/5">
                   <span className="text-slate-400">{labels[band]}</span>
                   <input
                     type="range"
@@ -350,9 +350,9 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
                     step={0.5}
                     value={bandValue}
                     onChange={(event) => updateEqualizer({ [band]: parseFloat(event.target.value) })}
-                    className="my-1 h-1 w-full cursor-pointer appearance-none rounded bg-[#090D14] accent-sky-400"
+                    className="my-1 h-1 w-full cursor-pointer appearance-none rounded bg-[#0B0D10] accent-sky-400"
                   />
-                  <span className="font-mono text-[9px] text-sky-400">
+                  <span className="tabular-nums font-mono text-[9px] text-sky-400">
                     {bandValue > 0 ? `+${bandValue}` : bandValue} dB
                   </span>
                 </div>
@@ -373,11 +373,11 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
                 type="button"
                 onClick={() => selectTrack(track)}
                 className={`flex w-full items-center justify-between px-2.5 py-1.5 text-left text-[11px] transition ${
-                  isSelected ? 'bg-sky-500/15 text-sky-300 font-medium' : 'text-slate-400 hover:bg-[#192334]'
+                  isSelected ? 'bg-sky-500/15 text-sky-300 font-medium' : 'text-slate-400 hover:bg-[#181C24]'
                 }`}
               >
                 <span className="truncate pr-2">{track.title}</span>
-                <span className="font-mono text-[10px] text-slate-500">
+                <span className="tabular-nums font-mono text-[10px] text-slate-500">
                   {formatAudioTime(track.durationSeconds)}
                 </span>
               </button>

@@ -105,7 +105,7 @@ export function OperatorTopBar({
   }
 
   return (
-    <header className="relative z-30 flex h-12 items-center justify-between border-b border-white/5 bg-[#090D14] px-4 select-none gap-4">
+    <header className="relative z-30 flex h-12 items-center justify-between border-b border-white/5 bg-[#11141A] px-4 select-none gap-4">
       {/* Esquerda: Logomark minimalista + Nome editável do evento com Auto-save */}
       <div className="flex items-center gap-3 min-w-0">
         <div
@@ -134,7 +134,7 @@ export function OperatorTopBar({
                 setIsEditingTitle(false)
               }
             }}
-            className="rounded bg-[#192334] px-2 py-0.5 text-xs font-medium text-white outline-none ring-1 ring-sky-500/60 w-48"
+            className="rounded bg-[#141820] px-2 py-0.5 text-xs font-medium text-white outline-none ring-1 ring-sky-500/60 w-48"
           />
         ) : (
           <div className="relative" ref={eventMenuRef}>
@@ -142,7 +142,7 @@ export function OperatorTopBar({
               type="button"
               onClick={() => setIsEventMenuOpen((prev) => !prev)}
               title="Gerenciar roteiro do culto atual (Renomear, Exportar, Importar, Novo)"
-              className="group flex items-center gap-1.5 rounded px-2 py-1 text-xs font-semibold text-slate-100 hover:bg-[#192334] transition truncate max-w-[240px]"
+              className="group flex items-center gap-1.5 rounded px-2 py-1 text-xs font-semibold text-slate-100 hover:bg-[#181C24] transition truncate max-w-[240px]"
             >
               <span className="truncate">{eventTitle}</span>
               <span
@@ -169,14 +169,14 @@ export function OperatorTopBar({
             />
 
             {isEventMenuOpen && (
-              <div className="absolute left-0 mt-1.5 w-56 rounded-lg border border-white/10 bg-[#0F1622] py-1 shadow-2xl z-50">
+              <div className="absolute left-0 mt-1.5 w-56 rounded-lg border border-white/5 bg-[#141820] py-1 shadow-2xl z-50">
                 <button
                   type="button"
                   onClick={() => {
                     setIsEventMenuOpen(false)
                     setIsEditingTitle(true)
                   }}
-                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#192334]"
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#181C24]"
                 >
                   <Pencil className="h-3.5 w-3.5 text-sky-400" />
                   <span>Renomear Culto</span>
@@ -187,7 +187,7 @@ export function OperatorTopBar({
                     setIsEventMenuOpen(false)
                     onExportLiturgy?.()
                   }}
-                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#192334]"
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#181C24]"
                 >
                   <Download className="h-3.5 w-3.5 text-emerald-400" />
                   <span>Exportar Roteiro (.json)</span>
@@ -198,7 +198,7 @@ export function OperatorTopBar({
                     setIsEventMenuOpen(false)
                     importInputRef.current?.click()
                   }}
-                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#192334]"
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#181C24]"
                 >
                   <Upload className="h-3.5 w-3.5 text-amber-400" />
                   <span>Importar Roteiro (.json)</span>
@@ -238,13 +238,13 @@ export function OperatorTopBar({
           type="button"
           onClick={onOpenSpotlight}
           title="Busca rápida de músicas, versículos e ações (Ctrl+K)"
-          className="flex w-full items-center justify-between rounded-lg bg-[#131C2B] hover:bg-[#192334] px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition border border-white/5"
+          className="flex w-full items-center justify-between rounded-lg bg-[#161A22] hover:bg-[#1C212B] px-3 py-1.5 text-xs text-slate-400 hover:text-slate-200 transition border border-white/5"
         >
           <span className="flex items-center gap-2 truncate">
             <Search className="h-3.5 w-3.5 text-sky-400 shrink-0" />
             <span className="truncate">Buscar hino, versículo ou mídia...</span>
           </span>
-          <kbd className="ml-2 rounded bg-[#090D14]/80 px-1.5 py-0.5 font-mono text-[10px] text-slate-400 shrink-0">
+          <kbd className="ml-2 rounded text-[10px] tabular-nums font-mono bg-white/5 border border-white/10 px-1.5 py-0.5 text-slate-400 shrink-0">
             Ctrl+K
           </kbd>
         </button>
@@ -269,7 +269,7 @@ export function OperatorTopBar({
           </Button>
 
           {isToolsMenuOpen && (
-            <div className="absolute right-0 mt-1.5 w-60 rounded-xl border border-white/10 bg-[#0F1622] p-1.5 shadow-2xl z-50 text-xs text-slate-200">
+            <div className="absolute right-0 mt-1.5 w-60 rounded-xl border border-white/5 bg-[#141820] p-1.5 shadow-2xl z-50 text-xs text-slate-200">
               <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                 Operação & Apoio
               </div>
@@ -281,7 +281,7 @@ export function OperatorTopBar({
                     setIsToolsMenuOpen(false)
                     onOpenStageControl()
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#181C24] transition"
                 >
                   <Timer className="h-3.5 w-3.5 text-sky-400" />
                   <span>Palco, Cronômetros & Alertas</span>
@@ -295,7 +295,7 @@ export function OperatorTopBar({
                     setIsToolsMenuOpen(false)
                     onOpenPptxModal()
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#181C24] transition"
                 >
                   <Presentation className="h-3.5 w-3.5 text-orange-400" />
                   <span>Apresentações (PPTX / PDF)</span>
@@ -309,7 +309,7 @@ export function OperatorTopBar({
                     setIsToolsMenuOpen(false)
                     onOpenBibleDownloads()
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#181C24] transition"
                 >
                   <BookOpen className="h-3.5 w-3.5 text-amber-400" />
                   <span>Traduções Bíblicas Offline</span>
@@ -323,7 +323,7 @@ export function OperatorTopBar({
                     setIsToolsMenuOpen(false)
                     onOpenRemotePairing()
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#181C24] transition"
                 >
                   <QrCode className="h-3.5 w-3.5 text-emerald-400" />
                   <span>Controle Remoto via QR Code</span>
@@ -342,7 +342,7 @@ export function OperatorTopBar({
                     setIsToolsMenuOpen(false)
                     onOpenKeymap()
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#181C24] transition"
                 >
                   <Keyboard className="h-3.5 w-3.5 text-slate-400" />
                   <span>Atalhos de Teclado</span>
@@ -356,7 +356,7 @@ export function OperatorTopBar({
                     setIsToolsMenuOpen(false)
                     onOpenAutomation()
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#181C24] transition"
                 >
                   <Workflow className="h-3.5 w-3.5 text-purple-400" />
                   <span>Automações & OBS Studio</span>
@@ -370,7 +370,7 @@ export function OperatorTopBar({
                     setIsToolsMenuOpen(false)
                     onOpenDiagnostics()
                   }}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#192334] transition"
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-[#181C24] transition"
                 >
                   <Activity className="h-3.5 w-3.5 text-slate-400" />
                   <span>Diagnóstico / Sobre</span>

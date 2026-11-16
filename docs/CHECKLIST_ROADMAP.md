@@ -6,6 +6,29 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
+### [v1.4.0] - Refinamento Visual & UI Refresh ("Slate Pro Studio Refined")
+- **Paleta de Superfícies & Elevação por Luminosidade:**
+  - Nível 0 (Base do App): `#0B0D10` no container principal de `OperatorView.tsx`.
+  - Nível 1 (Painéis e Header): `#11141A` com microborda suave `border-white/5` no topo e nas colunas laterais.
+  - Nível 2 (Cards e Interatividade): `#141820` e `#181C24` (com hover `#1F242F`), eliminando o excesso de caixas ("boxiness") e substituindo bordas duras por profundidade tonal.
+- **Barra Superior & Controles Críticos de Pânico:**
+  - Barra de busca global Spotlight (`Ctrl+K`) em estilo macOS/Raycast (`bg-[#161A22]`, `hover:bg-[#1C212B]`, borda `border-white/5` e atalho `<kbd>` discreto com `tabular-nums font-mono text-[10px]`).
+  - Barra de Pânico unificada em *segmented button group* único (`rounded-lg bg-[#141820] p-0.5 border border-white/5`), com estilo ghost inativo e acendimento semântico preciso: Blackout em Vermelho Carmim (`rose-500`), Ocultar Letra em Âmbar (`amber-500`) e Congelar em Ciano (`cyan-500`).
+- **Coluna da Esquerda (Roteiro, Mídias e Lista de Músicas):**
+  - Abas superiores convertidas para *Segmented Control* em pílula única com fundo `#0B0D10]/80` e aba ativa com destaque `bg-[#181C24] text-sky-400`.
+  - Remoção do ícone azul repetitivo `<Music />` em cada card do catálogo de músicas (`SongSearchList.tsx`), liberando largura útil e respiro para leitura.
+  - Itens inativos flutuando diretamente sobre o painel sem bordas duras; item selecionado com barra lateral de 3px azul céu e item ao vivo com esmeralda e indicador pulsante.
+- **Coluna Central (Grade de Estrofes & Respiro):**
+  - Estrofes com padding ampliado (`p-4.5`), cantos arredondados consistentes (`rounded-xl`) e espaçamento generoso (`gap-3`).
+  - Numeração com alinhamento tabular monotípico `tabular-nums font-mono` (`00`, `01`, `02`...).
+  - Estrofes inativas em `#141820` com texto `#A0AAB8`, foco em `#18202C` e ao vivo em esmeralda translúcido `bg-emerald-950/25` com badge `AO VIVO`.
+- **Coluna da Direita (Preview do Telão e Áudio):**
+  - Remoção da borda verde externa em volta do preview 16:9, substituída por sombra profunda e cinematográfica `shadow-2xl shadow-black/90` com microborda de 5% de opacidade.
+  - Timer de projeção e contadores em fonte mono tabular (`tabular-nums font-mono`).
+  - Alternador de abas Áudio / Fundos em segmented control e simplificação visual do `AudioPlayerPanel`.
+- **Documentação de Design System:**
+  - Criação do guia oficial `docs/UI_REFRESH_GUIDE.md` detalhando teoria de cores, hierarquia de superfícies e as 5 regras de ouro do design system.
+
 ### [v1.3.2] - Disparo Direto de Capa (Slide 0) via Duplo Clique em Músicas (Letras e Roteiro)
 - **Disparo Imediato no Slide 0 (`SongSearchList.tsx`, `LiturgyScheduleColumn.tsx`):**
   - Adição da prop `onProjectSong` em `SongSearchColumnProps` e `LiturgyScheduleColumnProps`.
@@ -430,5 +453,11 @@ Legenda de Status:
     - Mecânica anti-cliques acidentais: 1 clique foca no Workspace local (azul céu) e 2 cliques projeta no telão ao vivo (esmeralda).
     - Botão de ação rápida e atalho `Enter` para envio imediato do slide em foco.
     - Distinção clara entre mídia em tela cheia e fundo de louvor.
-12. **[EM ANDAMENTO] Etapa 12: Empacotamento Desktop Multi-Monitor com Tauri v2:**
+12. **[CONCLUÍDO] Etapa 12: Refinamento Visual & UI Refresh "Slate Pro Studio Refined" (v1.4.0):**
+    - Elevação por luminosidade (#0B0D10 -> #11141A -> #141820 / #181C24).
+    - Redução drástica de bordas pesadas e containers excessivos (boxiness).
+    - Segmented controls estilo Raycast/macOS e remoção de ícones repetitivos em listas.
+    - Números tabulares monotípicos e sombra profunda de alta fidelidade no telão.
+    - Guia de design system completo em docs/UI_REFRESH_GUIDE.md.
+13. **[EM ANDAMENTO] Etapa 13: Empacotamento Desktop Multi-Monitor com Tauri v2:**
     - Validação de janelas nativas independentes do Projetor HDMI e Monitor de Palco em ambiente de produção desktop.

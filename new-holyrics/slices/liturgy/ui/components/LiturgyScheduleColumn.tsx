@@ -205,7 +205,7 @@ export function LiturgyScheduleColumn({
 
   return (
     <section
-      className="flex flex-col bg-[#0F1622] p-3 border-r border-white/5 overflow-y-auto relative select-none"
+      className="flex flex-col bg-[#11141A] p-3 border-r border-white/5 overflow-y-auto relative select-none"
       onContextMenu={(event) => {
         if (activeTab === 'ROTEIRO') {
           handleOpenContextMenu(event, null)
@@ -213,7 +213,7 @@ export function LiturgyScheduleColumn({
       }}
     >
       {/* Abas Superiores da Coluna Esquerda: Roteiro | Letras | Imagens | Vídeos | Áudio | Arquivos */}
-      <div className="mb-3 grid grid-cols-6 gap-1 rounded-lg bg-[#090D14] p-1 text-[11px] shrink-0">
+      <div className="mb-3 grid grid-cols-6 gap-0.5 rounded-lg bg-[#0B0D10]/80 p-1 border border-white/5 text-[11px] shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab('ROTEIRO')}
@@ -250,12 +250,12 @@ export function LiturgyScheduleColumn({
             setActiveTab('ROTEIRO')
           }}
           title="Ordem do Culto (arraste qualquer item ou arquivo para cá)"
-          className={`flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
             isRoteiroDropHover
-              ? 'bg-sky-500/30 text-sky-200 ring-1 ring-sky-400'
+              ? 'bg-sky-500/30 text-sky-200 ring-1 ring-sky-400 rounded-md'
               : activeTab === 'ROTEIRO'
-                ? 'bg-[#192334] text-sky-400 shadow-xs'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
           }`}
         >
           <Calendar className="h-3.5 w-3.5" />
@@ -266,10 +266,10 @@ export function LiturgyScheduleColumn({
           type="button"
           onClick={() => setActiveTab('LETRAS')}
           title="Letras de Músicas e Busca Bíblica"
-          className={`flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
             activeTab === 'LETRAS'
-              ? 'bg-[#192334] text-sky-400 shadow-xs'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
           }`}
         >
           <Music className="h-3.5 w-3.5" />
@@ -280,10 +280,10 @@ export function LiturgyScheduleColumn({
           type="button"
           onClick={() => setActiveTab('IMAGENS')}
           title="Galeria de Imagens (clique para projetar ou arraste ao roteiro)"
-          className={`flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
             activeTab === 'IMAGENS'
-              ? 'bg-[#192334] text-sky-400 shadow-xs'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
           }`}
         >
           <ImageIcon className="h-3.5 w-3.5" />
@@ -294,10 +294,10 @@ export function LiturgyScheduleColumn({
           type="button"
           onClick={() => setActiveTab('VIDEOS')}
           title="Galeria de Vídeos e Loops (clique para projetar ou arraste ao roteiro)"
-          className={`flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
             activeTab === 'VIDEOS'
-              ? 'bg-[#192334] text-sky-400 shadow-xs'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
           }`}
         >
           <Film className="h-3.5 w-3.5" />
@@ -308,10 +308,10 @@ export function LiturgyScheduleColumn({
           type="button"
           onClick={() => setActiveTab('AUDIO')}
           title="Biblioteca de Áudio (arraste ao Roteiro)"
-          className={`flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
             activeTab === 'AUDIO'
-              ? 'bg-[#192334] text-sky-400 shadow-xs'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
           }`}
         >
           <Headphones className="h-3.5 w-3.5" />
@@ -322,10 +322,10 @@ export function LiturgyScheduleColumn({
           type="button"
           onClick={() => setActiveTab('ARQUIVOS')}
           title="Apresentações e Arquivos (.pptx, .pdf)"
-          className={`flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
             activeTab === 'ARQUIVOS'
-              ? 'bg-[#192334] text-sky-400 shadow-xs'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
           }`}
         >
           <Presentation className="h-3.5 w-3.5" />
@@ -440,7 +440,7 @@ export function LiturgyScheduleColumn({
               placeholder="Filtrar hino ou versículo (ex: jo 3 16)..."
               value={songQuery}
               onChange={(event) => onChangeSongQuery?.(event.target.value)}
-              className="pl-8 pr-8 bg-[#192334] border-transparent focus:border-sky-500/50"
+              className="pl-8 pr-8 bg-[#141820] border-transparent focus:border-sky-500/50"
             />
             {isLoadingSongs && (
               <Loader2 className="absolute right-2.5 top-2.5 h-3.5 w-3.5 animate-spin text-slate-400" />

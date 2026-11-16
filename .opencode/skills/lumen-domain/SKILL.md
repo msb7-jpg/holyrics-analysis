@@ -16,10 +16,11 @@ Qualquer agente ou desenvolvedor atuando no LumenLite deve utilizar esta skill c
 O LumenLite foi projetado especificamente para a **cabine multimídia de igreja**, onde o operador trabalha sob alta pressão e ambientes de baixa luminosidade.
 
 ### Princípios Operacionais Fundamentais:
-1. **Design System "Slate Pro Studio":**
-   - Hierarquia de superfícies escuras profundas (`#090D14` -> `#0F1622` -> `#131C2B`) com alto contraste para reduzir a fadiga visual.
-   - Tipografia limpa sem poluição visual: letras sem crachás intrusivos (`[V1]`, `[CORO]`) na visualização ao vivo.
-   - Sem "luzes de semáforo" berrantes: estados sutis onde o verde esmeralda (`#10B981`) sinaliza exclusivamente "No Ar / Live" e o azul petróleo (`#0284C7`) representa "Preview / Workspace".
+1. **Design System "Slate Pro Studio Refined" (v1.4.0):**
+   - Hierarquia de superfícies por luminosidade contínua: Nível 0 (`#0B0D10`), Nível 1 (`#11141A`), Nível 2 (`#141820` / `#181C24`) com hover (`#1F242F`), microborda `border-white/5` e eliminação de caixas sobrepostas ("boxiness"). Detalhado em `docs/UI_REFRESH_GUIDE.md`.
+   - Tipografia limpa sem poluição visual: letras sem crachás intrusivos (`[V1]`, `[CORO]`) na visualização ao vivo e numeração tabular monotípica (`tabular-nums font-mono`).
+   - Sem "luzes de semáforo" berrantes: estados sutis onde o verde esmeralda (`#10B981` / `bg-emerald-950/25`) sinaliza exclusivamente "No Ar / Live" e o azul céu (`sky-500` / `#18202C`) representa "Preview / Workspace".
+   - Segmented controls estilo Raycast/macOS em pílula única para abas e botões de pânico (`PanicToolbar.tsx`).
 2. **Determinismo e Tolerância a Falhas:**
    - O núcleo do sistema (`@lumen/core`) opera como uma Máquina de Estados Finita (FSM) imutável e determinística.
    - Pânico instantâneo acessível a qualquer momento (Blackout / Clear / Logo).

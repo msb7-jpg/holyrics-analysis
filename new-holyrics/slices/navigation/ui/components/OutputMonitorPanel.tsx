@@ -62,7 +62,7 @@ export function OutputMonitorPanel({
   }
 
   return (
-    <section className="flex h-full flex-col bg-[#0F1622] p-3 border-l border-white/5 overflow-hidden">
+    <section className="flex h-full flex-col bg-[#11141A] p-3 border-l border-white/5 overflow-hidden">
       <ResizableSplitPane
         direction="vertical"
         initialSizes={[42, 58]}
@@ -93,7 +93,7 @@ export function OutputMonitorPanel({
               {state.mode !== 'EMPTY' && state.projectedAt && (
                 <span
                   title="Tempo decorrido de projeção do item atual"
-                  className="flex items-center gap-1 rounded bg-[#192334] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-300"
+                  className="flex items-center gap-1 rounded bg-[#141820] px-1.5 py-0.5 tabular-nums font-mono text-[10px] font-semibold text-emerald-300 border border-white/5"
                 >
                   <Clock className="h-2.5 w-2.5" />
                   <span>{formatElapsedProjection(elapsedSeconds)}</span>
@@ -103,7 +103,7 @@ export function OutputMonitorPanel({
                 type="button"
                 onClick={handleOpenProjectorWindow}
                 title="Abrir janela externa de projeção para o segundo monitor ou telão"
-                className="flex items-center gap-1 rounded-md bg-[#192334] px-2 py-1 text-[10px] font-medium text-sky-400 hover:bg-[#1E2B40] hover:text-sky-300 transition shrink-0"
+                className="flex items-center gap-1 rounded-md bg-[#141820] px-2 py-1 text-[10px] font-medium text-sky-400 hover:bg-[#181C24] hover:text-sky-300 border border-white/5 transition shrink-0"
               >
                 <ExternalLink className="h-3 w-3" />
                 <span>Abrir Telão</span>
@@ -114,9 +114,7 @@ export function OutputMonitorPanel({
           {/* Canvas do Monitor de Saída (16:9 Real com Escalonamento Proporcional) */}
           <div
             data-testid="output-monitor-canvas"
-            className={`relative aspect-video w-full rounded-md bg-black overflow-hidden shadow-inner transition ${
-              isOutputLive ? 'ring-1 ring-emerald-500/50' : 'ring-1 ring-white/10'
-            }`}
+            className="relative aspect-video w-full rounded-lg bg-black overflow-hidden shadow-2xl shadow-black/90 border border-white/5 transition"
           >
             <ProjectorScreen state={state} isPreview={true} />
           </div>
@@ -124,12 +122,14 @@ export function OutputMonitorPanel({
 
         <div className="flex h-full flex-col gap-2 overflow-hidden pt-1">
           {/* Alternador de Abas: Áudio Ambiente vs Fundos de Mídia */}
-          <div className="flex rounded-md bg-[#090D14] p-0.5 text-xs shrink-0">
+          <div className="flex rounded-lg bg-[#0B0D10]/80 p-0.5 border border-white/5 text-xs shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab('AUDIO')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded py-1 text-[11px] font-medium transition ${
-                activeTab === 'AUDIO' ? 'bg-[#192334] text-sky-400 shadow-xs' : 'text-slate-400 hover:text-slate-200'
+              className={`flex flex-1 items-center justify-center gap-1.5 py-1 text-[11px] font-medium transition ${
+                activeTab === 'AUDIO'
+                  ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
               }`}
             >
               <Music className="h-3 w-3" />
@@ -138,8 +138,10 @@ export function OutputMonitorPanel({
             <button
               type="button"
               onClick={() => setActiveTab('MEDIA')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded py-1 text-[11px] font-medium transition ${
-                activeTab === 'MEDIA' ? 'bg-[#192334] text-sky-400 shadow-xs' : 'text-slate-400 hover:text-slate-200'
+              className={`flex flex-1 items-center justify-center gap-1.5 py-1 text-[11px] font-medium transition ${
+                activeTab === 'MEDIA'
+                  ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
               }`}
             >
               <Film className="h-3 w-3" />

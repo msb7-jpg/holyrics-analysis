@@ -4,7 +4,7 @@
  */
 
 import { memo } from 'react'
-import { Music, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import type { SongSearchResult } from '../../contracts/song-contracts'
 
 export interface SongSearchColumnProps {
@@ -69,30 +69,23 @@ export const SongSearchList = memo(function SongSearchList({
             }}
             onClick={() => onSelectSong(song.id)}
             onDoubleClick={() => onProjectSong?.(song.id)}
-            className={`relative flex flex-col gap-0.5 rounded-[6px] p-2.5 cursor-pointer transition select-none ${
+            className={`relative flex flex-col gap-0.5 rounded-lg p-2.5 cursor-pointer transition select-none ${
               isLive
-                ? 'bg-[#1D2D3E] text-white ring-1 ring-emerald-500/50'
+                ? 'bg-emerald-950/20 text-white ring-1 ring-emerald-500/40'
                 : isSelected
-                  ? 'bg-[#1B2A42] text-white ring-1 ring-[#3B82F6]/60'
-                  : 'bg-[#192334] hover:bg-[#1E2B40] text-slate-300'
+                  ? 'bg-[#181C24] text-white ring-1 ring-sky-500/30'
+                  : 'text-slate-300 hover:bg-[#181C24]'
             }`}
           >
             {isLive && (
-              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[6px] bg-emerald-500" />
+              <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg bg-emerald-500" />
             )}
             {!isLive && isSelected && (
-              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[6px] bg-[#3B82F6]" />
+              <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg bg-sky-500" />
             )}
 
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <Music
-                  className={`h-3.5 w-3.5 shrink-0 ${
-                    isLive ? 'text-emerald-400' : 'text-sky-400'
-                  }`}
-                />
-                <span className="font-medium text-xs truncate">{song.title}</span>
-              </div>
+              <span className="font-medium text-xs truncate">{song.title}</span>
               {isLive && (
                 <span
                   className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.7)] shrink-0"
@@ -101,13 +94,13 @@ export const SongSearchList = memo(function SongSearchList({
               )}
             </div>
             {song.artist && (
-              <span className="text-[11px] text-slate-400 pl-5.5 truncate">
+              <span className="text-[11px] text-slate-400 truncate">
                 {song.artist}
               </span>
             )}
             {song.snippet && (
               <span
-                className="text-[10px] text-slate-500 pl-5.5 italic truncate"
+                className="text-[10px] text-slate-500 italic truncate"
                 dangerouslySetInnerHTML={{ __html: song.snippet }}
               />
             )}

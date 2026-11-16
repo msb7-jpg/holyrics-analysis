@@ -4,7 +4,7 @@
  *
  * ## Responsabilidades:
  * - Orquestrar o fluxo Preparar (Esquerda) -> Operar (Centro) -> Monitorar (Direita) com proporção 20% | 22% | 33% | 25%.
- * - Aplicar hierarquia de superfícies (#090D14 -> #0F1622 -> #131C2B) e semântica Preview (Azul) vs Ao Vivo (Esmeralda).
+ * - Aplicar hierarquia de superfícies (#0B0D10 -> #11141A -> #141820 / #181C24) e semântica Preview (Azul) vs Ao Vivo (Esmeralda).
  * - Coordenar modais de ferramentas secundárias e diagnóstico sem vazamentos técnicos na interface principal.
  */
 
@@ -258,7 +258,7 @@ export function OperatorView({
   )
 
   return (
-    <div className="flex h-screen w-screen flex-col bg-[#090D14] text-slate-100 select-none overflow-hidden">
+    <div className="flex h-screen w-screen flex-col bg-[#0B0D10] text-slate-100 select-none overflow-hidden">
       {/* 1. Barra Superior Redesenha (Esquerda: Evento Editável | Centro: Busca Global | Direita: Saída + Ferramentas) */}
       <OperatorTopBar
         isConnected={connected}
@@ -316,7 +316,7 @@ export function OperatorView({
           />
 
           {/* Coluna 2 (Centro): Workspace Central (Preview) */}
-          <section className="flex h-full flex-col bg-[#131C2B] p-4 overflow-y-auto">
+          <section className="flex h-full flex-col bg-[#0B0D10] p-4 overflow-y-auto">
             {/* Renderização do Conteúdo: PPTX, BÍBLIA ou MÚSICA */}
             {workspaceItem?.type === 'PPTX' ||
             (!workspaceItem &&
@@ -412,13 +412,13 @@ export function OperatorView({
                             }}
                             className={`group relative flex flex-col rounded-lg border cursor-pointer overflow-hidden transition select-none ${
                               isLive
-                                ? 'border-emerald-500 bg-emerald-950/20 ring-1 ring-emerald-500/50'
+                                ? 'border-emerald-500/70 bg-emerald-950/25 ring-1 ring-emerald-500/40'
                                 : isFocused
-                                  ? 'border-sky-500/80 bg-[#172338] ring-1 ring-sky-500/40'
-                                  : 'border-white/10 bg-[#192334] hover:border-sky-500/50'
+                                  ? 'border-sky-500/30 bg-[#18202C] ring-1 ring-sky-500/40'
+                                  : 'border-white/5 bg-[#141820] hover:bg-[#181C24]'
                             }`}
                           >
-                            <div className="flex items-center justify-between px-2.5 py-1 bg-[#090D14]/60 text-[10px]">
+                            <div className="flex items-center justify-between px-2.5 py-1 bg-[#0B0D10]/60 text-[10px]">
                               <span className="font-semibold text-slate-300">
                                 Slide {slideIdx + 1}
                               </span>
