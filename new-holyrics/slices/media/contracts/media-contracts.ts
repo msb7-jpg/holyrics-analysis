@@ -26,6 +26,7 @@ export const MediaItemSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   path: z.string().min(1),
+  folder: z.string().optional(),
   type: MediaTypeSchema,
   sizeBytes: z.number().nonnegative(),
   mimeType: z.string().min(1),

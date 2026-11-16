@@ -9,6 +9,8 @@
  */
 
 import { existsSync, statSync, createReadStream } from 'node:fs'
+import { join } from 'node:path'
+import { spawn } from 'node:child_process'
 import { jsonResponse } from '../../../../apps/daemon/src/api/context'
 import type { ApiContext } from '../../../../apps/daemon/src/api/context'
 import { AudioPlaylistSchema, AudioTrackSchema, MediaTypeSchema } from '../../contracts/media-contracts'
@@ -141,18 +143,20 @@ export async function handleMediaRoutes(
   if (pathname === '/api/media/upload' && request.method === 'POST') {
     try {
       const contentType = request.headers.get('content-type') || ''
+      const queryFolder = targetUrl.searchParams.get('folder') || ''
       if (contentType.includes('multipart/form-data')) {
         const formData = await request.formData()
         const uploadedFile = formData.get('file')
+        const formFolder = typeof formData.get('folder') === 'string' ? (formData.get('folder') as string) : queryFolder
         if (!uploadedFile || typeof uploadedFile === 'string') {
           return jsonResponse({ ok: false, error: 'Arquivo não fornecido no formulário' }, 400)
         }
         const arrayBuffer = await uploadedFile.arrayBuffer()
-        const savedItem = context.mediaRepo.saveUploadedMedia(uploadedFile.name, new Uint8Array(arrayBuffer))
+        const savedItem = context.mediaRepo.saveUploadedMedia(uploadedFile.name, new Uint8Array(arrayBuffer), formFolder)
         return jsonResponse({ ok: true, data: savedItem })
       }
 
-      const payload = (await request.json()) as { filename?: string; base64Data?: string }
+      const payload = (await request.json()) as { filename?: string; base64Data?: string; folder?: string }
       if (!payload.filename || !payload.base64Data) {
         return jsonResponse({ ok: false, error: 'Campos filename e base64Data são obrigatórios' }, 400)
       }
@@ -160,12 +164,105 @@ export async function handleMediaRoutes(
         ? payload.base64Data.split(',')[1] || ''
         : payload.base64Data
       const binaryBuffer = Buffer.from(cleanBase64, 'base64')
-      const savedItem = context.mediaRepo.saveUploadedMedia(payload.filename, new Uint8Array(binaryBuffer))
+      const savedItem = context.mediaRepo.saveUploadedMedia(
+        payload.filename,
+        new Uint8Array(binaryBuffer),
+        payload.folder ?? queryFolder,
+      )
       return jsonResponse({ ok: true, data: savedItem })
     } catch (error: unknown) {
       return jsonResponse(
         { ok: false, error: error instanceof Error ? error.message : 'Falha no upload de mídia' },
         400,
+      )
+    }
+  }
+
+  // 5b. GET /api/media/folders - Lista subpastas de mídia
+  if (pathname === '/api/media/folders' && request.method === 'GET') {
+    return jsonResponse({ ok: true, data: context.mediaRepo.listFolders() })
+  }
+
+  // 5c. POST /api/media/folders - Cria nova subpasta de mídia
+  if (pathname === '/api/media/folders' && request.method === 'POST') {
+    try {
+      const body = (await request.json()) as { path?: string }
+      if (!body.path) {
+        return jsonResponse({ ok: false, error: 'Caminho da pasta obrigatório' }, 400)
+      }
+      const created = context.mediaRepo.createFolder(body.path)
+      return jsonResponse({ ok: true, data: { path: created } })
+    } catch (error: unknown) {
+      return jsonResponse(
+        { ok: false, error: error instanceof Error ? error.message : 'Falha ao criar pasta' },
+        400,
+      )
+    }
+  }
+
+  // 5d. DELETE /api/media/folders - Remove uma subpasta de mídia
+  if (pathname === '/api/media/folders' && request.method === 'DELETE') {
+    try {
+      const folderPath = targetUrl.searchParams.get('path') || ''
+      const deleted = context.mediaRepo.deleteFolder(folderPath)
+      return jsonResponse({ ok: deleted, path: folderPath }, deleted ? 200 : 404)
+    } catch (error: unknown) {
+      return jsonResponse(
+        { ok: false, error: error instanceof Error ? error.message : 'Falha ao remover pasta' },
+        400,
+      )
+    }
+  }
+
+  // 5e. POST /api/media/rename - Renomeia arquivo ou pasta
+  if (pathname === '/api/media/rename' && request.method === 'POST') {
+    try {
+      const body = (await request.json()) as { itemId?: string; folderPath?: string; newName?: string }
+      if (!body.newName) {
+        return jsonResponse({ ok: false, error: 'Novo nome obrigatório' }, 400)
+      }
+      if (body.itemId) {
+        const updated = context.mediaRepo.renameMediaItem(body.itemId, body.newName)
+        if (!updated) return jsonResponse({ ok: false, error: 'Mídia não encontrada' }, 404)
+        return jsonResponse({ ok: true, data: updated })
+      }
+      if (body.folderPath) {
+        const renamedPath = context.mediaRepo.renameFolder(body.folderPath, body.newName)
+        return jsonResponse({ ok: true, data: { path: renamedPath } })
+      }
+      return jsonResponse({ ok: false, error: 'Informe itemId ou folderPath' }, 400)
+    } catch (error: unknown) {
+      return jsonResponse(
+        { ok: false, error: error instanceof Error ? error.message : 'Falha ao renomear' },
+        400,
+      )
+    }
+  }
+
+  // 5f. POST /api/media/rescan - Reescaneia diretório de mídias
+  if (pathname === '/api/media/rescan' && request.method === 'POST') {
+    context.mediaRepo.scanMediaDirectory(true)
+    return jsonResponse({
+      ok: true,
+      data: context.mediaRepo.listMedia(),
+      folders: context.mediaRepo.listFolders(),
+    })
+  }
+
+  // 5g. POST /api/media/open-folder - Abre pasta local de mídias no explorador do SO
+  if (pathname === '/api/media/open-folder' && request.method === 'POST') {
+    try {
+      const body = (await request.json().catch(() => ({}))) as { folder?: string }
+      const baseDir = context.mediaRepo.getMediaDirectory()
+      const targetDir = body.folder ? join(baseDir, body.folder) : baseDir
+      const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'explorer' : 'xdg-open'
+      const child = spawn(cmd, [targetDir], { detached: true, stdio: 'ignore' })
+      child.unref()
+      return jsonResponse({ ok: true, path: targetDir })
+    } catch (error: unknown) {
+      return jsonResponse(
+        { ok: false, error: error instanceof Error ? error.message : 'Falha ao abrir pasta local' },
+        500,
       )
     }
   }

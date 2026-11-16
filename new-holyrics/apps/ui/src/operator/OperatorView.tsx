@@ -9,7 +9,10 @@
  */
 
 import { useState } from 'react'
-import { Search, Loader2, History, Upload } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Loader2, ChevronLeft, ChevronRight, Presentation } from 'lucide-react'
+import { songKeys } from '@slices/songs/ui/queries/songs-query-keys'
+import { ResizableSplitPane } from '@ui/components/ui/ResizableSplitPane'
 import type { ScreenState, ActionCommand } from '@lumen/core'
 import {
   INITIAL_LIVE_STAGE_STATE,
@@ -21,8 +24,6 @@ import { PptxDeckModal } from '@slices/pptx/ui/components/PptxDeckModal'
 import { SongHistoryModal } from '@slices/songs/ui/components/SongHistoryModal'
 import { SongImporterModal } from '@slices/songs/ui/components/SongImporterModal'
 import { BibleDownloadModal } from '@slices/bible/ui/components/BibleDownloadModal'
-import { Input } from '@ui/components/ui/input'
-import { Button } from '@ui/components/ui/button'
 import { OperatorTopBar } from '@slices/navigation/ui/components/OperatorTopBar'
 import { OutputMonitorPanel } from '@slices/navigation/ui/components/OutputMonitorPanel'
 import { DiagnosticsModal } from '@slices/navigation/ui/components/DiagnosticsModal'
@@ -30,11 +31,10 @@ import { LiturgyScheduleColumn } from '@slices/liturgy/ui/components/LiturgySche
 import {
   useCurrentLiturgyQuery,
   useUpdateLiturgyTitleMutation,
+  useSaveLiturgyMutation,
 } from '@slices/liturgy/ui/queries/liturgy-queries'
-import type { LiturgyItem } from '@slices/liturgy/contracts/liturgy-schema'
-import { SongSearchList } from '@slices/songs/ui/components/SongSearchList'
+import type { LiturgyItem, LiturgyFile } from '@slices/liturgy/contracts/liturgy-schema'
 import { SongStanzaGrid } from '@slices/songs/ui/components/SongStanzaGrid'
-import { BibleQuickLookupCard } from '@slices/bible/ui/components/BibleQuickLookupCard'
 import { BibleVerseGrid } from '@slices/bible/ui/components/BibleVerseGrid'
 import { AutomationModal } from '@slices/automation/ui/components/AutomationModal'
 import { KeymapModal } from '@slices/keymap/ui/components/KeymapModal'
@@ -64,8 +64,46 @@ export function OperatorView({
   connected,
   dispatch,
 }: OperatorViewProps) {
+  const queryClient = useQueryClient()
   const { data: currentLiturgy } = useCurrentLiturgyQuery()
   const { mutate: updateLiturgyTitle } = useUpdateLiturgyTitleMutation()
+  const { mutate: saveLiturgy } = useSaveLiturgyMutation()
+
+  const handleExportLiturgy = () => {
+    if (!currentLiturgy) return
+    const jsonStr = JSON.stringify(currentLiturgy, null, 2)
+    const blob = new Blob([jsonStr], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    const safeName = (currentLiturgy.title || 'roteiro-culto')
+      .toLowerCase()
+      .replace(/[^a-z0-9-_]+/gi, '-')
+    anchor.href = url
+    anchor.download = `${safeName}.json`
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImportLiturgy = async (file: File) => {
+    try {
+      const text = await file.text()
+      const parsed = JSON.parse(text) as LiturgyFile
+      saveLiturgy(parsed)
+    } catch {
+      // Arquivo JSON inválido ignorado silenciosamente
+    }
+  }
+
+  const handleNewLiturgy = () => {
+    const emptyLiturgy: LiturgyFile = {
+      id: `culto_${Date.now()}`,
+      title: 'Novo Culto',
+      date: new Date().toISOString().slice(0, 10),
+      items: [],
+      hooksEnabled: true,
+    }
+    saveLiturgy(emptyLiturgy)
+  }
 
   const {
     query,
@@ -128,6 +166,9 @@ export function OperatorView({
         panic={state.panic}
         eventTitle={currentLiturgy?.title || 'Culto de Celebração'}
         onChangeEventTitle={(nextTitle) => updateLiturgyTitle(nextTitle)}
+        onExportLiturgy={handleExportLiturgy}
+        onImportLiturgy={handleImportLiturgy}
+        onNewLiturgy={handleNewLiturgy}
         onTogglePanic={(target) => dispatch({ type: 'TOGGLE_PANIC', target })}
         onOpenSpotlight={() => setIsSpotlightOpen(true)}
         onOpenAutomation={() => setIsAutomationOpen(true)}
@@ -139,82 +180,112 @@ export function OperatorView({
         onOpenDiagnostics={() => setIsDiagnosticsOpen(true)}
       />
 
-      {/* 2. Grid Principal de 4 Colunas (Proporção: 20% | 22% | 33% | 25%) */}
-      <main className="grid flex-1 grid-cols-1 lg:grid-cols-[20fr_22fr_33fr_25fr] overflow-hidden">
-        {/* Coluna 1 (20%): Roteiro do Culto & Abas de Mídia/Arquivos (Esquerda) */}
-        <LiturgyScheduleColumn
-          state={state}
-          selectedSong={currentSong}
-          activeBible={activeBible}
-          selectedLiturgyItemId={selectedLiturgyItemId}
-          onSelectItem={handleSelectItemFromRoteiro}
-          onSelectBackground={(background) => dispatch({ type: 'SET_BACKGROUND', background })}
-          onSelectPptxDeck={() => setIsPptxOpen(true)}
-        />
+      {/* 2. Layout Principal de 3 Colunas Redimensionáveis (Esquerda: Navegador | Centro: Palco | Direita: Monitor) */}
+      <main className="flex flex-1 overflow-hidden">
+        <ResizableSplitPane
+          direction="horizontal"
+          initialSizes={[27, 47, 26]}
+          minSizes={[18, 28, 18]}
+          storageKey="lumen-split-operator-cols"
+          className="h-full w-full"
+        >
+          {/* Coluna 1 (Esquerda): Roteiro, Letras, Imagens, Vídeos, Áudio & Arquivos */}
+          <LiturgyScheduleColumn
+            state={state}
+            selectedSong={currentSong}
+            activeBible={activeBible}
+            selectedLiturgyItemId={selectedLiturgyItemId}
+            onSelectItem={handleSelectItemFromRoteiro}
+            onSelectBackground={(background) => dispatch({ type: 'SET_BACKGROUND', background })}
+            onSelectPptxDeck={() => setIsPptxOpen(true)}
+            songs={songs}
+            songQuery={query}
+            onChangeSongQuery={setQuery}
+            isLoadingSongs={isLoadingSongs}
+            selectedSongId={selectedSongId}
+            bibleLookupResult={bibleLookupResult}
+            onSelectSong={handleSelectSong}
+            onSelectBible={handleSelectBible}
+            onOpenSongImporter={() => setIsSongImporterOpen(true)}
+            onOpenSongHistory={() => setIsSongHistoryOpen(true)}
+          />
 
-        {/* Coluna 2 (22%): Biblioteca / Catálogo de Músicas & Bíblia */}
-        <section className="flex flex-col bg-[#0F1622] p-3 border-r border-white/5 overflow-hidden">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-              Biblioteca ({songs.length})
-            </span>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsSongImporterOpen(true)}
-                title="Importar pacote de músicas ou colar letra"
-              >
-                <Upload className="h-3 w-3 text-sky-400" />
-                <span>Importar</span>
-              </Button>
+          {/* Coluna 2 (Centro): Palco / Slides da Música, Versículos ou Apresentação */}
+          <section className="flex h-full flex-col bg-[#131C2B] p-4 overflow-y-auto">
+          {state.mode === 'PPTX' && state.foreground.slides && state.foreground.slides.length > 0 ? (
+            <div className="flex flex-1 flex-col gap-3">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Presentation className="h-4 w-4 text-emerald-400 shrink-0" />
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-semibold text-white truncate">
+                      {state.foreground.title || 'Apresentação'}
+                    </h3>
+                    <p className="text-[10px] text-slate-400">
+                      Slide {state.foreground.slideIndex + 1} de {state.foreground.totalSlides}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => dispatch({ type: 'NAV_PREV' })}
+                    className="flex items-center gap-1 rounded bg-[#192334] hover:bg-[#1E2B40] px-2.5 py-1 text-[11px] font-medium text-slate-200 transition"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                    <span>Anterior</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => dispatch({ type: 'NAV_NEXT' })}
+                    className="flex items-center gap-1 rounded bg-sky-500 hover:bg-sky-400 px-2.5 py-1 text-[11px] font-semibold text-slate-950 transition"
+                  >
+                    <span>Próximo</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
 
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setIsSongHistoryOpen(true)}
-                title="Consultar histórico e músicas mais cantadas"
-              >
-                <History className="h-3 w-3 text-slate-400" />
-                <span>Histórico</span>
-              </Button>
+              <div className="grid grid-cols-2 auto-rows-max content-start gap-3">
+                {state.foreground.slides.map((slide, idx) => {
+                  const isLive = state.foreground.slideIndex === idx
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => dispatch({ type: 'NAV_GOTO', slideIndex: idx })}
+                      className={`group relative flex flex-col rounded-lg border cursor-pointer overflow-hidden transition ${
+                        isLive
+                          ? 'border-emerald-500 bg-emerald-950/20 ring-1 ring-emerald-500/50'
+                          : 'border-white/10 bg-[#192334] hover:border-sky-500/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between px-2.5 py-1 bg-[#090D14]/60 text-[10px]">
+                        <span className="font-semibold text-slate-300">Slide {idx + 1}</span>
+                        {isLive && (
+                          <span className="rounded bg-emerald-500/20 px-1.5 py-0.2 font-bold text-emerald-300">
+                            AO VIVO
+                          </span>
+                        )}
+                      </div>
+                      <div className="aspect-video w-full bg-black flex items-center justify-center overflow-hidden p-2">
+                        {slide.imageUrl ? (
+                          <img
+                            src={slide.imageUrl}
+                            alt={`Slide ${idx + 1}`}
+                            className="h-full w-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-[11px] text-center font-medium text-slate-200 line-clamp-4">
+                            {slide.content.join(' ')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-
-          <div className="relative mb-2.5">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-            <Input
-              placeholder="Filtrar hino ou versículo (ex: jo 3 16)..."
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              className="pl-8 pr-8 bg-[#192334] border-transparent focus:border-sky-500/50"
-            />
-            {isLoadingSongs && (
-              <Loader2 className="absolute right-2.5 top-2.5 h-3.5 w-3.5 animate-spin text-slate-400" />
-            )}
-          </div>
-
-          <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto text-xs pr-0.5">
-            {bibleLookupResult && (
-              <BibleQuickLookupCard
-                lookup={bibleLookupResult}
-                onProject={handleSelectBible}
-              />
-            )}
-
-            <SongSearchList
-              songs={songs}
-              isLoading={isLoadingSongs}
-              selectedSongId={selectedSongId}
-              liveSongId={state.mode === 'SONG' ? state.activeItemId : null}
-              onSelectSong={handleSelectSong}
-            />
-          </div>
-        </section>
-
-        {/* Coluna 3 (33%): Palco / Slides da Música ou Versículos (Superfície #131C2B mais clara para foco) */}
-        <section className="flex flex-col bg-[#131C2B] p-4 overflow-y-auto">
-          {activeBible ? (
+          ) : activeBible ? (
             <BibleVerseGrid
               activeBible={activeBible}
               activeSlideIndex={state.foreground.slideIndex}
@@ -241,11 +312,12 @@ export function OperatorView({
           )}
         </section>
 
-        {/* Coluna 4 (25%): Monitor de Saída 16:9 & Áudio Ambiente */}
+        {/* Coluna 3 (Direita): Monitor de Saída 16:9 & Áudio Ambiente */}
         <OutputMonitorPanel
           state={state}
           onSelectBackground={(background) => dispatch({ type: 'SET_BACKGROUND', background })}
         />
+        </ResizableSplitPane>
       </main>
 
       {/* 3. Modais de Ferramentas Secundárias e Diagnóstico */}
@@ -269,6 +341,7 @@ export function OperatorView({
       />
       <PptxDeckModal
         isOpen={isPptxOpen}
+        state={state}
         onClose={() => setIsPptxOpen(false)}
         dispatch={dispatch}
       />
@@ -284,6 +357,9 @@ export function OperatorView({
       <SongImporterModal
         isOpen={isSongImporterOpen}
         onClose={() => setIsSongImporterOpen(false)}
+        onImported={() => {
+          void queryClient.invalidateQueries({ queryKey: songKeys.all })
+        }}
       />
       <DiagnosticsModal
         isOpen={isDiagnosticsOpen}

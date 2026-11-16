@@ -3,7 +3,7 @@
  * @description Coluna 1 (Esquerda) do operador com abas de acesso rápido (Roteiro | Imagens | Vídeos | Arquivos), Drag & Drop universal e menu de contexto.
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import {
   Calendar,
   Plus,
@@ -12,22 +12,31 @@ import {
   Film,
   Presentation,
   Upload,
-  Trash2,
+  Music,
+  Headphones,
+  Search,
+  History,
 } from 'lucide-react'
 import type { ScreenState, BackgroundLayer } from '@lumen/core'
-import type { Song } from '@slices/songs/contracts/song-contracts'
+import type { Song, SongSearchResult } from '@slices/songs/contracts/song-contracts'
+import { SongSearchList } from '@slices/songs/ui/components/SongSearchList'
 import type { BibleLookupResponse } from '@slices/bible/contracts/bible-contracts'
+import { BibleQuickLookupCard } from '@slices/bible/ui/components/BibleQuickLookupCard'
 import type { PptxPresentation } from '@slices/pptx/contracts/pptx-contracts'
 import { pptxService } from '@slices/pptx/ui/services/pptx-service'
+import { renderPdfFileToPresentation } from '@slices/pptx/ui/utils/pdf-renderer'
+import { PptxFilesPanel } from '@slices/pptx/ui/components/PptxFilesPanel'
 import { MediaGridPanel } from '@slices/media/ui/components/MediaGridPanel'
 import type { MediaItem } from '@slices/media/contracts/media-contracts'
+import { Input } from '@ui/components/ui/input'
+import { Button } from '@ui/components/ui/button'
 import type { LiturgyItem } from '../../contracts/liturgy-schema'
 import { LiturgyItemCard } from './LiturgyItemCard'
 import { LiturgyContextMenu } from './LiturgyContextMenu'
 import { QuickTextModal } from './QuickTextModal'
 import { useLiturgyController } from '../hooks/useLiturgyController'
 
-export type LeftColumnTab = 'ROTEIRO' | 'IMAGENS' | 'VIDEOS' | 'ARQUIVOS'
+export type LeftColumnTab = 'ROTEIRO' | 'LETRAS' | 'IMAGENS' | 'VIDEOS' | 'AUDIO' | 'ARQUIVOS'
 
 export interface LiturgyScheduleColumnProps {
   state: ScreenState
@@ -37,6 +46,16 @@ export interface LiturgyScheduleColumnProps {
   onSelectItem?: (item: LiturgyItem) => void
   onSelectBackground?: (background: BackgroundLayer) => void
   onSelectPptxDeck?: (deck: PptxPresentation) => void
+  songs?: SongSearchResult[]
+  songQuery?: string
+  onChangeSongQuery?: (query: string) => void
+  isLoadingSongs?: boolean
+  selectedSongId?: string | null
+  bibleLookupResult?: BibleLookupResponse | null
+  onSelectSong?: (songId: string) => void
+  onSelectBible?: (lookup: BibleLookupResponse) => void
+  onOpenSongImporter?: () => void
+  onOpenSongHistory?: () => void
 }
 
 /**
@@ -53,6 +72,16 @@ export function LiturgyScheduleColumn({
   onSelectItem,
   onSelectBackground,
   onSelectPptxDeck,
+  songs = [],
+  songQuery = '',
+  onChangeSongQuery,
+  isLoadingSongs = false,
+  selectedSongId,
+  bibleLookupResult,
+  onSelectSong,
+  onSelectBible,
+  onOpenSongImporter,
+  onOpenSongHistory,
 }: LiturgyScheduleColumnProps) {
   const {
     liturgy,
@@ -76,22 +105,8 @@ export function LiturgyScheduleColumn({
   } = useLiturgyController()
 
   const [activeTab, setActiveTab] = useState<LeftColumnTab>('ROTEIRO')
-  const [pptxDecks, setPptxDecks] = useState<PptxPresentation[]>([])
-  const [isUploadingFile, setIsUploadingFile] = useState(false)
-  const pptxInputRef = useRef<HTMLInputElement | null>(null)
-
-  const loadPptxDecks = () => {
-    pptxService
-      .listAll()
-      .then(setPptxDecks)
-      .catch(() => setPptxDecks([]))
-  }
-
-  useEffect(() => {
-    if (activeTab === 'ARQUIVOS') {
-      loadPptxDecks()
-    }
-  }, [activeTab])
+  const [isRoteiroDropHover, setIsRoteiroDropHover] = useState(false)
+  const roteiroHoverTimerRef = useRef<number | null>(null)
 
   const isItemLive = (item: LiturgyItem): boolean => {
     if (state.activeItemId === item.id) return true
@@ -122,36 +137,33 @@ export function LiturgyScheduleColumn({
     })
   }
 
-  const handleUploadPptxFiles = async (files: FileList | File[]) => {
-    setIsUploadingFile(true)
-    try {
-      for (const file of Array.from(files)) {
-        const arrayBuf = await file.arrayBuffer()
-        const bytes = new Uint8Array(arrayBuf)
-        let binaryStr = ''
-        for (let index = 0; index < bytes.length; index++) {
-          binaryStr += String.fromCharCode(bytes[index])
-        }
-        const fileBase64 = btoa(binaryStr)
-        const created = await pptxService.ingestFile(file.name, fileBase64)
-        setPptxDecks((previous) => [created, ...previous])
-      }
-    } finally {
-      setIsUploadingFile(false)
-    }
-  }
-
   const handleOsFilesDropOnRoteiro = async (files: FileList) => {
     for (const file of Array.from(files)) {
       const lowerName = file.name.toLowerCase()
       if (lowerName.endsWith('.pptx') || lowerName.endsWith('.pdf')) {
-        const arrayBuf = await file.arrayBuffer()
-        const bytes = new Uint8Array(arrayBuf)
-        let binaryStr = ''
-        for (let index = 0; index < bytes.length; index++) {
-          binaryStr += String.fromCharCode(bytes[index])
+        let created: PptxPresentation
+        if (lowerName.endsWith('.pdf')) {
+          try {
+            const rendered = await renderPdfFileToPresentation(file)
+            created = await pptxService.ingestPresentation(rendered)
+          } catch {
+            const arrayBuf = await file.arrayBuffer()
+            const bytes = new Uint8Array(arrayBuf)
+            let binaryStr = ''
+            for (let index = 0; index < bytes.length; index++) {
+              binaryStr += String.fromCharCode(bytes[index])
+            }
+            created = await pptxService.ingestFile(file.name, btoa(binaryStr))
+          }
+        } else {
+          const arrayBuf = await file.arrayBuffer()
+          const bytes = new Uint8Array(arrayBuf)
+          let binaryStr = ''
+          for (let index = 0; index < bytes.length; index++) {
+            binaryStr += String.fromCharCode(bytes[index])
+          }
+          created = await pptxService.ingestFile(file.name, btoa(binaryStr))
         }
-        const created = await pptxService.ingestFile(file.name, btoa(binaryStr))
         handleAddCustomItem({
           id: `item-pptx-${Date.now()}`,
           type: 'PPTX',
@@ -171,7 +183,12 @@ export function LiturgyScheduleColumn({
             type: 'MEDIA',
             title: json.data.name,
             mediaSrc: streamUrl,
-            mediaType: json.data.type === 'VIDEO' ? 'VIDEO' : 'IMAGE',
+            mediaType:
+              json.data.type === 'VIDEO'
+                ? 'VIDEO'
+                : json.data.type === 'AUDIO'
+                  ? 'AUDIO'
+                  : 'IMAGE',
           })
         }
       }
@@ -189,20 +206,68 @@ export function LiturgyScheduleColumn({
         }
       }}
     >
-      {/* Abas Superiores da Coluna 1: Roteiro | Imagens | Vídeos | Arquivos */}
-      <div className="mb-3 grid grid-cols-4 gap-1 rounded-lg bg-[#090D14] p-1 text-[11px]">
+      {/* Abas Superiores da Coluna Esquerda: Roteiro | Letras | Imagens | Vídeos | Áudio | Arquivos */}
+      <div className="mb-3 grid grid-cols-6 gap-1 rounded-lg bg-[#090D14] p-1 text-[11px] shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab('ROTEIRO')}
-          title="Ordem do Culto (arraste itens para cá)"
+          onDragOver={(event) => {
+            event.preventDefault()
+            setIsRoteiroDropHover(true)
+            if (activeTab !== 'ROTEIRO' && roteiroHoverTimerRef.current === null) {
+              roteiroHoverTimerRef.current = window.setTimeout(() => {
+                setActiveTab('ROTEIRO')
+                roteiroHoverTimerRef.current = null
+              }, 350)
+            }
+          }}
+          onDragLeave={() => {
+            setIsRoteiroDropHover(false)
+            if (roteiroHoverTimerRef.current !== null) {
+              window.clearTimeout(roteiroHoverTimerRef.current)
+              roteiroHoverTimerRef.current = null
+            }
+          }}
+          onDrop={(event) => {
+            setIsRoteiroDropHover(false)
+            if (roteiroHoverTimerRef.current !== null) {
+              window.clearTimeout(roteiroHoverTimerRef.current)
+              roteiroHoverTimerRef.current = null
+            }
+            if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+              event.preventDefault()
+              void handleOsFilesDropOnRoteiro(event.dataTransfer.files)
+              setActiveTab('ROTEIRO')
+              return
+            }
+            handleDrop(event)
+            setActiveTab('ROTEIRO')
+          }}
+          title="Ordem do Culto (arraste qualquer item ou arquivo para cá)"
           className={`flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 font-medium transition ${
-            activeTab === 'ROTEIRO'
+            isRoteiroDropHover
+              ? 'bg-sky-500/30 text-sky-200 ring-1 ring-sky-400'
+              : activeTab === 'ROTEIRO'
+                ? 'bg-[#192334] text-sky-400 shadow-xs'
+                : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Calendar className="h-3.5 w-3.5" />
+          <span className="text-[9px]">Roteiro</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('LETRAS')}
+          title="Letras de Músicas e Busca Bíblica"
+          className={`flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 font-medium transition ${
+            activeTab === 'LETRAS'
               ? 'bg-[#192334] text-sky-400 shadow-xs'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          <Calendar className="h-3.5 w-3.5" />
-          <span className="text-[10px]">Roteiro</span>
+          <Music className="h-3.5 w-3.5" />
+          <span className="text-[9px]">Letras</span>
         </button>
 
         <button
@@ -216,7 +281,7 @@ export function LiturgyScheduleColumn({
           }`}
         >
           <ImageIcon className="h-3.5 w-3.5" />
-          <span className="text-[10px]">Imagens</span>
+          <span className="text-[9px]">Imagens</span>
         </button>
 
         <button
@@ -230,7 +295,21 @@ export function LiturgyScheduleColumn({
           }`}
         >
           <Film className="h-3.5 w-3.5" />
-          <span className="text-[10px]">Vídeos</span>
+          <span className="text-[9px]">Vídeos</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('AUDIO')}
+          title="Biblioteca de Áudio (arraste ao Roteiro)"
+          className={`flex flex-col items-center justify-center gap-0.5 rounded-md py-1.5 font-medium transition ${
+            activeTab === 'AUDIO'
+              ? 'bg-[#192334] text-sky-400 shadow-xs'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Headphones className="h-3.5 w-3.5" />
+          <span className="text-[9px]">Áudio</span>
         </button>
 
         <button
@@ -244,7 +323,7 @@ export function LiturgyScheduleColumn({
           }`}
         >
           <Presentation className="h-3.5 w-3.5" />
-          <span className="text-[10px]">Arquivos</span>
+          <span className="text-[9px]">Arquivos</span>
         </button>
       </div>
 
@@ -319,6 +398,63 @@ export function LiturgyScheduleColumn({
         </div>
       )}
 
+      {/* ABA 1B: LETRAS & BÍBLIA RÁPIDA (Unificada na Coluna Esquerda) */}
+      {activeTab === 'LETRAS' && (
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              Letras ({songs.length})
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onOpenSongImporter}
+                title="Importar ou cadastrar música"
+              >
+                <Upload className="h-3 w-3 text-sky-400" />
+                <span>Importar</span>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onOpenSongHistory}
+                title="Consultar histórico e músicas mais cantadas"
+              >
+                <History className="h-3 w-3 text-slate-400" />
+                <span>Histórico</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="relative mb-2.5">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Input
+              placeholder="Filtrar hino ou versículo (ex: jo 3 16)..."
+              value={songQuery}
+              onChange={(event) => onChangeSongQuery?.(event.target.value)}
+              className="pl-8 pr-8 bg-[#192334] border-transparent focus:border-sky-500/50"
+            />
+            {isLoadingSongs && (
+              <Loader2 className="absolute right-2.5 top-2.5 h-3.5 w-3.5 animate-spin text-slate-400" />
+            )}
+          </div>
+
+          <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto text-xs pr-0.5">
+            {bibleLookupResult && onSelectBible && (
+              <BibleQuickLookupCard lookup={bibleLookupResult} onProject={onSelectBible} />
+            )}
+            <SongSearchList
+              songs={songs}
+              isLoading={isLoadingSongs}
+              selectedSongId={selectedSongId}
+              liveSongId={state.mode === 'SONG' ? state.activeItemId : null}
+              onSelectSong={(id) => onSelectSong?.(id)}
+            />
+          </div>
+        </div>
+      )}
+
       {/* ABA 2: IMAGENS */}
       {activeTab === 'IMAGENS' && (
         <div className="flex flex-1 flex-col gap-2">
@@ -349,117 +485,41 @@ export function LiturgyScheduleColumn({
         </div>
       )}
 
+      {/* ABA 3B: ÁUDIO */}
+      {activeTab === 'AUDIO' && (
+        <div className="flex flex-1 flex-col gap-2 overflow-hidden">
+          <div className="flex items-center justify-between text-[11px] text-slate-400">
+            <span className="font-semibold uppercase tracking-wider">Biblioteca de Áudio</span>
+            <span className="text-[10px] text-slate-500">Arraste para o Roteiro</span>
+          </div>
+          <MediaGridPanel
+            filterType="AUDIO"
+            activeBackground={state.background}
+            onSelectBackground={(background) => onSelectBackground?.(background)}
+          />
+        </div>
+      )}
+
       {/* ABA 4: ARQUIVOS (PPTX / PDF) */}
       {activeTab === 'ARQUIVOS' && (
-        <div
-          className="flex flex-1 flex-col gap-2"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => {
-            if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-              event.preventDefault()
-              handleUploadPptxFiles(event.dataTransfer.files)
-            }
-          }}
-        >
+        <div className="flex flex-1 flex-col gap-2 overflow-hidden">
           <div className="flex items-center justify-between text-[11px] text-slate-400">
             <span className="font-semibold uppercase tracking-wider">Apresentações & PDFs</span>
-            <input
-              ref={pptxInputRef}
-              type="file"
-              accept=".pptx,.pdf"
-              multiple
-              className="hidden"
-              onChange={(event) => {
-                if (event.target.files && event.target.files.length > 0) {
-                  handleUploadPptxFiles(event.target.files)
-                  event.target.value = ''
-                }
-              }}
-            />
-            <button
-              type="button"
-              disabled={isUploadingFile}
-              onClick={() => pptxInputRef.current?.click()}
-              className="flex items-center gap-1 rounded bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 px-2 py-0.5 text-[10px] font-medium text-sky-300 transition"
-            >
-              <Upload className="h-3 w-3" />
-              <span>{isUploadingFile ? 'Enviando...' : 'Importar'}</span>
-            </button>
+            <span className="text-[10px] text-slate-500">Arraste para o Roteiro</span>
           </div>
-
-          {pptxDecks.length === 0 ? (
-            <div
-              onClick={() => pptxInputRef.current?.click()}
-              className="flex flex-col items-center justify-center rounded-lg border border-dashed border-white/10 py-10 px-3 text-center cursor-pointer hover:border-sky-500/40 transition"
-            >
-              <Presentation className="h-6 w-6 text-slate-500 mb-1.5" />
-              <p className="text-xs font-medium text-slate-300">Nenhum arquivo importado</p>
-              <p className="text-[10px] text-slate-500 mt-0.5">
-                Arraste arquivos .pptx ou .pdf aqui ou clique para importar
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              {pptxDecks.map((deck) => (
-                <div
-                  key={deck.id}
-                  draggable
-                  onDragStart={(event) => {
-                    event.dataTransfer.setData(
-                      'application/lumen-item',
-                      JSON.stringify({
-                        type: 'PPTX',
-                        title: deck.title,
-                        fileSrc: deck.id,
-                        slidesCount: deck.slides.length,
-                      }),
-                    )
-                  }}
-                  onClick={() => onSelectPptxDeck?.(deck)}
-                  className="group flex items-center justify-between rounded-[6px] bg-[#192334] hover:bg-[#1E2B40] p-2.5 cursor-pointer transition"
-                >
-                  <div className="min-w-0 pr-2">
-                    <p className="text-xs font-medium text-slate-100 truncate">{deck.title}</p>
-                    <p className="text-[10px] text-slate-400">
-                      {deck.slides.length} slides • {deck.format}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        handleAddCustomItem({
-                          id: `item-pptx-${Date.now()}`,
-                          type: 'PPTX',
-                          title: deck.title,
-                          fileSrc: deck.id,
-                          slidesCount: deck.slides.length,
-                        })
-                        setActiveTab('ROTEIRO')
-                      }}
-                      title="Adicionar ao Roteiro"
-                      className="rounded bg-sky-500/15 hover:bg-sky-500/30 px-1.5 py-0.5 text-[10px] text-sky-300 transition"
-                    >
-                      + Roteiro
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async (event) => {
-                        event.stopPropagation()
-                        const remaining = await pptxService.deletePresentation(deck.id)
-                        setPptxDecks(remaining)
-                      }}
-                      title="Excluir apresentação"
-                      className="rounded p-1 text-slate-500 hover:text-rose-400 transition"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <PptxFilesPanel
+            onSelectDeck={onSelectPptxDeck}
+            onAddToLiturgy={(deck) => {
+              handleAddCustomItem({
+                id: `item-pptx-${Date.now()}`,
+                type: 'PPTX',
+                title: deck.title,
+                fileSrc: deck.id,
+                slidesCount: deck.slides.length,
+              })
+              setActiveTab('ROTEIRO')
+            }}
+          />
         </div>
       )}
 

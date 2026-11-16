@@ -12,8 +12,8 @@
  * - Consumido pelo `handleMediaRoutes` em `/api/media/*` e pelo daemon LumenLite.
  */
 
-import { existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync, readdirSync, statSync } from 'node:fs'
-import { join, extname, basename } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, unlinkSync, writeFileSync, readdirSync, statSync } from 'node:fs'
+import { join, extname, basename, dirname, relative, resolve, sep } from 'node:path'
 import { createLogger } from '@lumen/core'
 import {
   type MediaItem,
@@ -103,9 +103,34 @@ export class MediaRepository {
   }
 
   /**
-   * Realiza a varredura da pasta de mídias locais e indexa arquivos compatíveis.
+   * Resolve um caminho relativo dentro de `mediaDirectory` com proteção contra path traversal.
    */
-  public scanMediaDirectory(): void {
+  private resolveSafeMediaPath(relativePath: string): string {
+    const baseDir = resolve(this.mediaDirectory)
+    const cleaned = relativePath.replace(/^[/\\]+/, '')
+    const target = resolve(baseDir, cleaned)
+    if (target !== baseDir && !target.startsWith(baseDir + sep)) {
+      throw new Error('Caminho inválido fora do diretório de mídias')
+    }
+    return target
+  }
+
+  public getMediaDirectory(): string {
+    if (!existsSync(this.mediaDirectory)) {
+      mkdirSync(this.mediaDirectory, { recursive: true })
+    }
+    return this.mediaDirectory
+  }
+
+  /**
+   * Realiza a varredura da pasta de mídias locais e indexa arquivos compatíveis.
+   *
+   * @param reset - Se verdadeiro, reindexa do zero preservando apenas defaults virtuais inexistentes no disco.
+   */
+  public scanMediaDirectory(reset = false): void {
+    if (reset) {
+      this.mediaItems = [...DEFAULT_MEDIA_ITEMS]
+    }
     if (!existsSync(this.mediaDirectory)) {
       return
     }
@@ -123,14 +148,19 @@ export class MediaRepository {
 
         const stats = statSync(filePath)
         const fileBaseName = basename(entry.name, fileExt)
-        const mediaId = `media-${fileBaseName.toLowerCase().replace(/[^a-z0-9_-]/g, '-')}`
+        const relDir = relative(this.mediaDirectory, dirname(filePath)).split(sep).join('/')
+        const folder = relDir === '.' ? '' : relDir
+        const mediaId = `media-${(folder ? `${folder}-` : '')}${fileBaseName}`
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]/g, '-')
 
         // Evita duplicatas se já estiver cadastrado
-        if (!this.mediaItems.some((item) => item.id === mediaId)) {
+        if (!this.mediaItems.some((item) => item.path === filePath || item.id === mediaId)) {
           this.mediaItems.push({
             id: mediaId,
             name: fileBaseName.replace(/[-_]/g, ' '),
             path: filePath,
+            folder,
             type: mediaType,
             sizeBytes: stats.size,
             mimeType: this.resolveMimeType(fileExt),
@@ -143,6 +173,77 @@ export class MediaRepository {
     } catch (error) {
       logger.warn({ error, dir: this.mediaDirectory }, 'Varredura de diretório de mídias não pôde ser completada')
     }
+  }
+
+  public listFolders(): string[] {
+    const root = this.getMediaDirectory()
+    const folders: string[] = []
+    const walk = (dir: string) => {
+      const entries = readdirSync(dir, { withFileTypes: true })
+      for (const entry of entries) {
+        if (!entry.isDirectory()) continue
+        const full = join(dir, entry.name)
+        const rel = relative(root, full).split(sep).join('/')
+        folders.push(rel)
+        walk(full)
+      }
+    }
+    walk(root)
+    return folders.sort()
+  }
+
+  public createFolder(folderPath: string): string {
+    const safeName = folderPath
+      .split('/')
+      .map((seg) => seg.trim().replace(/[<>:"|?*\\]/g, '_'))
+      .filter(Boolean)
+      .join('/')
+    if (!safeName) {
+      throw new Error('Nome de pasta inválido')
+    }
+    const target = this.resolveSafeMediaPath(safeName)
+    mkdirSync(target, { recursive: true })
+    return safeName
+  }
+
+  public renameMediaItem(itemId: string, newName: string): MediaItem | null {
+    const item = this.getMediaById(itemId)
+    if (!item) return null
+    const cleanName = newName.trim().replace(/[<>:"/\\|?*]/g, '_')
+    if (!cleanName) throw new Error('Nome inválido')
+
+    if (existsSync(item.path)) {
+      const ext = extname(item.path)
+      const targetName = cleanName.endsWith(ext) ? cleanName : `${cleanName}${ext}`
+      const nextPath = join(dirname(item.path), targetName)
+      renameSync(item.path, nextPath)
+      item.path = nextPath
+    }
+    item.name = cleanName.replace(extname(item.path), '')
+    return item
+  }
+
+  public renameFolder(folderPath: string, newName: string): string {
+    const source = this.resolveSafeMediaPath(folderPath)
+    if (!existsSync(source)) {
+      throw new Error('Pasta não encontrada')
+    }
+    const cleanName = newName.trim().replace(/[<>:"/\\|?*]/g, '_')
+    if (!cleanName) throw new Error('Nome de pasta inválido')
+    const target = join(dirname(source), cleanName)
+    renameSync(source, target)
+    this.scanMediaDirectory(true)
+    return relative(this.mediaDirectory, target).split(sep).join('/')
+  }
+
+  public deleteFolder(folderPath: string): boolean {
+    const target = this.resolveSafeMediaPath(folderPath)
+    if (!existsSync(target) || target === resolve(this.mediaDirectory)) {
+      return false
+    }
+    rmSync(target, { recursive: true, force: true })
+    this.scanMediaDirectory(true)
+    return true
   }
 
   /**
@@ -201,15 +302,16 @@ export class MediaRepository {
    * @param contentBuffer - Bytes do arquivo de mídia.
    * @returns O item de mídia indexado e pronto para uso.
    */
-  public saveUploadedMedia(fileName: string, contentBuffer: Uint8Array): MediaItem {
-    if (!existsSync(this.mediaDirectory)) {
-      mkdirSync(this.mediaDirectory, { recursive: true })
+  public saveUploadedMedia(fileName: string, contentBuffer: Uint8Array, subFolder = ''): MediaItem {
+    const targetDir = subFolder ? this.resolveSafeMediaPath(subFolder) : this.getMediaDirectory()
+    if (!existsSync(targetDir)) {
+      mkdirSync(targetDir, { recursive: true })
     }
 
     const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_')
     const fileExt = extname(sanitizedFileName).toLowerCase()
     const mediaType = this.resolveMediaType(fileExt) ?? 'IMAGE'
-    const filePath = join(this.mediaDirectory, sanitizedFileName)
+    const filePath = join(targetDir, sanitizedFileName)
 
     writeFileSync(filePath, contentBuffer)
     const fileBaseName = basename(sanitizedFileName, fileExt)
@@ -219,6 +321,7 @@ export class MediaRepository {
       id: mediaId,
       name: fileBaseName.replace(/[-_]/g, ' '),
       path: filePath,
+      folder: subFolder,
       type: mediaType,
       sizeBytes: contentBuffer.byteLength,
       mimeType: this.resolveMimeType(fileExt),
