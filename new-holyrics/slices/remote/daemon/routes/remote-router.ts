@@ -47,6 +47,35 @@ export async function handleRemoteRoutes(
     })
   }
 
+  // 2b. GET /api/remote/verify?token=... - Valida token para views remotas
+  if (request.method === 'GET' && pathname === '/api/remote/verify') {
+    const token = targetUrl.searchParams.get('token')
+    const result = remoteAuth.verifyToken(token)
+    return jsonResponse({ ok: result.valid, data: result }, result.valid ? 200 : 403)
+  }
+
+  // 2c. GET/PUT /api/remote/config - Lê ou atualiza configurações do servidor remoto
+  if (pathname === '/api/remote/config' && request.method === 'GET') {
+    return jsonResponse({ ok: true, data: remoteAuth.getConfig() })
+  }
+
+  if (pathname === '/api/remote/config' && (request.method === 'PUT' || request.method === 'POST')) {
+    try {
+      const body = (await request.json()) as {
+        enabled?: boolean
+        autoStart?: boolean
+        selectedHost?: string
+      }
+      const updated = remoteAuth.updateConfig(body)
+      return jsonResponse({ ok: true, data: updated })
+    } catch (error: unknown) {
+      return jsonResponse(
+        { ok: false, error: error instanceof Error ? error.message : 'Configuração inválida' },
+        400,
+      )
+    }
+  }
+
   // 3. POST /api/remote/dispatch - Despacha comando validando RBAC (preacher vs operator)
   if (request.method === 'POST' && pathname === '/api/remote/dispatch') {
     try {

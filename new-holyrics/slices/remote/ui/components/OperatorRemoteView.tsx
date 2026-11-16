@@ -5,7 +5,7 @@
  * Pânico (Blackout, Clear Text, Clear Bg, Freeze), Navegação do Culto, Bíblia Rápida e Alertas.
  */
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   EyeOff,
   FileText,
@@ -22,6 +22,7 @@ import type { ActionCommand, ScreenState } from '@lumen/core'
 import { Button } from '@ui/components/ui/button'
 import { Input } from '@ui/components/ui/input'
 import { Badge } from '@ui/components/ui/badge'
+import { ProjectorScreen } from '@slices/navigation/ui/components/ProjectorScreen'
 import { useCurrentLiturgyQuery } from '@slices/liturgy/ui/queries/liturgy-queries'
 import { bibleService } from '@slices/bible/ui/services/bible-service'
 import { stageService } from '@slices/stage/ui/services/stage-service'
@@ -44,8 +45,10 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
   const [bibleRefInput, setBibleRefInput] = useState('jo 3 16')
   const [bibleFeedback, setBibleFeedback] = useState<string | null>(null)
   const [alertInput, setAlertInput] = useState('')
+  const carouselRef = useRef<HTMLDivElement | null>(null)
 
   const { data: liturgy } = useCurrentLiturgyQuery()
+  const slides = state.foreground.slides ?? []
 
   const handleQuickBibleProject = async () => {
     if (!bibleRefInput.trim()) return
@@ -142,14 +145,82 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
       <main className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto">
         {activeTab === 'control' && (
           <div className="flex flex-col gap-4">
-            <div className="rounded-xl border border-white/10 bg-slate-900 p-4">
-              <span className="text-[11px] font-mono text-slate-400 uppercase">
-                Texto no Telão Agora
-              </span>
-              <p className="mt-2 text-lg font-semibold text-white">
-                {state.foreground.content.join(' / ') || 'Telão sem texto'}
-              </p>
+            {/* Mini-Preview 16:9 ao Vivo */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between text-[11px] text-slate-400">
+                <span className="font-mono uppercase">Preview do Telão (16:9)</span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => dispatch({ type: 'NAV_PREV' })}
+                    title="Slide Anterior"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => dispatch({ type: 'NAV_NEXT' })}
+                    title="Próximo Slide"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/15 bg-black shadow-lg">
+                <ProjectorScreen state={state} isPreview={true} />
+              </div>
             </div>
+
+            {/* Carrossel Horizontal de Slides (Swipe mobile / Clique desktop) */}
+            {slides.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-mono text-slate-400 uppercase">
+                  Slides ({state.foreground.slideIndex + 1}/{slides.length})
+                </span>
+                <div
+                  ref={carouselRef}
+                  className="flex gap-2.5 overflow-x-auto snap-x snap-mandatory pb-2"
+                >
+                  {slides.map((slide, idx) => {
+                    const isActive = state.foreground.slideIndex === idx
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => dispatch({ type: 'NAV_GOTO', slideIndex: idx })}
+                        className={`snap-center shrink-0 w-44 rounded-lg border p-2.5 text-left transition ${
+                          isActive
+                            ? 'border-emerald-500 bg-emerald-950/30 ring-1 ring-emerald-500/50'
+                            : 'border-white/10 bg-slate-900 hover:border-sky-500/50'
+                        }`}
+                      >
+                        <div className="mb-1 flex items-center justify-between text-[10px]">
+                          <span className="font-semibold text-slate-300">Slide {idx + 1}</span>
+                          {isActive && (
+                            <span className="rounded bg-emerald-500/20 px-1 text-[9px] font-bold text-emerald-300">
+                              NO AR
+                            </span>
+                          )}
+                        </div>
+                        {slide.imageUrl ? (
+                          <img
+                            src={slide.imageUrl}
+                            alt={`Slide ${idx + 1}`}
+                            className="aspect-video w-full rounded bg-black object-contain"
+                          />
+                        ) : (
+                          <p className="line-clamp-3 text-[11px] text-slate-200 leading-snug">
+                            {slide.content.join(' ')}
+                          </p>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <Button

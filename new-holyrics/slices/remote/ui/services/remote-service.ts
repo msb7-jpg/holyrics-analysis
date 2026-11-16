@@ -5,7 +5,7 @@
 
 import { httpClient } from '@ui/core/network/http-client'
 import type { ActionCommand, ScreenState } from '@lumen/core'
-import type { RemotePairingInfo } from '../../contracts/remote-contracts'
+import type { RemotePairingInfo, RemoteRole, RemoteServerConfig } from '../../contracts/remote-contracts'
 import { RemotePairingInfoSchema } from '../../contracts/remote-contracts'
 
 export const remoteService = {
@@ -29,6 +29,28 @@ export const remoteService = {
    */
   async rotateTokens(): Promise<RemotePairingInfo> {
     return httpClient.post('/api/remote/rotate', {}, { schema: RemotePairingInfoSchema })
+  },
+
+  async verifyToken(
+    token: string,
+  ): Promise<{ valid: boolean; role: RemoteRole | null; enabled: boolean; reason?: string }> {
+    const res = await fetch(`/api/remote/verify?token=${encodeURIComponent(token)}`)
+    const json = (await res.json()) as {
+      ok: boolean
+      data?: { valid: boolean; role: RemoteRole | null; enabled: boolean; reason?: string }
+    }
+    return (
+      json.data ?? {
+        valid: false,
+        role: null,
+        enabled: true,
+        reason: 'Token inválido',
+      }
+    )
+  },
+
+  async updateConfig(partial: Partial<RemoteServerConfig>): Promise<RemotePairingInfo> {
+    return httpClient.post('/api/remote/config', partial, { schema: RemotePairingInfoSchema })
   },
 
   /**
