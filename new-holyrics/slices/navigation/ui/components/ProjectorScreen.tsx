@@ -97,13 +97,13 @@ export function ProjectorScreen({
           }}
           className="relative bg-black overflow-hidden"
         >
-          {!panic.clearBg ? (
+          {!panic.clearBg && mode !== 'PPTX' ? (
             <BackgroundVideoLoop
               background={background}
               crossfadeDurationMs={config.videoCrossfadeDurationMs}
             />
           ) : (
-            <div className="absolute inset-0 bg-slate-950" />
+            <div className="absolute inset-0 bg-black" />
           )}
 
           {!panic.clearText && (
@@ -129,14 +129,14 @@ export function ProjectorScreen({
 
   return (
     <div className="relative h-full w-full bg-black overflow-hidden select-none">
-      {/* Camada 1: Background com Seamless Double-Buffer */}
-      {!panic.clearBg ? (
+      {/* Camada 1: Background com Seamless Double-Buffer (suprimido em apresentações PPTX/PDF) */}
+      {!panic.clearBg && mode !== 'PPTX' ? (
         <BackgroundVideoLoop
           background={background}
           crossfadeDurationMs={config.videoCrossfadeDurationMs}
         />
       ) : (
-        <div className="absolute inset-0 bg-slate-950" />
+        <div className="absolute inset-0 bg-black" />
       )}
 
       {/* Camada 2: Foreground Text Display (suporta single e Dual Version) */}

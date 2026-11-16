@@ -56,6 +56,18 @@ export function ForegroundTextDisplay({
     lineHeightMultiplier: 1.3,
   })
 
+  if (foreground.imageUrl) {
+    return (
+      <div className="relative z-30 flex h-full w-full items-center justify-center bg-black select-none">
+        <img
+          src={foreground.imageUrl}
+          alt={foreground.title || 'Slide'}
+          className="h-full w-full object-contain"
+        />
+      </div>
+    )
+  }
+
   if (cleanLines.length === 0) {
     return null
   }

@@ -79,6 +79,15 @@ export class PptxRepository {
     return filtered
   }
 
+  renamePresentation(id: string, newTitle: string): PptxPresentation | null {
+    const allDecks = this.listAll()
+    const target = allDecks.find((item) => item.id === id)
+    if (!target) return null
+    target.title = newTitle.trim() || target.title
+    this.writeAtomic(allDecks)
+    return target
+  }
+
   private ensureSeed(): void {
     if (!existsSync(this.filePath)) {
       this.writeAtomic([])

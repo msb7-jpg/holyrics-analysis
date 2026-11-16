@@ -6,15 +6,17 @@
 
 import { useState, useEffect } from 'react'
 import { X, Presentation, Upload, FileText, Play, Trash2 } from 'lucide-react'
-import type { ActionCommand } from '@lumen/core'
+import type { ActionCommand, ScreenState } from '@lumen/core'
 import { Button } from '@ui/components/ui/button'
 import { Input } from '@ui/components/ui/input'
 import { Badge } from '@ui/components/ui/badge'
 import type { PptxPresentation } from '../../contracts/pptx-contracts'
 import { pptxService } from '../services/pptx-service'
+import { renderPdfFileToPresentation } from '../utils/pdf-renderer'
 
 export interface PptxDeckModalProps {
   isOpen: boolean
+  state?: ScreenState
   onClose: () => void
   dispatch: (command: ActionCommand) => void
 }
@@ -28,7 +30,7 @@ export interface PptxDeckModalProps {
  * @param props.dispatch - Despachante de comandos da FSM.
  * @returns Elemento JSX do modal ou null.
  */
-export function PptxDeckModal({ isOpen, onClose, dispatch }: PptxDeckModalProps) {
+export function PptxDeckModal({ isOpen, state, onClose, dispatch }: PptxDeckModalProps) {
   const [decks, setDecks] = useState<PptxPresentation[]>([])
   const [selectedDeck, setSelectedDeck] = useState<PptxPresentation | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -54,14 +56,29 @@ export function PptxDeckModal({ isOpen, onClose, dispatch }: PptxDeckModalProps)
 
     setIsUploading(true)
     try {
-      const arrayBuf = await file.arrayBuffer()
-      const bytes = new Uint8Array(arrayBuf)
-      let binaryStr = ''
-      for (let idx = 0; idx < bytes.length; idx++) {
-        binaryStr += String.fromCharCode(bytes[idx])
+      let created: PptxPresentation
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        try {
+          const rendered = await renderPdfFileToPresentation(file)
+          created = await pptxService.ingestPresentation(rendered)
+        } catch {
+          const arrayBuf = await file.arrayBuffer()
+          const bytes = new Uint8Array(arrayBuf)
+          let binaryStr = ''
+          for (let idx = 0; idx < bytes.length; idx++) {
+            binaryStr += String.fromCharCode(bytes[idx])
+          }
+          created = await pptxService.ingestFile(file.name, btoa(binaryStr))
+        }
+      } else {
+        const arrayBuf = await file.arrayBuffer()
+        const bytes = new Uint8Array(arrayBuf)
+        let binaryStr = ''
+        for (let idx = 0; idx < bytes.length; idx++) {
+          binaryStr += String.fromCharCode(bytes[idx])
+        }
+        created = await pptxService.ingestFile(file.name, btoa(binaryStr))
       }
-      const fileBase64 = btoa(binaryStr)
-      const created = await pptxService.ingestFile(file.name, fileBase64)
       setDecks((prev) => [created, ...prev])
       setSelectedDeck(created)
     } finally {
@@ -69,10 +86,11 @@ export function PptxDeckModal({ isOpen, onClose, dispatch }: PptxDeckModalProps)
     }
   }
 
-  const handleProjectSlide = (deck: PptxPresentation, slideIndex: number) => {
+  const handleProjectSlide = (deck: PptxPresentation, slideIndex: number, closeAfter = false) => {
     const slides = deck.slides.map((slide) => ({
       content: slide.textLines,
       speakerNotes: slide.speakerNotes,
+      imageUrl: slide.imageUrl,
       reference: `${deck.title} (${slide.index + 1}/${deck.slides.length})`,
     }))
     const targetSlide = slides[slideIndex] || slides[0]
@@ -86,11 +104,16 @@ export function PptxDeckModal({ isOpen, onClose, dispatch }: PptxDeckModalProps)
         reference: targetSlide.reference,
         content: targetSlide.content,
         speakerNotes: targetSlide.speakerNotes,
+        imageUrl: targetSlide.imageUrl,
         slides,
         slideIndex,
         totalSlides: slides.length,
       },
     })
+
+    if (closeAfter) {
+      onClose()
+    }
   }
 
   const handleDeleteDeck = async (id: string) => {
@@ -168,52 +191,85 @@ export function PptxDeckModal({ isOpen, onClose, dispatch }: PptxDeckModalProps)
           <section className="col-span-8 flex flex-col gap-3 p-4 overflow-y-auto">
             {selectedDeck ? (
               <>
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
                   <div>
                     <h3 className="text-sm font-bold text-white">{selectedDeck.title}</h3>
                     <p className="text-xs text-slate-400">
-                      Clique em qualquer slide para projetar no telão e enviar as anotações ao púlpito (/stage e /remote/preacher)
+                      Clique em qualquer slide para projetar no telão
                     </p>
                   </div>
-                  <Button size="sm" onClick={() => handleProjectSlide(selectedDeck, 0)}>
+                  <Button
+                    size="sm"
+                    className="whitespace-nowrap shrink-0"
+                    onClick={() => handleProjectSlide(selectedDeck, 0, true)}
+                  >
                     <Play className="h-3.5 w-3.5" />
                     <span>Iniciar Apresentação</span>
                   </Button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
-                  {selectedDeck.slides.map((slide, idx) => (
-                    <div
-                      key={slide.index}
-                      onClick={() => handleProjectSlide(selectedDeck, idx)}
-                      className="flex cursor-pointer flex-col gap-2 rounded-xl border border-white/10 bg-slate-800/50 p-4 hover:border-sky-500/40 hover:bg-slate-800 transition"
-                    >
-                      <div className="flex items-center justify-between">
-                        <Badge variant="default">SLIDE {idx + 1}</Badge>
-                        <span className="text-[11px] font-mono text-sky-400">
-                          Clique para Projetar
-                        </span>
-                      </div>
-
-                      <div className="rounded-lg bg-slate-950/70 p-3 text-sm font-semibold text-white">
-                        {slide.textLines.map((line, lineIdx) => (
-                          <p key={lineIdx}>{line}</p>
-                        ))}
-                      </div>
-
-                      {slide.speakerNotes && (
-                        <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                          <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
-                          <div>
-                            <span className="font-mono text-[10px] font-bold uppercase text-amber-400 block">
-                              Nota do Orador (Visível no Palco e Celular do Pastor):
-                            </span>
-                            <span>{slide.speakerNotes}</span>
+                  {selectedDeck.slides.map((slide, idx) => {
+                    const isLiveSlide =
+                      state?.mode === 'PPTX' &&
+                      state.activeItemId === selectedDeck.id &&
+                      state.foreground.slideIndex === idx
+                    return (
+                      <div
+                        key={slide.index}
+                        onClick={() => handleProjectSlide(selectedDeck, idx)}
+                        className={`flex cursor-pointer flex-col gap-2 rounded-xl border p-4 transition ${
+                          isLiveSlide
+                            ? 'border-emerald-500/60 bg-emerald-950/20'
+                            : 'border-white/10 bg-slate-800/50 hover:border-sky-500/40 hover:bg-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge variant={isLiveSlide ? 'live' : 'default'}>
+                              SLIDE {idx + 1}
+                            </Badge>
+                            {isLiveSlide && (
+                              <span className="text-[10px] font-bold uppercase text-emerald-400">
+                                AO VIVO
+                              </span>
+                            )}
                           </div>
+                          <span className="text-[11px] font-mono text-sky-400">
+                            Clique para Projetar
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  ))}
+
+                        {slide.imageUrl ? (
+                          <div className="overflow-hidden rounded-lg border border-white/10 bg-black">
+                            <img
+                              src={slide.imageUrl}
+                              alt={`Slide ${idx + 1}`}
+                              className="max-h-56 w-full object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div className="rounded-lg bg-slate-950/70 p-3 text-sm font-semibold text-white">
+                            {slide.textLines.map((line, lineIdx) => (
+                              <p key={lineIdx}>{line}</p>
+                            ))}
+                          </div>
+                        )}
+
+                        {slide.speakerNotes && (
+                          <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                            <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
+                            <div>
+                              <span className="font-mono text-[10px] font-bold uppercase text-amber-400 block">
+                                Nota do Orador:
+                              </span>
+                              <span>{slide.speakerNotes}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </>
             ) : (

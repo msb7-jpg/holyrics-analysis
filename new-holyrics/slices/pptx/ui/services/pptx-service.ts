@@ -37,6 +37,20 @@ export const pptxService = {
   },
 
   /**
+   * Salva uma apresentação já pré-processada (ex: PDF renderizado via pdfjs-dist).
+   *
+   * @param presentation - Objeto completo da apresentação.
+   * @returns Apresentação salva.
+   */
+  async ingestPresentation(presentation: PptxPresentation): Promise<PptxPresentation> {
+    return httpClient.post(
+      '/api/pptx/ingest',
+      { presentation },
+      { schema: PptxPresentationSchema },
+    )
+  },
+
+  /**
    * Remove uma apresentação do repositório.
    *
    * @param id - ID da apresentação.

@@ -128,11 +128,40 @@ export function extractPptxFromBuffer(
 
     const slideTitle = textLines[0] || `Slide ${idx + 1}`
 
+    // Tenta extrair imagem associada ao slide via .rels quando disponível
+    let imageUrl: string | undefined
+    const relsPath = `ppt/slides/_rels/slide${entry.slideNumber}.xml.rels`
+    if (files[relsPath]) {
+      try {
+        const relsXml = strFromU8(files[relsPath])
+        const parsedRels = xmlParser.parse(relsXml) as {
+          Relationships?: { Relationship?: Array<{ Target?: string; Type?: string }> | { Target?: string; Type?: string } }
+        }
+        const relsRaw = parsedRels.Relationships?.Relationship
+        const relList = Array.isArray(relsRaw) ? relsRaw : relsRaw ? [relsRaw] : []
+        const imgRel = relList.find(
+          (r) => typeof r.Target === 'string' && /\.(png|jpe?g|webp|gif)$/i.test(r.Target),
+        )
+        if (imgRel?.Target) {
+          const mediaPath = imgRel.Target.replace(/^\.\.\//, 'ppt/')
+          const imgBytes = files[mediaPath]
+          if (imgBytes && textLines.length === 0) {
+            const ext = mediaPath.split('.').pop()?.toLowerCase() || 'png'
+            const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`
+            imageUrl = `data:${mime};base64,${Buffer.from(imgBytes).toString('base64')}`
+          }
+        }
+      } catch {
+        // Ignora erro de parse de .rels
+      }
+    }
+
     return {
       index: idx,
       title: slideTitle,
       textLines: textLines.length > 0 ? textLines : [`Slide ${idx + 1}`],
       speakerNotes,
+      imageUrl,
     }
   })
 
@@ -188,7 +217,7 @@ export function extractPdfFromBuffer(
             index: 0,
             title: cleanTitle,
             textLines: [cleanTitle],
-            speakerNotes: 'Documento PDF importado.',
+            speakerNotes: '',
           },
         ]
 

@@ -25,6 +25,7 @@ export const PptxPresentationSchema = z.object({
   id: z.string(),
   title: z.string(),
   filename: z.string(),
+  folder: z.string().optional(),
   format: z.enum(['PPTX', 'PDF']).default('PPTX'),
   slides: z.array(PptxSlideSchema),
   createdAt: z.number(),

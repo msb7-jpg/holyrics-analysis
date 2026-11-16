@@ -3,6 +3,9 @@
  * @description Roteador REST para ingestão e consulta de apresentações PowerPoint (`.pptx`) e PDF (`/api/pptx/*` - RF-21).
  */
 
+import { existsSync, mkdirSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { spawn } from 'node:child_process'
 import { jsonResponse } from '../../../../apps/daemon/src/api/context'
 import type { ApiContext } from '../../../../apps/daemon/src/api/context'
 import { extractPdfFromBuffer, extractPptxFromBuffer } from '../pptx-extractor'
@@ -76,6 +79,45 @@ export async function handlePptxRoutes(
           error: error instanceof Error ? error.message : 'Falha ao ingerir arquivo PPTX/PDF',
         },
         400,
+      )
+    }
+  }
+
+  // 2b. POST /api/pptx/rename - Renomeia uma apresentação
+  if (pathname === '/api/pptx/rename' && request.method === 'POST') {
+    try {
+      const body = (await request.json()) as { id?: string; newTitle?: string }
+      if (!body.id || !body.newTitle) {
+        return jsonResponse({ ok: false, error: 'id e newTitle são obrigatórios' }, 400)
+      }
+      const updated = pptxRepo.renamePresentation(body.id, body.newTitle)
+      if (!updated) {
+        return jsonResponse({ ok: false, error: 'Apresentação não encontrada' }, 404)
+      }
+      return jsonResponse({ ok: true, data: updated })
+    } catch (error: unknown) {
+      return jsonResponse(
+        { ok: false, error: error instanceof Error ? error.message : 'Falha ao renomear apresentação' },
+        400,
+      )
+    }
+  }
+
+  // 2c. POST /api/pptx/open-folder - Abre pasta de dados de apresentações no SO
+  if (pathname === '/api/pptx/open-folder' && request.method === 'POST') {
+    try {
+      const dir = resolve(process.cwd(), 'data')
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true })
+      }
+      const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'explorer' : 'xdg-open'
+      const child = spawn(cmd, [dir], { detached: true, stdio: 'ignore' })
+      child.unref()
+      return jsonResponse({ ok: true, path: dir })
+    } catch (error: unknown) {
+      return jsonResponse(
+        { ok: false, error: error instanceof Error ? error.message : 'Falha ao abrir pasta local' },
+        500,
       )
     }
   }
