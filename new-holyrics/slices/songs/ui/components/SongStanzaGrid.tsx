@@ -14,7 +14,9 @@ export interface SongStanzaGridProps {
   song: Song
   activeSlideIndex?: number
   isLiveOnScreen?: boolean
-  onSelectStanza: (index: number) => void
+  focusedIndex?: number
+  onSelectStanza?: (index: number) => void
+  onProjectStanza?: (index: number) => void
 }
 
 /**
@@ -24,14 +26,18 @@ export interface SongStanzaGridProps {
  * @param props.song - Objeto da música selecionada.
  * @param props.activeSlideIndex - Índice da estrofe atualmente projetada.
  * @param props.isLiveOnScreen - Se esta música é o item efetivamente ao vivo no telão.
- * @param props.onSelectStanza - Callback disparado ao clicar em uma estrofe.
+ * @param props.focusedIndex - Índice da estrofe com foco local no workspace.
+ * @param props.onSelectStanza - Callback disparado ao selecionar/focar uma estrofe (1 clique).
+ * @param props.onProjectStanza - Callback disparado ao projetar uma estrofe para o telão (2 cliques).
  * @returns Elemento JSX com os cartões de estrofes.
  */
 export function SongStanzaGrid({
   song,
   activeSlideIndex,
   isLiveOnScreen,
+  focusedIndex,
   onSelectStanza,
+  onProjectStanza,
 }: SongStanzaGridProps) {
   return (
     <div className="flex flex-col gap-2">
@@ -54,23 +60,37 @@ export function SongStanzaGrid({
 
       {song.sections.map((section, index) => {
         const isCurrentLive = Boolean(isLiveOnScreen && activeSlideIndex === index)
+        const isFocused = !isCurrentLive && focusedIndex === index
+
         return (
           <div
             key={section.id}
-            onClick={() => onSelectStanza(index)}
+            onClick={() => onSelectStanza?.(index)}
+            onDoubleClick={() => onProjectStanza?.(index)}
             className={`group relative flex cursor-pointer rounded-[6px] p-3.5 transition select-none ${
               isCurrentLive
                 ? 'bg-[#1D2D3E] ring-1 ring-emerald-500/50 shadow-sm'
-                : 'bg-[#192334] hover:bg-[#1E2B40]'
+                : isFocused
+                  ? 'bg-[#172338] ring-1 ring-sky-500/40'
+                  : 'bg-[#192334] hover:bg-[#1E2B40]'
             }`}
           >
             {isCurrentLive && (
-              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[6px] bg-emerald-500" />
+              <>
+                <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[6px] bg-emerald-500" />
+                <span className="absolute top-2 right-2 rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-mono font-bold text-emerald-300">
+                  AO VIVO
+                </span>
+              </>
             )}
 
             <span
               className={`mr-3.5 font-mono text-xs font-semibold pt-0.5 select-none ${
-                isCurrentLive ? 'text-emerald-400' : 'text-slate-500 group-hover:text-slate-400'
+                isCurrentLive
+                  ? 'text-emerald-400'
+                  : isFocused
+                    ? 'text-sky-400'
+                    : 'text-slate-500 group-hover:text-slate-400'
               }`}
             >
               {String(index + 1).padStart(2, '0')}
@@ -78,7 +98,11 @@ export function SongStanzaGrid({
 
             <p
               className={`flex-1 whitespace-pre-line font-sans text-[15px] leading-[1.5] transition-colors ${
-                isCurrentLive ? 'text-[#F8FAFC] font-medium' : 'text-[#94A3B8] group-hover:text-slate-200'
+                isCurrentLive
+                  ? 'text-[#F8FAFC] font-medium'
+                  : isFocused
+                    ? 'text-slate-100'
+                    : 'text-[#94A3B8] group-hover:text-slate-200'
               }`}
             >
               {section.lines.join('\n')}

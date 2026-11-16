@@ -8,12 +8,13 @@
  * - Coordenar modais de ferramentas secundárias e diagnóstico sem vazamentos técnicos na interface principal.
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, ChevronLeft, ChevronRight, Presentation } from 'lucide-react'
 import { songKeys } from '@slices/songs/ui/queries/songs-query-keys'
 import { ResizableSplitPane } from '@ui/components/ui/ResizableSplitPane'
 import type { ScreenState, ActionCommand } from '@lumen/core'
+import { bibleService } from '@slices/bible/ui/services/bible-service'
 import {
   INITIAL_LIVE_STAGE_STATE,
   type LiveStageState,
@@ -118,11 +119,17 @@ export function OperatorView({
     bibleLookupResult,
     isSpotlightOpen,
     setIsSpotlightOpen,
+    workspaceItem,
+    workspaceFocusedIndex,
+    setWorkspaceFocusedIndex,
     handleSelectSong,
-    handleSelectSection,
     handleSelectBible,
     handleChangeDualVersion,
-    handleSelectVerse,
+    handleInspectPptxDeck,
+    handleProjectSongStanza,
+    handleProjectBibleVerse,
+    handleProjectMediaFullscreen,
+    handleProjectWorkspaceCurrent,
     handleSelectLiturgyItem,
   } = useOperatorController({ state, dispatch })
 
@@ -137,18 +144,27 @@ export function OperatorView({
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false)
   const [selectedLiturgyItemId, setSelectedLiturgyItemId] = useState<string | null>(null)
 
+  // Trata tecla Enter para disparar o item e slide focado no workspace
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Enter') return
+      const target = event.target as HTMLElement | null
+      const tagName = target?.tagName
+      if (tagName === 'INPUT' || tagName === 'TEXTAREA' || target?.isContentEditable) {
+        return
+      }
+      event.preventDefault()
+      handleProjectWorkspaceCurrent()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleProjectWorkspaceCurrent])
+
+  // 1 clique: seleciona e carrega no workspace central
   const handleSelectItemFromRoteiro = (item: LiturgyItem) => {
     setSelectedLiturgyItemId(item.id)
     if (item.type === 'MEDIA') {
-      dispatch({
-        type: 'SET_BACKGROUND',
-        background: {
-          type: item.mediaType === 'VIDEO' ? 'video' : 'image',
-          source: item.mediaSrc,
-          loop: item.mediaType === 'VIDEO',
-          muted: true,
-        },
-      })
       return
     }
     if (item.type === 'PPTX') {
@@ -157,6 +173,107 @@ export function OperatorView({
     }
     handleSelectLiturgyItem(item)
   }
+
+  // 2 cliques (duplo clique): projeta imediatamente para o telão
+  const handleProjectItemFromRoteiro = (item: LiturgyItem) => {
+    setSelectedLiturgyItemId(item.id)
+    if (item.type === 'MEDIA') {
+      handleProjectMediaFullscreen({
+        id: item.id,
+        title: item.title,
+        mediaSrc: item.mediaSrc,
+        mediaType: item.mediaType,
+      })
+      return
+    }
+    if (item.type === 'SONG') {
+      if (currentSong && currentSong.id === item.songId) {
+        handleProjectSongStanza(currentSong, 0)
+      } else {
+        handleSelectSong(item.songId)
+      }
+      return
+    }
+    if (item.type === 'BIBLE') {
+      bibleService
+        .lookup(item.reference, item.version || 'ACF', undefined, item.dualVersion)
+        .then((lookup) => {
+          if (lookup) {
+            handleChangeDualVersion(item.dualVersion || null)
+            handleSelectBible(lookup)
+            handleProjectBibleVerse(lookup, 0)
+          }
+        })
+        .catch(() => {
+          // Fallback silencioso
+        })
+      return
+    }
+    if (item.type === 'PPTX') {
+      setIsPptxOpen(true)
+      return
+    }
+    if (item.type === 'TEXT') {
+      dispatch({
+        type: 'PRESENT_ITEM',
+        itemId: item.id,
+        mode: 'EMPTY',
+        foreground: {
+          title: item.title,
+          content: item.content,
+          slideIndex: 0,
+          totalSlides: 1,
+        },
+      })
+      return
+    }
+    if (item.type === 'COUNTDOWN') {
+      dispatch({
+        type: 'PRESENT_ITEM',
+        itemId: item.id,
+        mode: 'EMPTY',
+        foreground: {
+          title: item.title,
+          content: [`Início em ${Math.round((item.targetDurationSeconds || 300) / 60)} minutos`],
+          slideIndex: 0,
+          totalSlides: 1,
+        },
+      })
+      return
+    }
+  }
+
+  // Determina se o item atualmente visualizado no Workspace é o que está no telão (Live)
+  const isWorkspaceItemLive = Boolean(
+    workspaceItem
+      ? (workspaceItem.type === 'SONG' &&
+          state.mode === 'SONG' &&
+          state.activeItemId === workspaceItem.songId) ||
+        (workspaceItem.type === 'BIBLE' &&
+          state.mode === 'BIBLE' &&
+          state.activeItemId === `bible_${workspaceItem.lookup.reference}`) ||
+        (workspaceItem.type === 'PPTX' &&
+          state.mode === 'PPTX' &&
+          (!workspaceItem.deckId || state.activeItemId === workspaceItem.deckId))
+      : state.mode !== 'EMPTY'
+  )
+
+  const workspaceTitle =
+    workspaceItem?.type === 'SONG'
+      ? currentSong
+        ? `${currentSong.title} — ${currentSong.artist}`
+        : 'Carregando louvor...'
+      : workspaceItem?.type === 'BIBLE'
+        ? `${workspaceItem.lookup.reference} (${workspaceItem.lookup.version}${
+            workspaceItem.lookup.dualVersion ? ` + ${workspaceItem.lookup.dualVersion}` : ''
+          })`
+        : workspaceItem?.type === 'PPTX'
+          ? workspaceItem.title || 'Apresentação'
+          : currentSong
+            ? `${currentSong.title} — ${currentSong.artist}`
+            : activeBible
+              ? activeBible.reference
+              : state.foreground.title || 'Workspace Central'
 
   return (
     <div className="flex h-screen w-screen flex-col bg-[#090D14] text-slate-100 select-none overflow-hidden">
@@ -196,8 +313,10 @@ export function OperatorView({
             activeBible={activeBible}
             selectedLiturgyItemId={selectedLiturgyItemId}
             onSelectItem={handleSelectItemFromRoteiro}
+            onProjectItem={handleProjectItemFromRoteiro}
+            onProjectMedia={handleProjectMediaFullscreen}
             onSelectBackground={(background) => dispatch({ type: 'SET_BACKGROUND', background })}
-            onSelectPptxDeck={() => setIsPptxOpen(true)}
+            onSelectPptxDeck={(deck) => handleInspectPptxDeck(deck)}
             songs={songs}
             songQuery={query}
             onChangeSongQuery={setQuery}
@@ -210,113 +329,240 @@ export function OperatorView({
             onOpenSongHistory={() => setIsSongHistoryOpen(true)}
           />
 
-          {/* Coluna 2 (Centro): Palco / Slides da Música, Versículos ou Apresentação */}
+          {/* Coluna 2 (Centro): Workspace Central (Preview) */}
           <section className="flex h-full flex-col bg-[#131C2B] p-4 overflow-y-auto">
-          {state.mode === 'PPTX' && state.foreground.slides && state.foreground.slides.length > 0 ? (
-            <div className="flex flex-1 flex-col gap-3">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Presentation className="h-4 w-4 text-emerald-400 shrink-0" />
-                  <div className="min-w-0">
-                    <h3 className="text-xs font-semibold text-white truncate">
-                      {state.foreground.title || 'Apresentação'}
+            {/* Cabeçalho do Workspace Central: Título, Status Live vs Preview e Ação Rápida */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-white truncate">
+                      {workspaceTitle}
                     </h3>
-                    <p className="text-[10px] text-slate-400">
-                      Slide {state.foreground.slideIndex + 1} de {state.foreground.totalSlides}
-                    </p>
+                    {isWorkspaceItemLive ? (
+                      <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shrink-0">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        AO VIVO NO TELÃO
+                      </span>
+                    ) : (
+                      <span className="rounded bg-sky-500/20 px-2 py-0.5 text-[10px] font-mono font-bold text-sky-300 border border-sky-500/30 flex items-center gap-1.5 shrink-0">
+                        <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                        EM PREPARAÇÃO (NÃO ESTÁ NO TELÃO)
+                      </span>
+                    )}
                   </div>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => dispatch({ type: 'NAV_PREV' })}
-                    className="flex items-center gap-1 rounded bg-[#192334] hover:bg-[#1E2B40] px-2.5 py-1 text-[11px] font-medium text-slate-200 transition"
-                  >
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                    <span>Anterior</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => dispatch({ type: 'NAV_NEXT' })}
-                    className="flex items-center gap-1 rounded bg-sky-500 hover:bg-sky-400 px-2.5 py-1 text-[11px] font-semibold text-slate-950 transition"
-                  >
-                    <span>Próximo</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </button>
+                  <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                    {workspaceItem?.type === 'SONG' && currentSong
+                      ? `Estrofe em foco: ${workspaceFocusedIndex + 1} de ${currentSong.sections.length} (1 clique foca, 2 cliques projeta)`
+                      : workspaceItem?.type === 'BIBLE'
+                        ? `Versículo em foco: ${workspaceFocusedIndex + 1} de ${workspaceItem.lookup.verses.length} (1 clique foca, 2 cliques projeta)`
+                        : workspaceItem?.type === 'PPTX'
+                          ? `Slide em foco: ${workspaceFocusedIndex + 1} de ${workspaceItem.slides.length} (1 clique foca, 2 cliques projeta)`
+                          : 'Selecione um item no catálogo para preparar'}
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 auto-rows-max content-start gap-3">
-                {state.foreground.slides.map((slide, idx) => {
-                  const isLive = state.foreground.slideIndex === idx
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => dispatch({ type: 'NAV_GOTO', slideIndex: idx })}
-                      className={`group relative flex flex-col rounded-lg border cursor-pointer overflow-hidden transition ${
-                        isLive
-                          ? 'border-emerald-500 bg-emerald-950/20 ring-1 ring-emerald-500/50'
-                          : 'border-white/10 bg-[#192334] hover:border-sky-500/50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between px-2.5 py-1 bg-[#090D14]/60 text-[10px]">
-                        <span className="font-semibold text-slate-300">Slide {idx + 1}</span>
-                        {isLive && (
-                          <span className="rounded bg-emerald-500/20 px-1.5 py-0.2 font-bold text-emerald-300">
-                            AO VIVO
-                          </span>
-                        )}
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <button
+                  type="button"
+                  onClick={handleProjectWorkspaceCurrent}
+                  className="flex items-center gap-1.5 rounded bg-sky-500 hover:bg-sky-400 px-3 py-1.5 text-xs font-semibold text-slate-950 transition shadow-sm active:scale-95"
+                  title="Disparar item e slide focado para o telão (Enter)"
+                >
+                  <Presentation className="h-3.5 w-3.5" />
+                  <span>Apresentar no Telão (Enter)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Renderização do Conteúdo: PPTX, BÍBLIA ou MÚSICA */}
+            {workspaceItem?.type === 'PPTX' ||
+            (!workspaceItem &&
+              state.mode === 'PPTX' &&
+              state.foreground.slides &&
+              state.foreground.slides.length > 0) ? (
+              (() => {
+                const pptxSlides =
+                  workspaceItem?.type === 'PPTX'
+                    ? workspaceItem.slides
+                    : state.foreground.slides || []
+                return (
+                  <div className="flex flex-1 flex-col gap-3">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Presentation className="h-4 w-4 text-emerald-400 shrink-0" />
+                        <div className="min-w-0">
+                          <h3 className="text-xs font-semibold text-white truncate">
+                            {workspaceItem?.type === 'PPTX'
+                              ? workspaceItem.title || 'Apresentação'
+                              : state.foreground.title || 'Apresentação'}
+                          </h3>
+                          <p className="text-[10px] text-slate-400">
+                            Slide {workspaceFocusedIndex + 1} de {pptxSlides.length}
+                          </p>
+                        </div>
                       </div>
-                      <div className="aspect-video w-full bg-black flex items-center justify-center overflow-hidden p-2">
-                        {slide.imageUrl ? (
-                          <img
-                            src={slide.imageUrl}
-                            alt={`Slide ${idx + 1}`}
-                            className="h-full w-full object-contain"
-                          />
-                        ) : (
-                          <div className="text-[11px] text-center font-medium text-slate-200 line-clamp-4">
-                            {slide.content.join(' ')}
-                          </div>
-                        )}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isWorkspaceItemLive) {
+                              dispatch({ type: 'NAV_PREV' })
+                            } else {
+                              setWorkspaceFocusedIndex((prev) => Math.max(0, prev - 1))
+                            }
+                          }}
+                          className="flex items-center gap-1 rounded bg-[#192334] hover:bg-[#1E2B40] px-2.5 py-1 text-[11px] font-medium text-slate-200 transition"
+                        >
+                          <ChevronLeft className="h-3.5 w-3.5" />
+                          <span>Anterior</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isWorkspaceItemLive) {
+                              dispatch({ type: 'NAV_NEXT' })
+                            } else {
+                              setWorkspaceFocusedIndex((prev) =>
+                                Math.min(pptxSlides.length - 1, prev + 1)
+                              )
+                            }
+                          }}
+                          className="flex items-center gap-1 rounded bg-sky-500 hover:bg-sky-400 px-2.5 py-1 text-[11px] font-semibold text-slate-950 transition"
+                        >
+                          <span>Próximo</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </div>
-                  )
-                })}
-              </div>
-            </div>
-          ) : activeBible ? (
-            <BibleVerseGrid
-              activeBible={activeBible}
-              activeSlideIndex={state.foreground.slideIndex}
-              isLiveOnScreen={state.mode === 'BIBLE'}
-              dualVersion={dualBibleVersion}
-              onChangeDualVersion={handleChangeDualVersion}
-              onSelectVerse={handleSelectVerse}
-            />
-          ) : isLoadingSongDetail ? (
-            <div className="flex flex-1 items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-sky-400" />
-            </div>
-          ) : currentSong ? (
-            <SongStanzaGrid
-              song={currentSong}
-              activeSlideIndex={state.foreground.slideIndex}
-              isLiveOnScreen={state.mode === 'SONG' && state.activeItemId === currentSong.id}
-              onSelectStanza={handleSelectSection}
-            />
-          ) : (
-            <div className="flex flex-1 items-center justify-center text-xs text-slate-400">
-              Selecione uma música ou referência bíblica para visualizar e projetar
-            </div>
-          )}
-        </section>
 
-        {/* Coluna 3 (Direita): Monitor de Saída 16:9 & Áudio Ambiente */}
-        <OutputMonitorPanel
-          state={state}
-          onSelectBackground={(background) => dispatch({ type: 'SET_BACKGROUND', background })}
-        />
+                    <div className="grid grid-cols-2 auto-rows-max content-start gap-3">
+                      {pptxSlides.map((slide, slideIdx) => {
+                        const isLive =
+                          isWorkspaceItemLive && state.foreground.slideIndex === slideIdx
+                        const isFocused = !isLive && workspaceFocusedIndex === slideIdx
+                        return (
+                          <div
+                            key={slideIdx}
+                            onClick={() => setWorkspaceFocusedIndex(slideIdx)}
+                            onDoubleClick={() => {
+                              setWorkspaceFocusedIndex(slideIdx)
+                              if (isWorkspaceItemLive) {
+                                dispatch({ type: 'NAV_GOTO', slideIndex: slideIdx })
+                              } else if (workspaceItem?.type === 'PPTX') {
+                                const targetSlide = workspaceItem.slides[slideIdx]
+                                dispatch({
+                                  type: 'PRESENT_ITEM',
+                                  itemId: workspaceItem.deckId || 'pptx_deck',
+                                  mode: 'PPTX',
+                                  foreground: {
+                                    title: workspaceItem.title || 'Apresentação',
+                                    reference: targetSlide?.reference,
+                                    content: targetSlide?.content || [],
+                                    speakerNotes: targetSlide?.speakerNotes,
+                                    imageUrl: targetSlide?.imageUrl,
+                                    slides: workspaceItem.slides,
+                                    slideIndex: slideIdx,
+                                    totalSlides: workspaceItem.slides.length,
+                                  },
+                                })
+                              }
+                            }}
+                            className={`group relative flex flex-col rounded-lg border cursor-pointer overflow-hidden transition select-none ${
+                              isLive
+                                ? 'border-emerald-500 bg-emerald-950/20 ring-1 ring-emerald-500/50'
+                                : isFocused
+                                  ? 'border-sky-500/80 bg-[#172338] ring-1 ring-sky-500/40'
+                                  : 'border-white/10 bg-[#192334] hover:border-sky-500/50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between px-2.5 py-1 bg-[#090D14]/60 text-[10px]">
+                              <span className="font-semibold text-slate-300">
+                                Slide {slideIdx + 1}
+                              </span>
+                              {isLive ? (
+                                <span className="rounded bg-emerald-500/20 px-1.5 py-0.2 font-bold text-emerald-300">
+                                  AO VIVO
+                                </span>
+                              ) : isFocused ? (
+                                <span className="rounded bg-sky-500/20 px-1.5 py-0.2 font-bold text-sky-300">
+                                  FOCADO
+                                </span>
+                              ) : null}
+                            </div>
+                            <div className="aspect-video w-full bg-black flex items-center justify-center overflow-hidden p-2">
+                              {slide.imageUrl ? (
+                                <img
+                                  src={slide.imageUrl}
+                                  alt={`Slide ${slideIdx + 1}`}
+                                  className="h-full w-full object-contain"
+                                />
+                              ) : (
+                                <div className="text-[11px] text-center font-medium text-slate-200 line-clamp-4">
+                                  {slide.content.join(' ')}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()
+            ) : workspaceItem?.type === 'BIBLE' || (!workspaceItem && activeBible) ? (
+              (() => {
+                const targetBible =
+                  workspaceItem?.type === 'BIBLE' ? workspaceItem.lookup : activeBible!
+                return (
+                  <BibleVerseGrid
+                    activeBible={targetBible}
+                    activeSlideIndex={state.foreground.slideIndex}
+                    isLiveOnScreen={
+                      state.mode === 'BIBLE' &&
+                      state.activeItemId === `bible_${targetBible.reference}`
+                    }
+                    focusedIndex={workspaceFocusedIndex}
+                    dualVersion={dualBibleVersion}
+                    onChangeDualVersion={handleChangeDualVersion}
+                    onSelectVerse={(verseIdx) => setWorkspaceFocusedIndex(verseIdx)}
+                    onProjectVerse={(verseIdx) => {
+                      setWorkspaceFocusedIndex(verseIdx)
+                      handleProjectBibleVerse(targetBible, verseIdx)
+                    }}
+                  />
+                )
+              })()
+            ) : isLoadingSongDetail ? (
+              <div className="flex flex-1 items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-sky-400" />
+              </div>
+            ) : currentSong ? (
+              <SongStanzaGrid
+                song={currentSong}
+                activeSlideIndex={state.foreground.slideIndex}
+                isLiveOnScreen={state.mode === 'SONG' && state.activeItemId === currentSong.id}
+                focusedIndex={workspaceFocusedIndex}
+                onSelectStanza={(stanzaIdx) => setWorkspaceFocusedIndex(stanzaIdx)}
+                onProjectStanza={(stanzaIdx) => {
+                  setWorkspaceFocusedIndex(stanzaIdx)
+                  handleProjectSongStanza(currentSong, stanzaIdx)
+                }}
+              />
+            ) : (
+              <div className="flex flex-1 items-center justify-center text-xs text-slate-400">
+                Selecione uma música, passagem bíblica ou apresentação para preparar no workspace
+              </div>
+            )}
+          </section>
+
+          {/* Coluna 3 (Direita): Monitor de Saída 16:9 & Áudio Ambiente */}
+          <OutputMonitorPanel
+            state={state}
+            onSelectBackground={(background) => dispatch({ type: 'SET_BACKGROUND', background })}
+            onProjectMedia={handleProjectMediaFullscreen}
+          />
         </ResizableSplitPane>
       </main>
 

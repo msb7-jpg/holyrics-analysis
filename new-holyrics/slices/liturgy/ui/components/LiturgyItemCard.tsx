@@ -13,6 +13,7 @@ export interface LiturgyItemCardProps {
   isSelected?: boolean
   isDragging?: boolean
   onSelect: (item: LiturgyItem) => void
+  onProject?: (item: LiturgyItem) => void
   onContextMenu: (event: React.MouseEvent, item: LiturgyItem) => void
   onDragStart: (event: React.DragEvent, index: number) => void
   onDragOver: (event: React.DragEvent, index: number) => void
@@ -86,6 +87,7 @@ export function LiturgyItemCard({
   isSelected = false,
   isDragging = false,
   onSelect,
+  onProject,
   onContextMenu,
   onDragStart,
   onDragOver,
@@ -102,6 +104,7 @@ export function LiturgyItemCard({
       onDrop={(event) => onDrop(event, index)}
       onContextMenu={(event) => onContextMenu(event, item)}
       onClick={() => onSelect(item)}
+      onDoubleClick={() => onProject?.(item)}
       className={`group relative flex cursor-pointer flex-col rounded-[6px] p-2.5 transition select-none ${
         isDragging ? 'opacity-40 ring-1 ring-dashed ring-sky-400 bg-[#192334]/40' : ''
       } ${

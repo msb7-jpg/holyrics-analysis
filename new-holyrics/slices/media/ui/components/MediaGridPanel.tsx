@@ -20,6 +20,7 @@ import {
   Pencil,
   X,
   ChevronRight,
+  Presentation,
 } from 'lucide-react'
 import type { MediaItem, MediaType } from '../../contracts/media-contracts'
 import type { BackgroundLayer } from '@lumen/core'
@@ -27,6 +28,7 @@ import type { BackgroundLayer } from '@lumen/core'
 export interface MediaGridPanelProps {
   activeBackground?: BackgroundLayer
   onSelectBackground: (background: BackgroundLayer) => void
+  onProjectMedia?: (item: MediaItem) => void
   filterType?: MediaType | 'ALL' | 'VISUAL'
   onDragMediaItem?: (event: React.DragEvent, item: MediaItem) => void
   className?: string
@@ -125,6 +127,7 @@ function MediaThumb({ item, streamUrl }: { item: MediaItem; streamUrl: string })
 export const MediaGridPanel = memo(function MediaGridPanel({
   activeBackground,
   onSelectBackground,
+  onProjectMedia,
   filterType = 'VISUAL',
   onDragMediaItem,
   className = '',
@@ -522,6 +525,7 @@ export const MediaGridPanel = memo(function MediaGridPanel({
                     onDragMediaItem?.(event, item)
                   }}
                   onClick={() => handleApplyBackground(item)}
+                  onDoubleClick={() => onProjectMedia?.(item)}
                   onContextMenu={(event) => {
                     event.preventDefault()
                     event.stopPropagation()
@@ -588,13 +592,43 @@ export const MediaGridPanel = memo(function MediaGridPanel({
       {contextMenu && (
         <div
           style={{ left: contextMenu.x, top: contextMenu.y }}
-          className="fixed z-50 w-44 rounded-lg border border-white/10 bg-[#0F1622] py-1 text-xs shadow-2xl"
+          className="fixed z-50 w-48 rounded-lg border border-white/10 bg-[#0F1622] py-1 text-xs shadow-2xl"
         >
           {contextMenu.item && (
             <>
+              {onProjectMedia && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = contextMenu.item!
+                    setContextMenu(null)
+                    onProjectMedia(target)
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
+                >
+                  <Presentation className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Projetar em Tela Cheia</span>
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setPreviewItem(contextMenu.item!)}
+                onClick={() => {
+                  const target = contextMenu.item!
+                  setContextMenu(null)
+                  handleApplyBackground(target)
+                }}
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
+              >
+                <ImageIcon className="h-3.5 w-3.5 text-sky-400" />
+                <span>Definir como Fundo de Louvor</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const target = contextMenu.item!
+                  setContextMenu(null)
+                  setPreviewItem(target)
+                }}
                 className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
               >
                 <Eye className="h-3.5 w-3.5 text-sky-400" />

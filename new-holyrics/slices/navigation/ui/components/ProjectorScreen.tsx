@@ -106,7 +106,7 @@ export function ProjectorScreen({
             <div className="absolute inset-0 bg-black" />
           )}
 
-          {!panic.clearText && (
+          {!panic.clearText && mode !== 'MEDIA' && (
             <ForegroundTextDisplay
               foreground={foreground}
               mode={mode}
@@ -140,7 +140,7 @@ export function ProjectorScreen({
       )}
 
       {/* Camada 2: Foreground Text Display (suporta single e Dual Version) */}
-      {!panic.clearText && (
+      {!panic.clearText && mode !== 'MEDIA' && (
         <ForegroundTextDisplay
           foreground={foreground}
           mode={mode}

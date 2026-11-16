@@ -6,6 +6,21 @@ Este documento serve como o painel central de rastreamento do projeto **LumenLit
 
 ## 1. Changelog Recente
 
+### [v1.3.0] - Separação Arquitetural de Workspace (Preview Central) vs Live (Telão) e Mecânica Anti-Cliques Acidentais
+- **FSM Core & Limpeza de Camadas (`packages/core/src/fsm`):**
+  - Ajuste em `PRESENT_ITEM` para `mode === 'MEDIA'`: limpa integralmente o texto e slides de `foreground` (`content: []`, `slides: []`, `totalSlides: 0`), atribuindo o `background` à mídia projetada e ativando `mode: 'MEDIA'`.
+  - Em `ProjectorScreen.tsx`: supressão garantida da camada de texto (`mode !== 'MEDIA'`) ao reproduzir imagens ou vídeos em tela cheia.
+- **Mecânica Anti-Cliques Acidentais no Workspace:**
+  - `SongStanzaGrid`: suporte a `focusedIndex`, `onSelectStanza` (1 clique simples foca localmente com anel azul céu `ring-sky-500/40 bg-[#172338]`) e `onProjectStanza` (duplo clique dispara a estrofe ao vivo no telão com destaque esmeralda `ring-emerald-500/50 bg-[#1D2D3E]`, barra lateral e badge `AO VIVO`).
+  - `BibleVerseGrid`: suporte a `focusedIndex`, `onSelectVerse` (1 clique seleciona localmente em azul céu) e `onProjectVerse` (duplo clique dispara o versículo ao vivo em esmeralda com badge `AO VIVO`).
+  - `MediaGridPanel`: duplo clique em imagem/vídeo dispara projeção em tela cheia (`onProjectMedia`), além do menu de contexto com opções explícitas `"Projetar em Tela Cheia"` e `"Definir como Fundo de Louvor"`.
+  - `LiturgyScheduleColumn` & `LiturgyItemCard`: 1 clique seleciona e carrega no workspace central (`onSelectItem`), enquanto 2 cliques (duplo clique) projeta imediatamente para o telão (`onProjectItem`).
+- **Controlador do Operador Desacoplado (`useOperatorController.ts` & `OperatorView.tsx`):**
+  - Estado desacoplado de `workspaceItem` (`SONG`, `BIBLE`, `PPTX`) e `workspaceFocusedIndex`.
+  - `handleSelectSong` e `handleSelectBible` apenas preparam o item no workspace central sem disparar para o telão.
+  - Cabeçalho do Workspace Central com título, badge contextual dinâmico (`AO VIVO NO TELÃO` em esmeralda vs `EM PREPARAÇÃO (NÃO ESTÁ NO TELÃO)` em azul céu) e botão de ação rápida `"Apresentar no Telão (Enter)"`.
+  - Atalho global da tecla `Enter` disparando o item e slide focado no workspace quando o foco não estiver em inputs de texto.
+
 ### [v1.2.0] - Skill de Domínio Ubíquo, Dicionário Canônico e Mapeamento Espacial de Telas
 - **Linguagem Ubíqua & Dicionário de Domínio (`.opencode/skills/lumen-domain/SKILL.md` e `docs/DOMAIN_DICTIONARY.md`):**
   - Criação da skill oficial `lumen-domain` do OpenCode mapeando a terminologia física e visual do operador (Topo, Coluna 1, Coluna Central / Workspace, Monitor de Saída 16:9, Painel de Acessórios, Telão HDMI, Palco e Controle Remoto).
@@ -388,3 +403,10 @@ Legenda de Status:
     - Coluna 1 (Esquerda) com abas `Roteiro | Imagens | Vídeos | Arquivos`, Drag & Drop universal e menu de contexto completo no botão direito.
     - Exclusão completa da fatia `slices/playback` e de todos os dados mockados de mídia, áudio, roteiro e PPTX.
     - Suíte de testes End-to-End com Playwright (`bun run test:e2e`) validada com 100% de aprovação.
+11. **[CONCLUÍDO] Etapa 11: Desacoplamento Arquitetural Workspace vs Live & Mecânica Anti-Cliques Acidentais (v1.3.0):**
+    - FSM limpa texto/slides em `PRESENT_ITEM` com `mode === 'MEDIA'` e `ProjectorScreen` oculta texto sobre mídia.
+    - Mecânica anti-cliques acidentais: 1 clique foca no Workspace local (azul céu) e 2 cliques projeta no telão ao vivo (esmeralda).
+    - Botão de ação rápida e atalho `Enter` para envio imediato do slide em foco.
+    - Distinção clara entre mídia em tela cheia e fundo de louvor.
+12. **[EM ANDAMENTO] Etapa 12: Empacotamento Desktop Multi-Monitor com Tauri v2:**
+    - Validação de janelas nativas independentes do Projetor HDMI e Monitor de Palco em ambiente de produção desktop.

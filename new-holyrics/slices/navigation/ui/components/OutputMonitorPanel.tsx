@@ -8,12 +8,14 @@ import { ExternalLink, Music, Film, Monitor, Clock } from 'lucide-react'
 import type { ScreenState, BackgroundLayer } from '@lumen/core'
 import { ProjectorScreen } from './ProjectorScreen'
 import { AudioPlayerPanel } from '@slices/media/ui/components/AudioPlayerPanel'
+import type { MediaItem } from '@slices/media/contracts/media-contracts'
 import { MediaGridPanel } from '@slices/media/ui/components/MediaGridPanel'
 import { ResizableSplitPane } from '@ui/components/ui/ResizableSplitPane'
 
 export interface OutputMonitorPanelProps {
   state: ScreenState
   onSelectBackground?: (background: BackgroundLayer) => void
+  onProjectMedia?: (item: MediaItem) => void
 }
 
 /**
@@ -22,6 +24,7 @@ export interface OutputMonitorPanelProps {
  * @param props - Propriedades do painel.
  * @param props.state - Estado reativo da projeção FSM.
  * @param props.onSelectBackground - Callback para despacho de novo fundo de projeção.
+ * @param props.onProjectMedia - Callback para projetar mídia em tela cheia.
  * @returns Elemento JSX com preview 16:9 e abas de áudio/mídia.
  */
 function formatElapsedProjection(seconds: number): string {
@@ -35,7 +38,11 @@ function formatElapsedProjection(seconds: number): string {
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
 }
 
-export function OutputMonitorPanel({ state, onSelectBackground }: OutputMonitorPanelProps) {
+export function OutputMonitorPanel({
+  state,
+  onSelectBackground,
+  onProjectMedia,
+}: OutputMonitorPanelProps) {
   const [activeTab, setActiveTab] = useState<'AUDIO' | 'MEDIA'>('AUDIO')
   const [nowMs, setNowMs] = useState(() => Date.now())
   const isOutputLive = state.mode !== 'EMPTY' && !state.panic.blackout
@@ -148,6 +155,7 @@ export function OutputMonitorPanel({ state, onSelectBackground }: OutputMonitorP
               <MediaGridPanel
                 filterType="VISUAL"
                 activeBackground={state.background}
+                onProjectMedia={onProjectMedia}
                 onSelectBackground={(background) => {
                   if (onSelectBackground) {
                     onSelectBackground(background)

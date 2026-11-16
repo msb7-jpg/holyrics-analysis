@@ -32,16 +32,10 @@ Este arquivo centraliza melhorias e otimizações futuras solicitadas durante o 
 
 ## Arquitetura de Projeção, Troca de Conteúdo & Fundo Principal
 
-- [ ] **Separação de Preview Local vs Ao Vivo na Coluna Central (`OperatorView.tsx`)**
-  - **Causa-raiz:** Em [OperatorView.tsx](file:///home/miguel/workspace/holyrics-analysis/new-holyrics/apps/ui/src/operator/OperatorView.tsx#L219), a condição `state.mode === 'PPTX'` tem prioridade absoluta sobre `activeBible` e `currentSong`. Como clicar em uma música na aba `Letras` (`handleSelectSong`) atualiza apenas o estado local `selectedSongId` sem mudar `state.mode`, a Coluna Central fica travada nos slides do PDF/PPTX e impede o operador de ver e projetar a música selecionada.
-  - **Direção de solução:** Controlar o que aparece na Coluna Central por um estado de **Preview/Seleção ativo do operador** (`SONG` | `BIBLE` | `PPTX`), independente de `state.mode` (o que está no ar), mantendo o indicador `"AO VIVO"` apenas no item que está realmente projetado. 
-  - - Mesma coisa acontece com as imagens, se por exemplo eu to c uma letra e mostro uma imagem, ele deve mostrar a imagem, e não assumir q eu quero alterar o fundo do louvor, devemos ter alguma distinção melhor sobre isso
+- [x] **Separação de Preview Local vs Ao Vivo na Coluna Central (`OperatorView.tsx`, `useOperatorController.ts`)**
+  - **Status:** Concluído! O que aparece na Coluna Central agora é controlado por um estado de **Workspace/Inspeção ativo do operador** (`workspaceItem`), totalmente independente de `state.mode`. O operador pode selecionar e inspecionar qualquer música, passagem bíblica ou apresentação sem afetar o que está no telão. O indicador `"AO VIVO NO TELÃO"` só marca o item que realmente está projetado. Clique simples apenas foca/inspeciona no Workspace; duplo clique (ou Enter) projeta no telão.
 
-- [ ] **Distinção entre "Fundo Principal" e "Projeção Exclusiva de Mídia/Slide" (`fsm-reducer.ts`, `screen-state.ts`, `stage-router.ts`)**
-  - **Causa-raiz:**
-    1. Em [fsm-reducer.ts](file:///home/miguel/workspace/holyrics-analysis/new-holyrics/packages/core/src/fsm/fsm-reducer.ts#L151-L158), `SET_BACKGROUND` altera apenas `state.background` e nunca limpa `state.mode` nem `state.foreground`. Assim, ao tentar projetar uma imagem/vídeo quando há um slide PDF/PPTX (`mode === 'PPTX'`) ou texto no ar, o slide/texto anterior permanece na tela.
-    2. Não existe um campo separado para **Fundo Principal do Culto** vs **Fundo Temporário/Mídia Avulsa**: quando uma música, versículo ou o cronômetro ([stage-router.ts](file:///home/miguel/workspace/holyrics-analysis/new-holyrics/slices/stage/daemon/routes/stage-router.ts#L97-L115)) é projetado, ele herda o último `state.background` residual em vez de retornar ao Fundo Principal.
-  - **Direção de solução:**
-    - Definir um **Fundo Principal** configurável no estado/tema do culto, usado automaticamente por **Letras** (salvo se a música tiver `defaultBackground`), **Versículos** e **Cronômetro**.
-    - Diferenciar claramente **Aplicar Fundo** (`SET_BACKGROUND` sobre texto) de **Projetar Mídia/Slide em Tela Cheia** (`PRESENT_ITEM` com `mode: 'MEDIA'` ou `'PPTX'`), onde projetar uma imagem, vídeo, slide ou letra sempre limpa/substitui o `foreground` anterior (ex.: tira o slide PPTX do ar ao projetar uma imagem, vídeo ou música).
+- [x] **Distinção entre "Fundo de Louvor" e "Projeção Exclusiva de Mídia em Tela Cheia" (`fsm-reducer.ts`, `MediaGridPanel.tsx`, `ProjectorScreen.tsx`)**
+  - **Status:** Concluído! `PRESENT_ITEM` com `mode === 'MEDIA'` agora limpa completamente textos e slides (`foreground.content: []`, `slides: []`), atribuindo o `background` à mídia e renderizando em tela cheia sem textos residuais. No `MediaGridPanel`, o duplo clique projeta em tela cheia (`onProjectMedia`) e o menu de contexto oferece ambas as opções: *"Projetar em Tela Cheia"* e *"Definir como Fundo de Louvor"*.
+
 

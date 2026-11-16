@@ -4,12 +4,13 @@
  *
  * ## Responsabilidades:
  * - Coordenar a seleção de músicas e capítulos bíblicos (incluindo Dual Version - RF-14).
+ * - Manter estado de Workspace (Preview Central) desacoplado do Live (Monitor do Telão).
  * - Despachar apresentações de slides (PRESENT_ITEM) para a FSM com array `slides` indexado.
- * - Conectar atalhos globais de teclado (useOperatorShortcuts).
+ * - Conectar atalhos globais de teclado (useOperatorShortcuts) e atalho Enter de projeção rápida.
  * - Sincronizar estado da busca e primeiro item do acervo automaticamente.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useDebounceValue } from '@siberiacancode/reactuse'
 import type { ActionCommand, ScreenState, SlideItem } from '@lumen/core'
 import { useSongSearchQuery, useSongDetailQuery } from '@slices/songs/ui/queries/songs-queries'
@@ -18,6 +19,23 @@ import { bibleService } from '@slices/bible/ui/services/bible-service'
 import { useOperatorShortcuts } from '@slices/keymap/ui/hooks/useOperatorShortcuts'
 import type { BibleLookupResponse } from '@slices/bible/contracts/bible-contracts'
 import type { LiturgyItem } from '@slices/liturgy/contracts/liturgy-schema'
+import type { Song } from '@slices/songs/contracts/song-contracts'
+import type { PptxPresentation } from '@slices/pptx/contracts/pptx-contracts'
+
+export type WorkspaceItem =
+  | { type: 'SONG'; songId: string }
+  | { type: 'PPTX'; deckId?: string; slides: SlideItem[]; title?: string }
+  | { type: 'BIBLE'; lookup: BibleLookupResponse }
+
+export interface MediaProjectInput {
+  id: string
+  title?: string
+  name?: string
+  mediaSrc?: string
+  path?: string
+  type?: string
+  mediaType?: string
+}
 
 export interface UseOperatorControllerOptions {
   state: ScreenState
@@ -31,8 +49,8 @@ export interface UseOperatorControllerOptions {
  * @returns Lista de slides prontos para o `ForegroundLayer`.
  */
 function buildBibleSlides(lookup: BibleLookupResponse): SlideItem[] {
-  return lookup.verses.map((verseItem, idx) => {
-    const secondaryVerse = lookup.secondaryVerses?.[idx]
+  return lookup.verses.map((verseItem, verseIndex) => {
+    const secondaryVerse = lookup.secondaryVerses?.[verseIndex]
     return {
       content: [verseItem.text],
       secondaryContent: secondaryVerse ? [secondaryVerse.text] : undefined,
@@ -46,12 +64,12 @@ function buildBibleSlides(lookup: BibleLookupResponse): SlideItem[] {
 }
 
 /**
- * Hook orquestrador do console do operador.
+ * Hook orquestrador do console do operador com Workspace e Live desacoplados.
  *
  * @param options - Opções de configuração do controlador.
  * @param options.state - Estado atômico da projeção e pânico.
  * @param options.dispatch - Despachante tipado de comandos para a FSM.
- * @returns Estados e manipuladores de seleção e navegação.
+ * @returns Estados e manipuladores de seleção, projeção e navegação.
  */
 export function useOperatorController({ state: _state, dispatch }: UseOperatorControllerOptions) {
   const [query, setQuery] = useState('')
@@ -62,85 +80,217 @@ export function useOperatorController({ state: _state, dispatch }: UseOperatorCo
   const [dualBibleVersion, setDualBibleVersion] = useState<string | null>(null)
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false)
 
+  // Estado desacoplado do Workspace (Preview Central)
+  const [workspaceItem, setWorkspaceItem] = useState<WorkspaceItem | null>(null)
+  const [workspaceFocusedIndex, setWorkspaceFocusedIndex] = useState(0)
+
   // 1. Busca textual de canções na Coluna 2
   const { data: songs = [], isLoading: isLoadingSongs } = useSongSearchQuery(debouncedQuery)
 
-  // 2. Detalhes completos da canção selecionada
-  const { data: currentSong, isLoading: isLoadingSongDetail } = useSongDetailQuery(selectedSongId)
+  // 2. Detalhes completos da canção selecionada no Workspace
+  const activeSongId = workspaceItem?.type === 'SONG' ? workspaceItem.songId : selectedSongId
+  const { data: currentSong, isLoading: isLoadingSongDetail } = useSongDetailQuery(activeSongId)
 
   // 3. Reconhecimento de referência bíblica em tempo real na busca da Coluna 2
   const { data: bibleLookupResult } = useBibleLookupQuery(debouncedQuery, 'ACF')
 
-  // Auto-seleciona a primeira canção caso nada esteja selecionado
+  // Auto-seleciona a primeira canção caso nada esteja selecionado no workspace
   useEffect(() => {
-    if (!selectedSongId && !activeBible && songs.length > 0) {
-      setSelectedSongId(songs[0].id)
+    if (!workspaceItem && !selectedSongId && !activeBible && songs.length > 0) {
+      const firstSongId = songs[0].id
+      setSelectedSongId(firstSongId)
+      setWorkspaceItem({ type: 'SONG', songId: firstSongId })
+      setWorkspaceFocusedIndex(0)
     }
-  }, [songs, selectedSongId, activeBible])
+  }, [songs, selectedSongId, activeBible, workspaceItem])
 
-  const handleSelectSong = (id: string) => {
+  // Apenas carrega a música no workspace, NÃO dispara nada para o telão
+  const handleSelectSong = useCallback((songId: string) => {
     setActiveBible(null)
-    setSelectedSongId(id)
-  }
+    setSelectedSongId(songId)
+    setWorkspaceItem({ type: 'SONG', songId })
+    setWorkspaceFocusedIndex(0)
+  }, [])
 
-  // Despacha estrofe específica para o telão ao vivo (Live)
-  const handleSelectSection = (index: number) => {
-    if (!currentSong) return
-    const section = currentSong.sections[index]
-    if (!section) return
-
-    const songSlides: SlideItem[] = currentSong.sections.map((sec) => ({
-      content: sec.lines,
-    }))
-
-    dispatch({
-      type: 'PRESENT_ITEM',
-      itemId: currentSong.id,
-      mode: 'SONG',
-      background: currentSong.defaultBackground,
-      foreground: {
-        title: currentSong.title,
-        content: section.lines,
-        slides: songSlides,
-        slideIndex: index,
-        totalSlides: songSlides.length,
-      },
-    })
-  }
-
-  // Seleciona e projeta passagem bíblica
-  const handleSelectBible = (lookup: BibleLookupResponse) => {
+  // Apenas carrega a passagem no workspace, NÃO dispara nada para o telão
+  const handleSelectBible = useCallback((lookup: BibleLookupResponse) => {
     setSelectedSongId(null)
     setActiveBible(lookup)
+    setWorkspaceItem({ type: 'BIBLE', lookup })
+    setWorkspaceFocusedIndex(0)
+  }, [])
 
-    if (lookup.verses.length > 0) {
+  // Carrega o deck PPTX no workspace para inspeção
+  const handleInspectPptxDeck = useCallback(
+    (deck: PptxPresentation | { id?: string; title?: string; slides: SlideItem[] }) => {
+      setSelectedSongId(null)
+      setActiveBible(null)
+
+      let convertedSlides: SlideItem[]
+      if (deck.slides.length > 0 && 'textLines' in deck.slides[0]) {
+        const pptxSlides = deck.slides as unknown as Array<{
+          textLines?: string[]
+          speakerNotes?: string
+          imageUrl?: string
+        }>
+        convertedSlides = pptxSlides.map((slide, slideIdx) => ({
+          content: slide.textLines || [],
+          speakerNotes: slide.speakerNotes,
+          imageUrl: slide.imageUrl,
+          reference: `${deck.title || 'Apresentação'} (${slideIdx + 1}/${deck.slides.length})`,
+        }))
+      } else {
+        convertedSlides = deck.slides as SlideItem[]
+      }
+
+      setWorkspaceItem({
+        type: 'PPTX',
+        deckId: deck.id,
+        slides: convertedSlides,
+        title: deck.title,
+      })
+      setWorkspaceFocusedIndex(0)
+    },
+    []
+  )
+
+  // Dispara estrofe de louvor especificamente para o telão (Live)
+  const handleProjectSongStanza = useCallback(
+    (song: Song, stanzaIndex: number) => {
+      const section = song.sections[stanzaIndex]
+      if (!section) return
+
+      const songSlides: SlideItem[] = song.sections.map((sec) => ({
+        content: sec.lines,
+      }))
+
+      dispatch({
+        type: 'PRESENT_ITEM',
+        itemId: song.id,
+        mode: 'SONG',
+        background: song.defaultBackground,
+        foreground: {
+          title: song.title,
+          content: section.lines,
+          slides: songSlides,
+          slideIndex: stanzaIndex,
+          totalSlides: songSlides.length,
+        },
+      })
+    },
+    [dispatch]
+  )
+
+  // Dispara versículo bíblico especificamente para o telão (Live)
+  const handleProjectBibleVerse = useCallback(
+    (lookup: BibleLookupResponse, verseIndex: number) => {
+      if (!lookup.verses[verseIndex]) return
       const bibleSlides = buildBibleSlides(lookup)
+      const targetSlide = bibleSlides[verseIndex]
+
       dispatch({
         type: 'PRESENT_ITEM',
         itemId: `bible_${lookup.reference}`,
         mode: 'BIBLE',
         foreground: {
           title: lookup.reference,
-          reference: bibleSlides[0].reference,
-          secondaryReference: bibleSlides[0].secondaryReference,
-          content: bibleSlides[0].content,
-          secondaryContent: bibleSlides[0].secondaryContent,
+          reference: targetSlide.reference,
+          secondaryReference: targetSlide.secondaryReference,
+          content: targetSlide.content,
+          secondaryContent: targetSlide.secondaryContent,
           slides: bibleSlides,
-          slideIndex: 0,
+          slideIndex: verseIndex,
           totalSlides: bibleSlides.length,
         },
       })
+    },
+    [dispatch]
+  )
+
+  // Dispara mídia (imagem ou vídeo) em tela cheia para o telão (Live)
+  const handleProjectMediaFullscreen = useCallback(
+    (media: MediaProjectInput) => {
+      const isVideo =
+        ('mediaType' in media && media.mediaType === 'VIDEO') || media.type === 'VIDEO'
+      const streamUrl =
+        'mediaSrc' in media && media.mediaSrc
+          ? media.mediaSrc
+          : `/api/media/stream/${encodeURIComponent(media.id)}`
+      const title =
+        ('name' in media && media.name) || ('title' in media && media.title) || 'Mídia'
+
+      dispatch({
+        type: 'PRESENT_ITEM',
+        itemId: media.id,
+        mode: 'MEDIA',
+        background: {
+          type: isVideo ? 'video' : 'image',
+          source: streamUrl,
+          loop: isVideo,
+          muted: true,
+        },
+        foreground: {
+          title,
+          content: [],
+          slides: [],
+          slideIndex: 0,
+          totalSlides: 0,
+        },
+      })
+    },
+    [dispatch]
+  )
+
+  // Dispara para o telão o item e slide atualmente focado no workspace
+  const handleProjectWorkspaceCurrent = useCallback(() => {
+    if (!workspaceItem) return
+
+    if (workspaceItem.type === 'SONG') {
+      if (!currentSong) return
+      handleProjectSongStanza(currentSong, workspaceFocusedIndex)
+    } else if (workspaceItem.type === 'BIBLE') {
+      handleProjectBibleVerse(workspaceItem.lookup, workspaceFocusedIndex)
+    } else if (workspaceItem.type === 'PPTX') {
+      if (workspaceItem.slides.length === 0) return
+      const targetIndex = Math.max(
+        0,
+        Math.min(workspaceFocusedIndex, workspaceItem.slides.length - 1)
+      )
+      const targetSlide = workspaceItem.slides[targetIndex]
+      dispatch({
+        type: 'PRESENT_ITEM',
+        itemId: workspaceItem.deckId || 'pptx_deck',
+        mode: 'PPTX',
+        foreground: {
+          title: workspaceItem.title || 'Apresentação',
+          reference: targetSlide?.reference,
+          content: targetSlide?.content || [],
+          speakerNotes: targetSlide?.speakerNotes,
+          imageUrl: targetSlide?.imageUrl,
+          slides: workspaceItem.slides,
+          slideIndex: targetIndex,
+          totalSlides: workspaceItem.slides.length,
+        },
+      })
     }
-  }
+  }, [
+    workspaceItem,
+    currentSong,
+    workspaceFocusedIndex,
+    handleProjectSongStanza,
+    handleProjectBibleVerse,
+    dispatch,
+  ])
 
   // Alterna 2ª Tradução em Tela Dividida (Dual Version - RF-14)
   const handleChangeDualVersion = async (nextDualVersion: string | null) => {
     setDualBibleVersion(nextDualVersion)
-    if (!activeBible) return
+    const currentBible = workspaceItem?.type === 'BIBLE' ? workspaceItem.lookup : activeBible
+    if (!currentBible) return
 
     const updatedLookup = await bibleService.lookup(
-      activeBible.reference,
-      activeBible.version,
+      currentBible.reference,
+      currentBible.version,
       undefined,
       nextDualVersion || undefined,
     )
@@ -149,30 +299,17 @@ export function useOperatorController({ state: _state, dispatch }: UseOperatorCo
     }
   }
 
-  // Despacha versículo específico
-  const handleSelectVerse = (index: number) => {
-    if (!activeBible || !activeBible.verses[index]) return
-    const bibleSlides = buildBibleSlides(activeBible)
-    const targetSlide = bibleSlides[index]
+  // 1 clique: seleciona/foca a estrofe no workspace
+  const handleSelectSection = useCallback((index: number) => {
+    setWorkspaceFocusedIndex(index)
+  }, [])
 
-    dispatch({
-      type: 'PRESENT_ITEM',
-      itemId: `bible_${activeBible.reference}`,
-      mode: 'BIBLE',
-      foreground: {
-        title: activeBible.reference,
-        reference: targetSlide.reference,
-        secondaryReference: targetSlide.secondaryReference,
-        content: targetSlide.content,
-        secondaryContent: targetSlide.secondaryContent,
-        slides: bibleSlides,
-        slideIndex: index,
-        totalSlides: bibleSlides.length,
-      },
-    })
-  }
+  // 1 clique: seleciona/foca o versículo no workspace
+  const handleSelectVerse = useCallback((index: number) => {
+    setWorkspaceFocusedIndex(index)
+  }, [])
 
-  // Manipula seleção de item da coluna litúrgica
+  // Manipula seleção de item da coluna litúrgica (1 clique = carregar no workspace)
   const handleSelectLiturgyItem = (item: LiturgyItem) => {
     switch (item.type) {
       case 'SONG': {
@@ -189,50 +326,20 @@ export function useOperatorController({ state: _state, dispatch }: UseOperatorCo
             }
           })
           .catch(() => {
-            // Fallback local imediato
+            // Fallback local silencioso
           })
         break
       }
+      case 'PPTX': {
+        break
+      }
       case 'TEXT': {
-        dispatch({
-          type: 'PRESENT_ITEM',
-          itemId: item.id,
-          mode: 'EMPTY',
-          foreground: {
-            title: item.title,
-            content: item.content,
-            slideIndex: 0,
-            totalSlides: 1,
-          },
-        })
         break
       }
       case 'COUNTDOWN': {
-        dispatch({
-          type: 'PRESENT_ITEM',
-          itemId: item.id,
-          mode: 'EMPTY',
-          foreground: {
-            title: item.title,
-            content: [`Início em ${Math.round((item.targetDurationSeconds || 300) / 60)} minutos`],
-            slideIndex: 0,
-            totalSlides: 1,
-          },
-        })
         break
       }
       case 'MEDIA': {
-        dispatch({
-          type: 'PRESENT_ITEM',
-          itemId: item.id,
-          mode: 'MEDIA',
-          foreground: {
-            title: item.title,
-            content: [],
-            slideIndex: 0,
-            totalSlides: 1,
-          },
-        })
         break
       }
     }
@@ -262,11 +369,20 @@ export function useOperatorController({ state: _state, dispatch }: UseOperatorCo
     bibleLookupResult,
     isSpotlightOpen,
     setIsSpotlightOpen,
+    workspaceItem,
+    setWorkspaceItem,
+    workspaceFocusedIndex,
+    setWorkspaceFocusedIndex,
     handleSelectSong,
     handleSelectSection,
     handleSelectBible,
     handleChangeDualVersion,
     handleSelectVerse,
+    handleInspectPptxDeck,
+    handleProjectSongStanza,
+    handleProjectBibleVerse,
+    handleProjectMediaFullscreen,
+    handleProjectWorkspaceCurrent,
     handleSelectLiturgyItem,
   }
 }

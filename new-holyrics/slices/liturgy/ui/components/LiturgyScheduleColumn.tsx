@@ -44,6 +44,8 @@ export interface LiturgyScheduleColumnProps {
   activeBible?: BibleLookupResponse | null
   selectedLiturgyItemId?: string | null
   onSelectItem?: (item: LiturgyItem) => void
+  onProjectItem?: (item: LiturgyItem) => void
+  onProjectMedia?: (item: MediaItem) => void
   onSelectBackground?: (background: BackgroundLayer) => void
   onSelectPptxDeck?: (deck: PptxPresentation) => void
   songs?: SongSearchResult[]
@@ -70,6 +72,8 @@ export function LiturgyScheduleColumn({
   activeBible,
   selectedLiturgyItemId,
   onSelectItem,
+  onProjectItem,
+  onProjectMedia,
   onSelectBackground,
   onSelectPptxDeck,
   songs = [],
@@ -384,6 +388,7 @@ export function LiturgyScheduleColumn({
                   isSelected={selectedLiturgyItemId === item.id}
                   isDragging={draggedIndex === index}
                   onSelect={(selected) => onSelectItem?.(selected)}
+                  onProject={(projected) => onProjectItem?.(projected)}
                   onContextMenu={handleOpenContextMenu}
                   onDragStart={handleDragStart}
                   onDragOver={handleDragOver}
@@ -465,6 +470,7 @@ export function LiturgyScheduleColumn({
           <MediaGridPanel
             filterType="IMAGE"
             activeBackground={state.background}
+            onProjectMedia={onProjectMedia}
             onSelectBackground={(background) => onSelectBackground?.(background)}
           />
         </div>
@@ -480,6 +486,7 @@ export function LiturgyScheduleColumn({
           <MediaGridPanel
             filterType="VIDEO"
             activeBackground={state.background}
+            onProjectMedia={onProjectMedia}
             onSelectBackground={(background) => onSelectBackground?.(background)}
           />
         </div>
@@ -495,6 +502,7 @@ export function LiturgyScheduleColumn({
           <MediaGridPanel
             filterType="AUDIO"
             activeBackground={state.background}
+            onProjectMedia={onProjectMedia}
             onSelectBackground={(background) => onSelectBackground?.(background)}
           />
         </div>
@@ -532,7 +540,7 @@ export function LiturgyScheduleColumn({
           hasSelectedSong={Boolean(selectedSong)}
           hasSelectedBible={Boolean(activeBible)}
           onClose={handleCloseContextMenu}
-          onProjectItem={(item) => onSelectItem?.(item)}
+          onProjectItem={(item) => (onProjectItem ? onProjectItem(item) : onSelectItem?.(item))}
           onDuplicateItem={handleDuplicateItem}
           onMoveItemUp={handleMoveItemUp}
           onMoveItemDown={handleMoveItemDown}

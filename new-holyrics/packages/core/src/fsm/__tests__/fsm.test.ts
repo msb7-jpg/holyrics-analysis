@@ -42,6 +42,51 @@ describe('FSM Reducer', () => {
     const prev = fsmReducer(beyond, { type: 'NAV_PREV' })
     expect(prev.foreground.slideIndex).toBe(0)
   })
+
+  it('limpa texto e slides de foreground quando PRESENT_ITEM possui mode MEDIA', () => {
+    // Projeta uma música anteriormente
+    const stateWithSong = fsmReducer(INITIAL_SCREEN_STATE, {
+      type: 'PRESENT_ITEM',
+      itemId: 'song-1',
+      mode: 'SONG',
+      foreground: {
+        title: 'Música 1',
+        content: ['Linha 1', 'Linha 2'],
+        slides: [{ content: ['Linha 1'] }, { content: ['Linha 2'] }],
+        slideIndex: 0,
+        totalSlides: 2,
+      },
+    })
+
+    // Agora projeta uma mídia em tela cheia
+    const stateWithMedia = fsmReducer(stateWithSong, {
+      type: 'PRESENT_ITEM',
+      itemId: 'media-video-1',
+      mode: 'MEDIA',
+      background: {
+        type: 'video',
+        source: '/api/media/stream/video-1',
+        loop: true,
+        muted: true,
+      },
+      foreground: {
+        title: 'Vídeo Institucional',
+        content: ['Texto que deve ser descartado'],
+        slides: [{ content: ['Slide ignorado'] }],
+        slideIndex: 0,
+        totalSlides: 1,
+      },
+    })
+
+    expect(stateWithMedia.mode).toBe('MEDIA')
+    expect(stateWithMedia.activeItemId).toBe('media-video-1')
+    expect(stateWithMedia.foreground.content).toEqual([])
+    expect(stateWithMedia.foreground.slides).toEqual([])
+    expect(stateWithMedia.foreground.totalSlides).toBe(0)
+    expect(stateWithMedia.foreground.title).toBe('Vídeo Institucional')
+    expect(stateWithMedia.background?.type).toBe('video')
+    expect(stateWithMedia.background?.source).toBe('/api/media/stream/video-1')
+  })
 })
 
 describe('FsmEngine & ReturnStack', () => {

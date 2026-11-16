@@ -129,6 +129,30 @@ export function fsmReducer(state: ScreenState, action: ActionCommand): ScreenSta
     }
 
     case 'PRESENT_ITEM': {
+      if (action.mode === 'MEDIA') {
+        return {
+          ...state,
+          version,
+          timestamp,
+          projectedAt: timestamp,
+          mode: 'MEDIA',
+          activeItemId: action.itemId,
+          foreground: {
+            title: action.foreground.title,
+            content: [],
+            slides: [],
+            slideIndex: 0,
+            totalSlides: 0,
+          },
+          background: action.background ?? state.background,
+          panic: {
+            ...state.panic,
+            blackout: false,
+            clearText: false,
+          },
+        }
+      }
+
       const normalizedForeground = resolveForegroundSlide(
         action.foreground,
         action.foreground.slideIndex
