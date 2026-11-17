@@ -8,12 +8,88 @@
  * - Streaming de arquivos locais com suporte a cabeçalhos `Range` para reprodução suave (`GET /api/media/stream/:id`).
  */
 
-import { existsSync, statSync, createReadStream } from 'node:fs'
+import { existsSync, statSync, createReadStream, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { spawn } from 'node:child_process'
 import { jsonResponse } from '../../../../apps/daemon/src/api/context'
 import type { ApiContext } from '../../../../apps/daemon/src/api/context'
 import { AudioPlaylistSchema, AudioTrackSchema, MediaTypeSchema } from '../../contracts/media-contracts'
+
+const THUMB_CACHE_DIR = join(process.cwd(), '.lumen-cache', 'thumbs')
+const inflightThumbJobs = new Map<string, Promise<boolean>>()
+
+function runThumbCommand(cmd: string, args: string[]): Promise<boolean> {
+  return new Promise((resolve) => {
+    try {
+      const child = spawn(cmd, args, { stdio: 'ignore' })
+      child.on('error', () => resolve(false))
+      child.on('close', (code) => resolve(code === 0))
+    } catch {
+      resolve(false)
+    }
+  })
+}
+
+async function ensureThumbnail(mediaId: string, sourcePath: string, mediaType: string): Promise<string | null> {
+  if (!existsSync(THUMB_CACHE_DIR)) {
+    mkdirSync(THUMB_CACHE_DIR, { recursive: true })
+  }
+  const safeId = mediaId.replace(/[^a-zA-Z0-9_-]/g, '_')
+  const thumbPath = join(THUMB_CACHE_DIR, `${safeId}.jpg`)
+
+  if (existsSync(thumbPath)) {
+    const srcMtime = statSync(sourcePath).mtimeMs
+    const thumbMtime = statSync(thumbPath).mtimeMs
+    if (thumbMtime >= srcMtime) {
+      return thumbPath
+    }
+  }
+
+  let job = inflightThumbJobs.get(safeId)
+  if (!job) {
+    job = (async () => {
+      if (mediaType === 'IMAGE') {
+        return runThumbCommand('convert', [
+          `${sourcePath}[0]`,
+          '-auto-orient',
+          '-thumbnail',
+          '480x270^',
+          '-gravity',
+          'center',
+          '-extent',
+          '480x270',
+          '-strip',
+          '-quality',
+          '75',
+          thumbPath,
+        ])
+      }
+      if (mediaType === 'VIDEO') {
+        return runThumbCommand('ffmpeg', [
+          '-y',
+          '-ss',
+          '1',
+          '-i',
+          sourcePath,
+          '-frames:v',
+          '1',
+          '-vf',
+          'scale=480:-1',
+          '-q:v',
+          '5',
+          thumbPath,
+        ])
+      }
+      return false
+    })().finally(() => {
+      inflightThumbJobs.delete(safeId)
+    })
+    inflightThumbJobs.set(safeId, job)
+  }
+
+  const ok = await job
+  return ok && existsSync(thumbPath) ? thumbPath : null
+}
 
 /**
  * Processa requisições HTTP direcionadas à fatia de mídias e áudio.
@@ -90,6 +166,45 @@ export async function handleMediaRoutes(
         400,
       )
     }
+  }
+
+  // 4a. GET /api/media/thumb/:id - Miniatura leve com cache em disco
+  if (pathname.startsWith('/api/media/thumb/') && request.method === 'GET') {
+    const mediaId = decodeURIComponent(pathname.replace('/api/media/thumb/', ''))
+    const mediaItem = context.mediaRepo.getMediaById(mediaId)
+
+    if (!mediaItem || !existsSync(mediaItem.path)) {
+      return jsonResponse({ ok: false, error: 'Arquivo de mídia não encontrado' }, 404)
+    }
+
+    if (mediaItem.type === 'AUDIO') {
+      return new Response(null, { status: 204 })
+    }
+
+    const thumbPath = await ensureThumbnail(mediaItem.id, mediaItem.path, mediaItem.type)
+    if (thumbPath) {
+      return new Response(Bun.file(thumbPath), {
+        status: 200,
+        headers: {
+          'Content-Type': 'image/jpeg',
+          'Cache-Control': 'public, max-age=86400',
+          'Access-Control-Allow-Origin': '*',
+        },
+      })
+    }
+
+    if (mediaItem.type === 'IMAGE') {
+      return new Response(Bun.file(mediaItem.path), {
+        status: 200,
+        headers: {
+          'Content-Type': mediaItem.mimeType,
+          'Cache-Control': 'public, max-age=3600',
+          'Access-Control-Allow-Origin': '*',
+        },
+      })
+    }
+
+    return new Response(null, { status: 204 })
   }
 
   // 4. GET /api/media/stream/:id - Streaming de arquivos locais com suporte a Range

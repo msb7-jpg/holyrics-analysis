@@ -101,6 +101,7 @@ export function ProjectorScreen({
             <BackgroundVideoLoop
               background={background}
               crossfadeDurationMs={config.videoCrossfadeDurationMs}
+              isPreview={true}
             />
           ) : (
             <div className="absolute inset-0 bg-black" />
