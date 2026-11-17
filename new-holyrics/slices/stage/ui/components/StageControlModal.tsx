@@ -96,11 +96,11 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs">
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl border border-white/10 bg-slate-900 text-slate-100 shadow-2xl overflow-hidden">
+      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 shadow-2xl overflow-hidden">
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5 bg-slate-800/60">
+        <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-3.5 bg-zinc-900">
           <div className="flex items-center gap-2.5">
-            <Timer className="h-4 w-4 text-sky-400" />
+            <Timer className="h-4 w-4 text-zinc-400" />
             <h2 className="text-sm font-semibold text-white">
               Palco, Cronômetros & Alertas Lower Thirds
             </h2>
@@ -112,7 +112,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
               size="sm"
               onClick={() => window.open('/stage', '_blank', 'noopener,noreferrer')}
             >
-              <ExternalLink className="h-3.5 w-3.5 text-sky-400" />
+              <ExternalLink className="h-3.5 w-3.5 text-zinc-400" />
               <span>Abrir Monitor de Palco</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={onClose}>
@@ -124,9 +124,9 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
         {/* Conteúdo */}
         <div className="grid grid-cols-1 gap-6 p-5 overflow-y-auto md:grid-cols-2">
           {/* Coluna 1: Alertas Lower Thirds (RF-24) */}
-          <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-950/50 p-4">
+          <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-semibold text-sky-400 uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                 <Bell className="h-3.5 w-3.5" />
                 <span>Alertas & Lower Thirds</span>
               </div>
@@ -134,14 +134,14 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
             </div>
 
             <div className="flex flex-col gap-2 text-xs">
-              <label className="text-slate-400">Categoria / Rótulo</label>
+              <label className="text-zinc-400">Categoria / Rótulo</label>
               <Input
                 value={alertLabel}
                 onChange={(event) => setAlertLabel(event.target.value)}
                 placeholder="Ex: BERÇÁRIO, ESTACIONAMENTO..."
               />
 
-              <label className="text-slate-400">Mensagem de Alerta</label>
+              <label className="text-zinc-400">Mensagem de Alerta</label>
               <Input
                 value={alertMessage}
                 onChange={(event) => {
@@ -160,7 +160,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
 
               <div className="flex flex-wrap items-end justify-between gap-3 pt-1">
                 <div>
-                  <label className="mb-1 block text-slate-400">Estilo</label>
+                  <label className="mb-1 block text-zinc-400">Estilo</label>
                   <div className="flex flex-wrap gap-1.5">
                     {(
                       [
@@ -181,7 +181,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
                   </div>
                 </div>
                 <div className="w-28 shrink-0">
-                  <label className="mb-1 block text-slate-400">Duração (seg)</label>
+                  <label className="mb-1 block text-zinc-400">Duração (seg)</label>
                   <Input
                     type="number"
                     value={String(alertDuration)}
@@ -208,7 +208,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
               </div>
 
               {/* Atalhos Rápidos de Igreja */}
-              <div className="mt-2 flex flex-wrap gap-1 border-t border-white/5 pt-2">
+              <div className="mt-2 flex flex-wrap gap-1 border-t border-zinc-800 pt-2">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -236,9 +236,9 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
 
           {/* Coluna 2: Cronômetros (RF-25) & Recado de Púlpito */}
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-950/50 p-4">
+            <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-semibold text-sky-400 uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                   <Timer className="h-3.5 w-3.5" />
                   <span>Cronômetro de Palco & Culto</span>
                 </div>
@@ -270,7 +270,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <label className="mb-1 block text-slate-400">Rótulo</label>
+                  <label className="mb-1 block text-zinc-400">Rótulo</label>
                   <Input
                     value={timerLabel}
                     onChange={(event) => setTimerLabel(event.target.value)}
@@ -278,7 +278,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
                 </div>
                 {timerMode === 'DURATION' ? (
                   <div>
-                    <label className="mb-1 block text-slate-400">Minutos (a partir de agora)</label>
+                    <label className="mb-1 block text-zinc-400">Minutos (a partir de agora)</label>
                     <Input
                       type="number"
                       min={1}
@@ -292,7 +292,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
                   </div>
                 ) : (
                   <div>
-                    <label className="mb-1 block text-slate-400">Horário Alvo (ex: 17:00)</label>
+                    <label className="mb-1 block text-zinc-400">Horário Alvo (ex: 17:00)</label>
                     <Input
                       type="time"
                       value={targetTime}
@@ -337,7 +337,7 @@ export function StageControlModal({ isOpen, stageState, onClose }: StageControlM
             </div>
 
             {/* Recado Direto ao Pastor no Púlpito */}
-            <div className="flex flex-col gap-2.5 rounded-xl border border-white/10 bg-slate-950/50 p-4 text-xs">
+            <div className="flex flex-col gap-2.5 rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-xs">
               <div className="flex items-center gap-2 font-semibold text-amber-400 uppercase tracking-wider">
                 <MessageSquare className="h-3.5 w-3.5" />
                 <span>Recado Exclusivo ao Púlpito</span>

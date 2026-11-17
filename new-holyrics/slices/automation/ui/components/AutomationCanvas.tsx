@@ -342,17 +342,17 @@ export function AutomationCanvas({
   }
 
   return (
-    <div className="flex h-full w-full flex-col bg-slate-950 text-slate-100 select-none">
+    <div className="flex h-full w-full flex-col bg-zinc-950 text-zinc-100 select-none">
       {/* Barra de Ações Superior */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-slate-900 px-4 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 bg-zinc-900 px-4 py-2">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 rounded-full bg-slate-800/80 px-2.5 py-0.5 text-[10px] font-mono border border-white/5">
+          <div className="flex items-center gap-1.5 rounded-full bg-zinc-800/80 px-2.5 py-0.5 text-[10px] font-mono border border-zinc-800">
             <span
               className={`h-2 w-2 rounded-full ${
-                obsConnected ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-slate-600'
+                obsConnected ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-zinc-600'
               }`}
             />
-            <span className={obsConnected ? 'text-emerald-400' : 'text-slate-400'}>
+            <span className={obsConnected ? 'text-emerald-400' : 'text-zinc-400'}>
               {obsConnected ? 'OBS Conectado (4455)' : 'OBS Desconectado'}
             </span>
           </div>
@@ -375,35 +375,35 @@ export function AutomationCanvas({
           <button
             type="button"
             onClick={() => handleAddNode('TRIGGER')}
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-xs text-sky-400 hover:bg-slate-700 transition"
+            className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-400 hover:bg-zinc-700 transition"
           >
             <Plus className="h-3 w-3" /> Gatilho
           </button>
           <button
             type="button"
             onClick={() => handleAddNode('CONDITION')}
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-xs text-amber-400 hover:bg-slate-700 transition"
+            className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-1 text-xs text-amber-400 hover:bg-zinc-700 transition"
           >
             <Plus className="h-3 w-3" /> Condição
           </button>
           <button
             type="button"
             onClick={() => handleAddNode('ACTION_OBS')}
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-xs text-emerald-400 hover:bg-slate-700 transition"
+            className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-1 text-xs text-emerald-400 hover:bg-zinc-700 transition"
           >
             <Plus className="h-3 w-3" /> Ação OBS
           </button>
           <button
             type="button"
             onClick={() => handleAddNode('ACTION_HTTP')}
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-xs text-purple-400 hover:bg-slate-700 transition"
+            className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-1 text-xs text-purple-400 hover:bg-zinc-700 transition"
           >
             <Plus className="h-3 w-3" /> HTTP
           </button>
           <button
             type="button"
             onClick={() => handleAddNode('ACTION_DELAY')}
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-1 text-xs text-slate-300 hover:bg-slate-700 transition"
+            className="flex items-center gap-1 rounded bg-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-700 transition"
           >
             <Clock className="h-3 w-3" /> Delay
           </button>
@@ -412,7 +412,7 @@ export function AutomationCanvas({
             <button
               type="button"
               onClick={handleRunTest}
-              className="flex items-center gap-1 rounded bg-slate-800 px-2.5 py-1 text-xs text-slate-200 hover:bg-slate-700 transition"
+              className="flex items-center gap-1 rounded bg-zinc-800 px-2.5 py-1 text-xs text-zinc-200 hover:bg-zinc-700 transition"
               title="Simular disparo deste fluxo"
             >
               <Play className="h-3 w-3 text-amber-400" /> Testar Fluxo
@@ -422,7 +422,7 @@ export function AutomationCanvas({
           <button
             type="button"
             onClick={handleSave}
-            className="flex items-center gap-1.5 rounded bg-sky-500 px-3 py-1 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition shadow-sm"
+            className="flex items-center gap-1.5 rounded bg-sky-500 px-3 py-1 text-xs font-semibold text-zinc-950 hover:bg-sky-400 transition shadow-sm"
           >
             <Save className="h-3.5 w-3.5" /> Salvar Regras
           </button>
@@ -431,7 +431,7 @@ export function AutomationCanvas({
 
       {/* Área Principal: Canvas + Inspector Lateral */}
       <div className="flex flex-1 min-h-0 relative">
-        <div className="flex-1 h-full relative bg-slate-950">
+        <div className="flex-1 h-full relative bg-zinc-950">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -453,32 +453,32 @@ export function AutomationCanvas({
             }}
             nodeTypes={nodeTypes}
             fitView
-            className="bg-slate-950"
+            className="bg-zinc-950"
           >
             <Background variant={BackgroundVariant.Dots} color="#334155" gap={16} size={1} />
-            <Controls className="!bg-slate-900 !border-white/10 !text-slate-300" />
+            <Controls className="!bg-zinc-950 !border-zinc-800 !text-zinc-300" />
           </ReactFlow>
         </div>
 
         {/* Painel Inspector Lateral do Nó Selecionado */}
         {selectedNodeData && (
-          <aside className="w-72 shrink-0 border-l border-white/10 bg-slate-900 p-4 overflow-y-auto flex flex-col gap-3 text-xs">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <div className="flex items-center gap-1.5 font-semibold text-sky-400">
+          <aside className="w-72 shrink-0 border-l border-zinc-800 bg-zinc-950 p-4 overflow-y-auto flex flex-col gap-3 text-xs">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+              <div className="flex items-center gap-1.5 font-semibold text-zinc-400">
                 <Sliders className="h-3.5 w-3.5" />
                 <span>Propriedades do Nó</span>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedNodeId(null)}
-                className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-white"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
 
             <div>
-              <label className="mb-1 block text-slate-400">Nome / Rótulo</label>
+              <label className="mb-1 block text-zinc-400">Nome / Rótulo</label>
               <input
                 type="text"
                 value={selectedNodeData.label}
@@ -488,14 +488,14 @@ export function AutomationCanvas({
                     label: event.target.value,
                   }))
                 }
-                className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-600"
               />
             </div>
 
             {selectedNodeData.kind === 'TRIGGER' && (
               <>
                 <div>
-                  <label className="mb-1 block text-slate-400">Tipo de Gatilho</label>
+                  <label className="mb-1 block text-zinc-400">Tipo de Gatilho</label>
                   <select
                     value={selectedNodeData.triggerConfig?.type || 'ON_SLIDE_CHANGE'}
                     onChange={(event) =>
@@ -507,7 +507,7 @@ export function AutomationCanvas({
                         },
                       }))
                     }
-                    className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                    className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                   >
                     <option value="ON_SLIDE_CHANGE">Troca de Slide</option>
                     <option value="ON_ITEM_SELECT">Seleção de Item</option>
@@ -517,7 +517,7 @@ export function AutomationCanvas({
                 </div>
                 {selectedNodeData.triggerConfig?.type === 'ON_HTTP_WEBHOOK' && (
                   <div>
-                    <label className="mb-1 block text-slate-400">ID do Webhook</label>
+                    <label className="mb-1 block text-zinc-400">ID do Webhook</label>
                     <input
                       type="text"
                       value={selectedNodeData.triggerConfig?.webhookTriggerId || ''}
@@ -531,7 +531,7 @@ export function AutomationCanvas({
                         }))
                       }
                       placeholder="ex: cena-louvor"
-                      className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                      className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                     />
                   </div>
                 )}
@@ -541,7 +541,7 @@ export function AutomationCanvas({
             {selectedNodeData.kind === 'CONDITION' && (
               <>
                 <div>
-                  <label className="mb-1 block text-slate-400">Campo Avaliado</label>
+                  <label className="mb-1 block text-zinc-400">Campo Avaliado</label>
                   <select
                     value={selectedNodeData.conditionConfig?.field || 'mode'}
                     onChange={(event) =>
@@ -554,7 +554,7 @@ export function AutomationCanvas({
                         },
                       }))
                     }
-                    className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                    className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                   >
                     <option value="mode">Modo da Tela (mode)</option>
                     <option value="content">Conteúdo do Slide</option>
@@ -563,7 +563,7 @@ export function AutomationCanvas({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-slate-400">Operador</label>
+                  <label className="mb-1 block text-zinc-400">Operador</label>
                   <select
                     value={selectedNodeData.conditionConfig?.operator || 'equals'}
                     onChange={(event) =>
@@ -576,7 +576,7 @@ export function AutomationCanvas({
                         },
                       }))
                     }
-                    className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                    className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                   >
                     <option value="equals">Igual a</option>
                     <option value="not_equals">Diferente de</option>
@@ -586,7 +586,7 @@ export function AutomationCanvas({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-slate-400">Valor Esperado</label>
+                  <label className="mb-1 block text-zinc-400">Valor Esperado</label>
                   <input
                     type="text"
                     value={selectedNodeData.conditionConfig?.value || ''}
@@ -600,7 +600,7 @@ export function AutomationCanvas({
                         },
                       }))
                     }
-                    className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                    className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                   />
                 </div>
               </>
@@ -609,7 +609,7 @@ export function AutomationCanvas({
             {selectedNodeData.kind === 'ACTION_OBS' && (
               <>
                 <div>
-                  <label className="mb-1 block text-slate-400">Operação OBS v5</label>
+                  <label className="mb-1 block text-zinc-400">Operação OBS v5</label>
                   <select
                     value={selectedNodeData.actionObsConfig?.requestType || 'SetCurrentProgramScene'}
                     onChange={(event) =>
@@ -621,7 +621,7 @@ export function AutomationCanvas({
                         },
                       }))
                     }
-                    className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                    className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                   >
                     <option value="SetCurrentProgramScene">Trocar Cena (Programa)</option>
                     <option value="SetCurrentPreviewScene">Trocar Cena (Preview)</option>
@@ -634,7 +634,7 @@ export function AutomationCanvas({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-slate-400">Nome da Cena / Fonte</label>
+                  <label className="mb-1 block text-zinc-400">Nome da Cena / Fonte</label>
                   <input
                     type="text"
                     value={selectedNodeData.actionObsConfig?.sceneName || ''}
@@ -649,7 +649,7 @@ export function AutomationCanvas({
                       }))
                     }
                     placeholder="Ex: Cena Louvor"
-                    className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                    className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                   />
                 </div>
               </>
@@ -658,7 +658,7 @@ export function AutomationCanvas({
             {selectedNodeData.kind === 'ACTION_HTTP' && (
               <>
                 <div>
-                  <label className="mb-1 block text-slate-400">Método HTTP</label>
+                  <label className="mb-1 block text-zinc-400">Método HTTP</label>
                   <select
                     value={selectedNodeData.actionHttpConfig?.method || 'POST'}
                     onChange={(event) =>
@@ -672,7 +672,7 @@ export function AutomationCanvas({
                         },
                       }))
                     }
-                    className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                    className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                   >
                     <option value="POST">POST</option>
                     <option value="GET">GET</option>
@@ -681,7 +681,7 @@ export function AutomationCanvas({
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-slate-400">URL de Destino</label>
+                  <label className="mb-1 block text-zinc-400">URL de Destino</label>
                   <input
                     type="url"
                     value={selectedNodeData.actionHttpConfig?.url || ''}
@@ -696,7 +696,7 @@ export function AutomationCanvas({
                         },
                       }))
                     }
-                    className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                    className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                   />
                 </div>
               </>
@@ -704,7 +704,7 @@ export function AutomationCanvas({
 
             {selectedNodeData.kind === 'ACTION_DELAY' && (
               <div>
-                <label className="mb-1 block text-slate-400">Duração (ms)</label>
+                <label className="mb-1 block text-zinc-400">Duração (ms)</label>
                 <input
                   type="number"
                   min={50}
@@ -716,16 +716,16 @@ export function AutomationCanvas({
                       actionDelayConfig: { durationMs: Number(event.target.value) || 500 },
                     }))
                   }
-                  className="w-full rounded border border-white/10 bg-slate-950 px-2.5 py-1.5 text-slate-100"
+                  className="w-full rounded border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-zinc-100"
                 />
               </div>
             )}
 
-            <div className="mt-auto pt-3 border-t border-white/10 flex gap-2">
+            <div className="mt-auto pt-3 border-t border-zinc-800 flex gap-2">
               <button
                 type="button"
                 onClick={() => handleDuplicateNode(selectedNodeData.id)}
-                className="flex flex-1 items-center justify-center gap-1 rounded bg-slate-800 px-2 py-1.5 text-slate-200 hover:bg-slate-700"
+                className="flex flex-1 items-center justify-center gap-1 rounded bg-zinc-900 border border-zinc-800 px-2 py-1.5 text-zinc-200 hover:bg-zinc-800"
               >
                 <Copy className="h-3 w-3" /> Duplicar
               </button>
@@ -745,22 +745,22 @@ export function AutomationCanvas({
       {contextMenu && (
         <div
           style={{ left: contextMenu.x, top: contextMenu.y }}
-          className="fixed z-50 w-44 rounded-lg border border-white/10 bg-slate-900 py-1 text-xs shadow-2xl"
+          className="fixed z-50 w-44 rounded-lg border border-zinc-800 bg-zinc-950 py-1 text-xs shadow-2xl"
         >
           {contextMenu.nodeId && (
             <>
               <button
                 type="button"
                 onClick={() => setSelectedNodeId(contextMenu.nodeId!)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-slate-800"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-zinc-200 hover:bg-zinc-800"
               >
-                <Sliders className="h-3.5 w-3.5 text-sky-400" />
+                <Sliders className="h-3.5 w-3.5 text-zinc-400" />
                 <span>Editar Propriedades</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleDuplicateNode(contextMenu.nodeId!)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-slate-800"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-zinc-200 hover:bg-zinc-800"
               >
                 <Copy className="h-3.5 w-3.5 text-amber-400" />
                 <span>Duplicar Nó</span>

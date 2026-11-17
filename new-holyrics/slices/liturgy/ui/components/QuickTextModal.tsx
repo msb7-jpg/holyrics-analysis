@@ -67,17 +67,17 @@ export function QuickTextModal({ isOpen, onClose }: QuickTextModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
       <div
-        className="w-full max-w-md rounded-xl border border-white/10 bg-slate-900 p-5 shadow-2xl flex flex-col gap-4 text-slate-100"
+        className="w-full max-w-md rounded-xl border border-zinc-800 bg-zinc-950 p-5 shadow-2xl flex flex-col gap-4 text-zinc-100"
         onKeyDown={handleKeyDown}
       >
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <div className="flex items-center gap-2">
-            <MessageSquareText className="h-5 w-5 text-sky-400" />
+            <MessageSquareText className="h-5 w-5 text-zinc-400" />
             <h3 className="text-sm font-semibold text-white">Projeção Rápida de Texto (Quick Text)</h3>
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+            className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-white transition"
           >
             <X className="h-4 w-4" />
           </button>
@@ -85,69 +85,70 @@ export function QuickTextModal({ isOpen, onClose }: QuickTextModalProps) {
 
         <div className="flex flex-col gap-3 text-xs">
           <div>
-            <label className="text-[11px] font-medium text-slate-400 mb-1 block">Título do Slide</label>
+            <label className="text-[11px] font-medium text-zinc-400 mb-1 block">Título do Slide</label>
             <Input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Ex: Veículo no Estacionamento"
-              className="bg-slate-950/60"
             />
           </div>
 
           <div>
-            <label className="text-[11px] font-medium text-slate-400 mb-1 block">Conteúdo do Recado</label>
+            <label className="text-[11px] font-medium text-zinc-400 mb-1 block">Conteúdo do Recado</label>
             <Textarea
               rows={4}
               value={text}
               onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setText(event.target.value)}
               placeholder="Digite o aviso que será exibido no telão imediatamente..."
-              className="bg-slate-950/60 text-xs"
+              className="text-xs"
               autoFocus
             />
-            <span className="text-[10px] text-slate-500 mt-1 block">
+            <span className="text-[10px] text-zinc-500 mt-1 block">
               Dica: Linhas separadas formam parágrafos no slide. Pressione Ctrl+Enter para projetar.
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-slate-400">Tipo:</span>
-            <button
-              type="button"
-              onClick={() => setCategory('ALERT')}
-              className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
-                category === 'ALERT'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-              }`}
-            >
-              Urgência
-            </button>
-            <button
-              type="button"
-              onClick={() => setCategory('ANNOUNCEMENT')}
-              className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
-                category === 'ANNOUNCEMENT'
-                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-              }`}
-            >
-              Aviso Geral
-            </button>
-            <button
-              type="button"
-              onClick={() => setCategory('PASTORAL_NOTE')}
-              className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
-                category === 'PASTORAL_NOTE'
-                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-              }`}
-            >
-              Pastoral
-            </button>
+            <span className="text-[11px] text-zinc-400">Tipo:</span>
+            <div className="inline-flex rounded-lg bg-zinc-950/80 p-0.5 border border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setCategory('ALERT')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition ${
+                  category === 'ALERT'
+                    ? 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                }`}
+              >
+                Urgência
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategory('ANNOUNCEMENT')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition ${
+                  category === 'ANNOUNCEMENT'
+                    ? 'bg-zinc-800 text-zinc-200 ring-1 ring-zinc-600'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                }`}
+              >
+                Aviso Geral
+              </button>
+              <button
+                type="button"
+                onClick={() => setCategory('PASTORAL_NOTE')}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition ${
+                  category === 'PASTORAL_NOTE'
+                    ? 'bg-zinc-800 text-zinc-200 ring-1 ring-zinc-600'
+                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800'
+                }`}
+              >
+                Pastoral
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-white/10 pt-3">
+        <div className="flex items-center justify-end gap-2 border-t border-zinc-800 pt-3">
           <Button variant="ghost" size="sm" onClick={onClose} disabled={isPending}>
             Cancelar
           </Button>
@@ -155,7 +156,7 @@ export function QuickTextModal({ isOpen, onClose }: QuickTextModalProps) {
             size="sm"
             onClick={handleSend}
             disabled={!text.trim() || isPending}
-            className="bg-sky-500 hover:bg-sky-600 text-white gap-1.5"
+            className="bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-white gap-1.5"
           >
             <Send className="h-3.5 w-3.5" />
             Lançar no Telão

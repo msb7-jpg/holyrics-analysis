@@ -5,6 +5,7 @@
 
 import { memo } from 'react'
 import { Loader2 } from 'lucide-react'
+import { LiveIndicator } from '@ui/components/ui/live-indicator'
 import type { SongSearchResult } from '../../contracts/song-contracts'
 
 export interface SongSearchColumnProps {
@@ -33,14 +34,14 @@ export const SongSearchList = memo(function SongSearchList({
   if (isLoading && songs.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center py-10">
-        <Loader2 className="h-5 w-5 animate-spin text-sky-400" />
+        <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
       </div>
     )
   }
 
   if (songs.length === 0) {
     return (
-      <div className="py-8 text-center text-xs text-slate-500">
+      <div className="py-8 text-center text-xs text-zinc-500">
         Nenhuma música encontrada
       </div>
     )
@@ -71,36 +72,24 @@ export const SongSearchList = memo(function SongSearchList({
             onDoubleClick={() => onProjectSong?.(song.id)}
             className={`relative flex flex-col gap-0.5 rounded-lg p-2.5 cursor-pointer transition select-none ${
               isLive
-                ? 'bg-emerald-950/20 text-white ring-1 ring-emerald-500/40'
+                ? 'bg-zinc-900 text-zinc-100'
                 : isSelected
-                  ? 'bg-[#181C24] text-white ring-1 ring-sky-500/30'
-                  : 'text-slate-300 hover:bg-[#181C24]'
+                  ? 'bg-zinc-800/70 text-zinc-50'
+                  : 'text-zinc-300 hover:bg-zinc-900/60'
             }`}
           >
-            {isLive && (
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg bg-emerald-500" />
-            )}
-            {!isLive && isSelected && (
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg bg-sky-500" />
-            )}
-
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-xs truncate">{song.title}</span>
-              {isLive && (
-                <span
-                  className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.7)] shrink-0"
-                  title="No ar no telão"
-                />
-              )}
+              {isLive && <LiveIndicator variant="dot" />}
             </div>
             {song.artist && (
-              <span className="text-[11px] text-slate-400 truncate">
+              <span className="text-[11px] text-zinc-400 truncate">
                 {song.artist}
               </span>
             )}
             {song.snippet && (
               <span
-                className="text-[10px] text-slate-500 italic truncate"
+                className="text-[10px] text-zinc-500 italic truncate"
                 dangerouslySetInnerHTML={{ __html: song.snippet }}
               />
             )}

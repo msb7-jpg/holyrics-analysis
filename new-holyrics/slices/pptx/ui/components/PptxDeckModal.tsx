@@ -10,6 +10,7 @@ import type { ActionCommand, ScreenState } from '@lumen/core'
 import { Button } from '@ui/components/ui/button'
 import { Input } from '@ui/components/ui/input'
 import { Badge } from '@ui/components/ui/badge'
+import { SlidePreviewCard } from '@slices/navigation/ui/components/SlidePreviewCard'
 import type { PptxPresentation } from '../../contracts/pptx-contracts'
 import { pptxService } from '../services/pptx-service'
 import { renderPdfFileToPresentation } from '../utils/pdf-renderer'
@@ -126,10 +127,10 @@ export function PptxDeckModal({ isOpen, state, onClose, dispatch }: PptxDeckModa
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs">
-      <div className="flex h-[85vh] w-full max-w-4xl flex-col rounded-xl border border-white/10 bg-slate-900 text-slate-100 shadow-2xl overflow-hidden">
-        <div className="flex items-center justify-between border-b border-white/10 bg-slate-800/60 px-5 py-3.5">
+      <div className="flex h-[85vh] w-full max-w-4xl flex-col rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-5 py-3.5">
           <div className="flex items-center gap-2">
-            <Presentation className="h-4 w-4 text-sky-400" />
+            <Presentation className="h-4 w-4 text-zinc-400" />
             <h2 className="text-sm font-semibold text-white">
               Apresentações PowerPoint (.pptx) & PDF com Notas do Orador
             </h2>
@@ -141,9 +142,9 @@ export function PptxDeckModal({ isOpen, state, onClose, dispatch }: PptxDeckModa
 
         <div className="grid flex-1 grid-cols-12 overflow-hidden">
           {/* Sidebar: Lista de Apresentações + Upload */}
-          <aside className="col-span-4 flex flex-col gap-3 border-r border-white/10 bg-slate-950/50 p-4 overflow-y-auto">
-            <div className="flex flex-col gap-2 rounded-lg border border-dashed border-white/15 bg-slate-900 p-3 text-xs">
-              <span className="flex items-center gap-1.5 font-semibold text-sky-400">
+          <aside className="col-span-4 flex flex-col gap-3 border-r border-zinc-800 bg-zinc-950/70 p-4 overflow-y-auto">
+            <div className="flex flex-col gap-2 rounded-lg border border-dashed border-zinc-800 bg-zinc-900 p-3 text-xs">
+              <span className="flex items-center gap-1.5 font-semibold text-zinc-400">
                 <Upload className="h-3.5 w-3.5" />
                 <span>Importar .pptx ou .pdf</span>
               </span>
@@ -162,13 +163,13 @@ export function PptxDeckModal({ isOpen, state, onClose, dispatch }: PptxDeckModa
                   onClick={() => setSelectedDeck(deck)}
                   className={`flex cursor-pointer items-center justify-between rounded-lg border p-2.5 text-xs transition ${
                     selectedDeck?.id === deck.id
-                      ? 'border-sky-500/50 bg-slate-800 text-white'
-                      : 'border-white/5 bg-slate-900/60 text-slate-300 hover:bg-slate-800/50'
+                      ? 'border-zinc-700 bg-zinc-800 ring-1 ring-zinc-600 text-white'
+                      : 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
                   }`}
                 >
                   <div className="truncate pr-2">
                     <p className="font-semibold truncate">{deck.title}</p>
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-[10px] text-zinc-400">
                       {deck.slides.length} slides • {deck.format}
                     </p>
                   </div>
@@ -180,7 +181,7 @@ export function PptxDeckModal({ isOpen, state, onClose, dispatch }: PptxDeckModa
                       handleDeleteDeck(deck.id)
                     }}
                   >
-                    <Trash2 className="h-3.5 w-3.5 text-slate-500" />
+                    <Trash2 className="h-3.5 w-3.5 text-zinc-500" />
                   </Button>
                 </div>
               ))}
@@ -191,10 +192,10 @@ export function PptxDeckModal({ isOpen, state, onClose, dispatch }: PptxDeckModa
           <section className="col-span-8 flex flex-col gap-3 p-4 overflow-y-auto">
             {selectedDeck ? (
               <>
-                <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div className="flex items-center justify-between gap-3 border-b border-zinc-800 pb-3">
                   <div>
                     <h3 className="text-sm font-bold text-white">{selectedDeck.title}</h3>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-zinc-400">
                       Clique em qualquer slide para projetar no telão
                     </p>
                   </div>
@@ -215,65 +216,22 @@ export function PptxDeckModal({ isOpen, state, onClose, dispatch }: PptxDeckModa
                       state.activeItemId === selectedDeck.id &&
                       state.foreground.slideIndex === idx
                     return (
-                      <div
+                      <SlidePreviewCard
                         key={slide.index}
+                        variant="detailed"
+                        slideNumber={idx + 1}
+                        lines={slide.textLines}
+                        imageUrl={slide.imageUrl}
+                        speakerNotes={slide.speakerNotes}
+                        isLive={isLiveSlide}
                         onClick={() => handleProjectSlide(selectedDeck, idx)}
-                        className={`flex cursor-pointer flex-col gap-2 rounded-xl border p-4 transition ${
-                          isLiveSlide
-                            ? 'border-emerald-500/60 bg-emerald-950/20'
-                            : 'border-white/10 bg-slate-800/50 hover:border-sky-500/40 hover:bg-slate-800'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Badge variant={isLiveSlide ? 'live' : 'default'}>
-                              SLIDE {idx + 1}
-                            </Badge>
-                            {isLiveSlide && (
-                              <span className="text-[10px] font-bold uppercase text-emerald-400">
-                                AO VIVO
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[11px] font-mono text-sky-400">
-                            Clique para Projetar
-                          </span>
-                        </div>
-
-                        {slide.imageUrl ? (
-                          <div className="overflow-hidden rounded-lg border border-white/10 bg-black">
-                            <img
-                              src={slide.imageUrl}
-                              alt={`Slide ${idx + 1}`}
-                              className="max-h-56 w-full object-contain"
-                            />
-                          </div>
-                        ) : (
-                          <div className="rounded-lg bg-slate-950/70 p-3 text-sm font-semibold text-white">
-                            {slide.textLines.map((line, lineIdx) => (
-                              <p key={lineIdx}>{line}</p>
-                            ))}
-                          </div>
-                        )}
-
-                        {slide.speakerNotes && (
-                          <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-                            <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" />
-                            <div>
-                              <span className="font-mono text-[10px] font-bold uppercase text-amber-400 block">
-                                Nota do Orador:
-                              </span>
-                              <span>{slide.speakerNotes}</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      />
                     )
                   })}
                 </div>
               </>
             ) : (
-              <div className="m-auto text-center text-xs text-slate-500">
+              <div className="m-auto text-center text-xs text-zinc-500">
                 Selecione ou importe uma apresentação PPTX/PDF.
               </div>
             )}

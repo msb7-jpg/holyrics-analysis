@@ -68,11 +68,10 @@ export function PreacherRemoteView({ state, stageState, dispatch }: PreacherRemo
       : undefined)
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-slate-950 text-slate-100 select-none">
+    <div className="flex min-h-screen w-full flex-col bg-zinc-950 text-zinc-100 select-none">
       {/* Barra Superior Compacta com Cronômetro de Pregação */}
-      <header className="flex items-center justify-between border-b border-white/10 bg-slate-900 px-4 py-3">
+      <header className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950 px-4 py-3">
         <div className="flex items-center gap-2">
-          <Badge variant="live">PÚLPITO</Badge>
           <span className="text-sm font-semibold text-white truncate max-w-[180px] sm:max-w-md">
             {foreground.title || 'Apresentação Ativa'}
           </span>
@@ -82,7 +81,7 @@ export function PreacherRemoteView({ state, stageState, dispatch }: PreacherRemo
           className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 font-mono ${
             isOvertime
               ? 'border-red-500/50 bg-red-500/20 text-red-300 animate-pulse'
-              : 'border-sky-500/30 bg-slate-800 text-sky-300'
+              : 'border-zinc-700 bg-zinc-800 text-zinc-200'
           }`}
         >
           <Timer className="h-4 w-4" />
@@ -103,8 +102,8 @@ export function PreacherRemoteView({ state, stageState, dispatch }: PreacherRemo
       {/* Corpo com Slide Atual, Próximo Slide e Notas do Orador */}
       <main className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto">
         {/* Card do Slide Atual */}
-        <div className="flex flex-col rounded-xl border border-sky-500/30 bg-slate-900 p-5 shadow-lg">
-          <div className="mb-2 flex items-center justify-between text-xs font-mono text-sky-400">
+        <div className="flex flex-col rounded-xl border border-zinc-700 bg-zinc-800 p-5 shadow-lg">
+          <div className="mb-2 flex items-center justify-between text-xs tabular-nums font-mono text-zinc-400">
             <span>NO TELÃO AGORA</span>
             {foreground.totalSlides > 0 && (
               <span>
@@ -113,7 +112,7 @@ export function PreacherRemoteView({ state, stageState, dispatch }: PreacherRemo
             )}
           </div>
           {foreground.reference && (
-            <div className="mb-2 text-xs font-semibold text-slate-400">
+            <div className="mb-2 text-xs font-semibold text-zinc-400">
               {foreground.reference}
             </div>
           )}
@@ -125,42 +124,42 @@ export function PreacherRemoteView({ state, stageState, dispatch }: PreacherRemo
                 </p>
               ))
             ) : (
-              <p className="text-base text-slate-500 italic">Nenhum slide projetado</p>
+              <p className="text-base text-zinc-500 italic">Nenhum slide projetado</p>
             )}
           </div>
         </div>
 
         {/* Card do Próximo Slide */}
-        <div className="flex flex-col rounded-xl border border-white/10 bg-slate-900/60 p-4">
+        <div className="flex flex-col rounded-xl border border-zinc-800 bg-zinc-900 p-4">
           <div className="mb-1.5 flex items-center gap-1.5 text-xs font-mono text-amber-400 uppercase">
             <ArrowRight className="h-3.5 w-3.5" />
             <span>Próximo Slide</span>
           </div>
           {nextLines && nextLines.length > 0 ? (
             nextLines.map((line, index) => (
-              <p key={`next-${index}`} className="text-lg font-medium text-slate-300">
+              <p key={`next-${index}`} className="text-lg font-medium text-zinc-300">
                 {line}
               </p>
             ))
           ) : (
-            <p className="text-sm text-slate-500 italic">Fim dos slides desta seção</p>
+            <p className="text-sm text-zinc-500 italic">Fim dos slides desta seção</p>
           )}
         </div>
 
         {/* Card das Anotações do Orador (Speaker Notes) */}
-        <div className="flex flex-1 flex-col rounded-xl border border-white/10 bg-slate-900/50 p-4">
-          <div className="mb-2 flex items-center gap-1.5 text-xs font-mono text-slate-400 uppercase">
-            <FileText className="h-3.5 w-3.5 text-sky-400" />
-            <span>Anotações do Esboço / Orador</span>
+        <div className="flex flex-1 flex-col rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-mono text-zinc-400 uppercase">
+            <FileText className="h-3.5 w-3.5 text-zinc-400" />
+            <span>Notas do Orador</span>
           </div>
-          <p className="text-base leading-relaxed text-slate-200 whitespace-pre-wrap">
+          <p className="text-base leading-relaxed text-zinc-200 whitespace-pre-wrap">
             {foreground.speakerNotes || 'Sem anotações adicionais para este slide.'}
           </p>
         </div>
       </main>
 
       {/* Barra Inferior de Toque Generoso (Bloqueada apenas para Navegação - RF-26A) */}
-      <footer className="grid grid-cols-2 gap-3 border-t border-white/10 bg-slate-900 p-4">
+      <footer className="grid grid-cols-2 gap-3 border-t border-zinc-800 bg-zinc-950 p-4">
         <Button
           variant="secondary"
           size="lg"

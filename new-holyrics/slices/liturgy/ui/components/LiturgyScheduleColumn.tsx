@@ -205,7 +205,7 @@ export function LiturgyScheduleColumn({
 
   return (
     <section
-      className="flex flex-col bg-[#11141A] p-3 border-r border-white/5 overflow-y-auto relative select-none"
+      className="flex flex-col bg-zinc-950 p-3 border-r border-zinc-800/80 overflow-y-auto relative select-none"
       onContextMenu={(event) => {
         if (activeTab === 'ROTEIRO') {
           handleOpenContextMenu(event, null)
@@ -213,7 +213,7 @@ export function LiturgyScheduleColumn({
       }}
     >
       {/* Abas Superiores da Coluna Esquerda: Roteiro | Letras | Imagens | Vídeos | Áudio | Arquivos */}
-      <div className="mb-3 grid grid-cols-6 gap-0.5 rounded-lg bg-[#0B0D10]/80 p-1 border border-white/5 text-[11px] shrink-0">
+      <div className="mb-3 grid grid-cols-6 gap-0.5 rounded-lg bg-zinc-900 p-1 border border-zinc-800/80 text-[11px] shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab('ROTEIRO')}
@@ -250,86 +250,86 @@ export function LiturgyScheduleColumn({
             setActiveTab('ROTEIRO')
           }}
           title="Ordem do Culto (arraste qualquer item ou arquivo para cá)"
-          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium rounded-md transition ${
             isRoteiroDropHover
-              ? 'bg-sky-500/30 text-sky-200 ring-1 ring-sky-400 rounded-md'
+              ? 'bg-zinc-700 text-zinc-100 ring-1 ring-zinc-400'
               : activeTab === 'ROTEIRO'
-                ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
+                ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Calendar className="h-3.5 w-3.5" />
-          <span className="text-[9px]">Roteiro</span>
+          <Calendar className="h-4 w-4" strokeWidth={1.75} />
+          <span className="text-[11px] font-medium">Roteiro</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('LETRAS')}
           title="Letras de Músicas e Busca Bíblica"
-          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium rounded-md transition ${
             activeTab === 'LETRAS'
-              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
+              ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+              : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Music className="h-3.5 w-3.5" />
-          <span className="text-[9px]">Letras</span>
+          <Music className="h-4 w-4" strokeWidth={1.75} />
+          <span className="text-[11px] font-medium">Letras</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('IMAGENS')}
           title="Galeria de Imagens (clique para projetar ou arraste ao roteiro)"
-          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium rounded-md transition ${
             activeTab === 'IMAGENS'
-              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
+              ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+              : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <ImageIcon className="h-3.5 w-3.5" />
-          <span className="text-[9px]">Imagens</span>
+          <ImageIcon className="h-4 w-4" strokeWidth={1.75} />
+          <span className="text-[11px] font-medium">Imagens</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('VIDEOS')}
           title="Galeria de Vídeos e Loops (clique para projetar ou arraste ao roteiro)"
-          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium rounded-md transition ${
             activeTab === 'VIDEOS'
-              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
+              ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+              : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Film className="h-3.5 w-3.5" />
-          <span className="text-[9px]">Vídeos</span>
+          <Film className="h-4 w-4" strokeWidth={1.75} />
+          <span className="text-[11px] font-medium">Vídeos</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('AUDIO')}
           title="Biblioteca de Áudio (arraste ao Roteiro)"
-          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium rounded-md transition ${
             activeTab === 'AUDIO'
-              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
+              ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+              : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Headphones className="h-3.5 w-3.5" />
-          <span className="text-[9px]">Áudio</span>
+          <Headphones className="h-4 w-4" strokeWidth={1.75} />
+          <span className="text-[11px] font-medium">Áudio</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('ARQUIVOS')}
           title="Apresentações e Arquivos (.pptx, .pdf)"
-          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium transition ${
+          className={`flex flex-col items-center justify-center gap-0.5 py-1.5 font-medium rounded-md transition ${
             activeTab === 'ARQUIVOS'
-              ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
+              ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+              : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Presentation className="h-3.5 w-3.5" />
-          <span className="text-[9px]">Arquivos</span>
+          <Presentation className="h-4 w-4" strokeWidth={1.75} />
+          <span className="text-[11px] font-medium">Arquivos</span>
         </button>
       </div>
 
@@ -347,8 +347,8 @@ export function LiturgyScheduleColumn({
             handleDrop(event)
           }}
         >
-          <div className="mb-2.5 flex items-center justify-between text-xs font-semibold text-slate-300">
-            <span className="text-[11px] uppercase tracking-wider text-slate-400">
+          <div className="mb-2.5 flex items-center justify-between text-xs font-semibold text-zinc-300">
+            <span className="text-[11px] uppercase tracking-wider text-zinc-400">
               Ordem do Culto ({items.length})
             </span>
             <div className="flex items-center gap-1.5">
@@ -356,27 +356,27 @@ export function LiturgyScheduleColumn({
                 type="button"
                 onClick={() => setIsQuickTextOpen(true)}
                 title="Exibir aviso rápido ou adicionar texto ao roteiro"
-                className="flex items-center gap-1 rounded-md bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 px-2 py-0.5 text-[10px] font-medium text-sky-300 transition"
+                className="flex items-center gap-1 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-200 transition"
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="h-3 w-3 text-zinc-400" strokeWidth={1.75} />
                 <span>Adicionar</span>
               </button>
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col gap-1.5 text-xs">
+          <div className="flex flex-1 flex-col gap-1 text-xs">
             {isLoading ? (
               <div className="flex flex-1 items-center justify-center py-10">
-                <Loader2 className="h-5 w-5 animate-spin text-sky-400" />
+                <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
               </div>
             ) : items.length === 0 ? (
               <div
                 onClick={(event) => handleOpenContextMenu(event, null)}
-                className="flex flex-1 flex-col items-center justify-center py-10 px-3 text-center text-xs text-slate-400 border border-dashed border-white/10 rounded-lg cursor-pointer hover:border-sky-500/40 transition"
+                className="flex flex-1 flex-col items-center justify-center py-10 px-3 text-center text-xs text-zinc-400 border border-dashed border-zinc-800 rounded-lg cursor-pointer hover:border-zinc-700 transition"
               >
-                <Calendar className="h-7 w-7 mb-2 text-slate-500" />
-                <p className="font-medium text-slate-300">Roteiro vazio</p>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <Calendar className="h-7 w-7 mb-2 text-zinc-500" />
+                <p className="font-medium text-zinc-300">Roteiro vazio</p>
+                <p className="text-[11px] text-zinc-500 mt-1">
                   Arraste músicas, imagens, vídeos ou arquivos para cá, ou clique com o botão direito para adicionar
                 </p>
               </div>
@@ -409,7 +409,7 @@ export function LiturgyScheduleColumn({
       {activeTab === 'LETRAS' && (
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
               Letras ({songs.length})
             </span>
             <div className="flex items-center gap-1">
@@ -419,7 +419,7 @@ export function LiturgyScheduleColumn({
                 onClick={onOpenSongImporter}
                 title="Importar ou cadastrar música"
               >
-                <Upload className="h-3 w-3 text-sky-400" />
+                <Upload className="h-3 w-3 text-zinc-400" strokeWidth={1.75} />
                 <span>Importar</span>
               </Button>
               <Button
@@ -428,22 +428,22 @@ export function LiturgyScheduleColumn({
                 onClick={onOpenSongHistory}
                 title="Consultar histórico e músicas mais cantadas"
               >
-                <History className="h-3 w-3 text-slate-400" />
+                <History className="h-3 w-3 text-zinc-400" strokeWidth={1.75} />
                 <span>Histórico</span>
               </Button>
             </div>
           </div>
 
           <div className="relative mb-2.5">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400" />
             <Input
               placeholder="Filtrar hino ou versículo (ex: jo 3 16)..."
               value={songQuery}
               onChange={(event) => onChangeSongQuery?.(event.target.value)}
-              className="pl-8 pr-8 bg-[#141820] border-transparent focus:border-sky-500/50"
+              className="pl-8 pr-8 bg-zinc-900 border-zinc-800"
             />
             {isLoadingSongs && (
-              <Loader2 className="absolute right-2.5 top-2.5 h-3.5 w-3.5 animate-spin text-slate-400" />
+              <Loader2 className="absolute right-2.5 top-2.5 h-3.5 w-3.5 animate-spin text-zinc-400" />
             )}
           </div>
 
@@ -466,9 +466,9 @@ export function LiturgyScheduleColumn({
       {/* ABA 2: IMAGENS */}
       {activeTab === 'IMAGENS' && (
         <div className="flex flex-1 flex-col gap-2">
-          <div className="flex items-center justify-between text-[11px] text-slate-400">
+          <div className="flex items-center justify-between text-[11px] text-zinc-400">
             <span className="font-semibold uppercase tracking-wider">Imagens</span>
-            <span className="text-[10px] text-slate-500">Arraste para o Roteiro</span>
+            <span className="text-[10px] text-zinc-500">Arraste para o Roteiro</span>
           </div>
           <MediaGridPanel
             filterType="IMAGE"
@@ -482,9 +482,9 @@ export function LiturgyScheduleColumn({
       {/* ABA 3: VÍDEOS */}
       {activeTab === 'VIDEOS' && (
         <div className="flex flex-1 flex-col gap-2">
-          <div className="flex items-center justify-between text-[11px] text-slate-400">
+          <div className="flex items-center justify-between text-[11px] text-zinc-400">
             <span className="font-semibold uppercase tracking-wider">Vídeos & Loops</span>
-            <span className="text-[10px] text-slate-500">Arraste para o Roteiro</span>
+            <span className="text-[10px] text-zinc-500">Arraste para o Roteiro</span>
           </div>
           <MediaGridPanel
             filterType="VIDEO"
@@ -498,9 +498,9 @@ export function LiturgyScheduleColumn({
       {/* ABA 3B: ÁUDIO */}
       {activeTab === 'AUDIO' && (
         <div className="flex flex-1 flex-col gap-2 overflow-hidden">
-          <div className="flex items-center justify-between text-[11px] text-slate-400">
+          <div className="flex items-center justify-between text-[11px] text-zinc-400">
             <span className="font-semibold uppercase tracking-wider">Biblioteca de Áudio</span>
-            <span className="text-[10px] text-slate-500">Arraste para o Roteiro</span>
+            <span className="text-[10px] text-zinc-500">Arraste para o Roteiro</span>
           </div>
           <MediaGridPanel
             filterType="AUDIO"
@@ -514,9 +514,9 @@ export function LiturgyScheduleColumn({
       {/* ABA 4: ARQUIVOS (PPTX / PDF) */}
       {activeTab === 'ARQUIVOS' && (
         <div className="flex flex-1 flex-col gap-2 overflow-hidden">
-          <div className="flex items-center justify-between text-[11px] text-slate-400">
+          <div className="flex items-center justify-between text-[11px] text-zinc-400">
             <span className="font-semibold uppercase tracking-wider">Apresentações & PDFs</span>
-            <span className="text-[10px] text-slate-500">Arraste para o Roteiro</span>
+            <span className="text-[10px] text-zinc-500">Arraste para o Roteiro</span>
           </div>
           <PptxFilesPanel
             onSelectDeck={onSelectPptxDeck}

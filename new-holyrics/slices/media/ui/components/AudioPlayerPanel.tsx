@@ -145,12 +145,12 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
   }
 
   return (
-    <div className={`flex flex-col rounded-lg bg-[#141820] border border-white/5 text-slate-200 select-none overflow-hidden ${className}`}>
+    <div className={`flex flex-col rounded-lg bg-zinc-900/40 border border-zinc-800/80 text-zinc-200 select-none overflow-hidden ${className}`}>
       {/* Cabeçalho Compacto do Player */}
-      <div className="flex items-center justify-between border-b border-white/5 bg-[#0B0D10]/50 px-2.5 py-1.5">
+      <div className="flex items-center justify-between border-b border-zinc-800/80 bg-zinc-950/60 px-2.5 py-1.5">
         <div className="flex items-center gap-1.5">
-          <Music className="h-3.5 w-3.5 text-sky-400" />
-          <span className="text-[11px] font-semibold text-slate-200">Player Ambiente</span>
+          <Music className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.75} />
+          <span className="text-[11px] font-semibold text-zinc-200">Player Ambiente</span>
         </div>
 
         <div className="flex items-center gap-1">
@@ -158,7 +158,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             <select
               value={currentPlaylist?.id || ''}
               onChange={(event) => selectPlaylist(event.target.value)}
-              className="rounded bg-[#181C24] px-2 py-0.5 text-[10px] text-slate-300 focus:outline-none max-w-[120px] truncate border border-white/5"
+              className="rounded-md bg-zinc-900 px-2 py-0.5 text-[10px] text-zinc-300 focus:outline-none max-w-[120px] truncate border border-zinc-800"
             >
               {playlists.map((playlist) => (
                 <option key={playlist.id} value={playlist.id}>
@@ -180,17 +180,17 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             disabled={isUploadingAudio}
             onClick={() => audioInputRef.current?.click()}
             title="Adicionar arquivo de áudio local (MP3, WAV, OGG)"
-            className="flex items-center gap-1 rounded bg-[#181C24] hover:bg-[#1F242F] px-1.5 py-0.5 text-[10px] text-sky-400 transition border border-white/5"
+            className="flex items-center gap-1 rounded-md bg-zinc-900 hover:bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-200 transition border border-zinc-800"
           >
-            <Plus className="h-3 w-3" />
+            <Plus className="h-3 w-3 text-zinc-400" />
             <span>Áudio</span>
           </button>
 
           <button
             type="button"
             onClick={() => setIsEqExpanded((previous) => !previous)}
-            className={`rounded p-1 text-xs transition ${
-              isEqExpanded ? 'bg-sky-500/20 text-sky-400' : 'text-slate-400 hover:bg-[#181C24] hover:text-slate-200'
+            className={`rounded-md p-1 text-xs transition ${
+              isEqExpanded ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
             }`}
             title="Equalizador de 3 Bandas (Graves, Médios e Agudos)"
           >
@@ -203,15 +203,15 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
       <div className="p-2.5">
         <div className="flex items-center gap-2.5 mb-2">
           {/* Arte minimalista de onda sonora preenchendo o quadrado da faixa */}
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-sky-500/20 to-indigo-500/20 border border-sky-500/20 text-sky-400">
-            <AudioLines className={`h-4 w-4 ${isPlaying ? 'animate-pulse text-emerald-400' : 'text-sky-400'}`} />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400">
+            <AudioLines className={`h-4 w-4 ${isPlaying ? 'animate-pulse text-emerald-400' : 'text-zinc-400'}`} />
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-medium text-slate-100">
+            <div className="truncate text-xs font-medium text-zinc-100">
               {currentTrack?.title || 'Nenhuma faixa selecionada'}
             </div>
-            <div className="truncate text-[10px] text-slate-400">
+            <div className="truncate text-[10px] text-zinc-400">
               {currentTrack?.artist || 'Clique em + Áudio para importar trilhas locais'}
             </div>
           </div>
@@ -233,9 +233,9 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             step={1}
             value={currentTime}
             onChange={(event) => seekTo(parseFloat(event.target.value))}
-            className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-[#0B0D10] accent-sky-400"
+            className="h-1 w-full cursor-pointer appearance-none rounded-lg bg-zinc-900 accent-zinc-200"
           />
-          <div className="flex justify-between text-[9px] tabular-nums font-mono text-slate-400">
+          <div className="flex justify-between text-[9px] tabular-nums font-mono text-zinc-400">
             <span>{formatAudioTime(currentTime)}</span>
             <span>{formatAudioTime(duration)}</span>
           </div>
@@ -248,7 +248,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
               type="button"
               onClick={cycleRepeat}
               className={`rounded p-1 text-[11px] transition ${
-                repeatMode !== 'off' ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'
+                repeatMode !== 'off' ? 'text-zinc-400' : 'text-zinc-500 hover:text-zinc-300'
               }`}
               title={`Modo de repetição: ${repeatMode}`}
             >
@@ -258,7 +258,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
               type="button"
               onClick={toggleShuffleMode}
               className={`rounded p-1 text-[11px] transition ${
-                shuffle ? 'text-sky-400' : 'text-slate-500 hover:text-slate-300'
+                shuffle ? 'text-zinc-400' : 'text-zinc-500 hover:text-zinc-300'
               }`}
               title={`Ordem aleatória: ${shuffle ? 'Ativa' : 'Desativada'}`}
             >
@@ -270,7 +270,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             <button
               type="button"
               onClick={prevTrack}
-              className="rounded p-1 text-slate-400 hover:bg-[#181C24] hover:text-slate-100 transition"
+              className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition"
               title="Faixa anterior"
             >
               <SkipBack className="h-3.5 w-3.5" />
@@ -280,7 +280,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
               type="button"
               onClick={togglePlay}
               disabled={!currentTrack}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-500 text-slate-950 shadow hover:bg-sky-400 disabled:opacity-40 transition"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-500 text-zinc-950 shadow hover:bg-sky-400 disabled:opacity-40 transition"
               title={isPlaying ? 'Pausar áudio ambiente' : 'Reproduzir áudio ambiente'}
             >
               {isPlaying ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current ml-0.5" />}
@@ -289,7 +289,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             <button
               type="button"
               onClick={nextTrack}
-              className="rounded p-1 text-slate-400 hover:bg-[#181C24] hover:text-slate-100 transition"
+              className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition"
               title="Próxima faixa"
             >
               <SkipForward className="h-3.5 w-3.5" />
@@ -301,7 +301,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
             <button
               type="button"
               onClick={toggleMute}
-              className="text-slate-400 hover:text-slate-200 transition"
+              className="text-zinc-400 hover:text-zinc-200 transition"
               title={volume === 0 ? 'Restaurar som' : 'Silenciar áudio'}
             >
               {volume === 0 ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
@@ -313,7 +313,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
               step={0.01}
               value={volume}
               onChange={(event) => setVolumeLevel(parseFloat(event.target.value))}
-              className="h-1 w-14 cursor-pointer appearance-none rounded-lg bg-[#0B0D10] accent-sky-400"
+              className="h-1 w-14 cursor-pointer appearance-none rounded-lg bg-zinc-950 accent-sky-400"
               title={`Volume: ${Math.round(volume * 100)}%`}
             />
           </div>
@@ -322,13 +322,13 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
 
       {/* Equalizador de 3 Bandas (Colapsável) */}
       {isEqExpanded && (
-        <div className="border-t border-white/5 bg-[#0B0D10]/60 px-2.5 py-2">
-          <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+        <div className="border-t border-zinc-800 bg-zinc-950/60 px-2.5 py-2">
+          <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
             <span>Equalizador (3 Bandas)</span>
             <button
               type="button"
               onClick={resetEqualizer}
-              className="flex items-center gap-1 text-sky-400 hover:text-sky-300"
+              className="flex items-center gap-1 text-zinc-400 hover:text-zinc-200"
               title="Restaurar equalizador (0 dB)"
             >
               <RotateCcw className="h-2.5 w-2.5" />
@@ -341,8 +341,8 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
               const labels = { low: 'Graves', mid: 'Médios', high: 'Agudos' }
               const bandValue = equalizer[band]
               return (
-                <div key={band} className="flex flex-col items-center rounded bg-[#181C24] p-1.5 border border-white/5">
-                  <span className="text-slate-400">{labels[band]}</span>
+                <div key={band} className="flex flex-col items-center rounded bg-zinc-800 p-1.5 border border-zinc-800">
+                  <span className="text-zinc-400">{labels[band]}</span>
                   <input
                     type="range"
                     min={-12}
@@ -350,9 +350,9 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
                     step={0.5}
                     value={bandValue}
                     onChange={(event) => updateEqualizer({ [band]: parseFloat(event.target.value) })}
-                    className="my-1 h-1 w-full cursor-pointer appearance-none rounded bg-[#0B0D10] accent-sky-400"
+                    className="my-1 h-1 w-full cursor-pointer appearance-none rounded bg-zinc-950 accent-sky-400"
                   />
-                  <span className="tabular-nums font-mono text-[9px] text-sky-400">
+                  <span className="tabular-nums font-mono text-[9px] text-zinc-400">
                     {bandValue > 0 ? `+${bandValue}` : bandValue} dB
                   </span>
                 </div>
@@ -364,7 +364,7 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
 
       {/* Lista de Faixas da Playlist (se houver faixas reais) */}
       {currentPlaylist && currentPlaylist.tracks.length > 0 && (
-        <div className="border-t border-white/5 max-h-24 overflow-y-auto divide-y divide-white/5">
+        <div className="border-t border-zinc-800 max-h-24 overflow-y-auto divide-y divide-white/5">
           {currentPlaylist.tracks.map((track) => {
             const isSelected = currentTrack?.id === track.id
             return (
@@ -373,11 +373,11 @@ export function AudioPlayerPanel({ initialPlaylists, className = '' }: AudioPlay
                 type="button"
                 onClick={() => selectTrack(track)}
                 className={`flex w-full items-center justify-between px-2.5 py-1.5 text-left text-[11px] transition ${
-                  isSelected ? 'bg-sky-500/15 text-sky-300 font-medium' : 'text-slate-400 hover:bg-[#181C24]'
+                  isSelected ? 'bg-zinc-800 text-zinc-200 font-medium' : 'text-zinc-400 hover:bg-zinc-800'
                 }`}
               >
                 <span className="truncate pr-2">{track.title}</span>
-                <span className="tabular-nums font-mono text-[10px] text-slate-500">
+                <span className="tabular-nums font-mono text-[10px] text-zinc-500">
                   {formatAudioTime(track.durationSeconds)}
                 </span>
               </button>

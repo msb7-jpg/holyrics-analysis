@@ -28,6 +28,7 @@ import { BibleDownloadModal } from '@slices/bible/ui/components/BibleDownloadMod
 import { OperatorTopBar } from '@slices/navigation/ui/components/OperatorTopBar'
 import { OutputMonitorPanel } from '@slices/navigation/ui/components/OutputMonitorPanel'
 import { DiagnosticsModal } from '@slices/navigation/ui/components/DiagnosticsModal'
+import { SlidePreviewCard } from '@slices/navigation/ui/components/SlidePreviewCard'
 import { LiturgyScheduleColumn } from '@slices/liturgy/ui/components/LiturgyScheduleColumn'
 import {
   useCurrentLiturgyQuery,
@@ -258,7 +259,7 @@ export function OperatorView({
   )
 
   return (
-    <div className="flex h-screen w-screen flex-col bg-[#0B0D10] text-slate-100 select-none overflow-hidden">
+    <div className="flex h-screen w-screen flex-col bg-zinc-950 text-zinc-50 select-none overflow-hidden">
       {/* 1. Barra Superior Redesenha (Esquerda: Evento Editável | Centro: Busca Global | Direita: Saída + Ferramentas) */}
       <OperatorTopBar
         isConnected={connected}
@@ -316,7 +317,7 @@ export function OperatorView({
           />
 
           {/* Coluna 2 (Centro): Workspace Central (Preview) */}
-          <section className="flex h-full flex-col bg-[#0B0D10] p-4 overflow-y-auto">
+          <section className="flex h-full flex-col bg-zinc-950 p-4 overflow-y-auto">
             {/* Renderização do Conteúdo: PPTX, BÍBLIA ou MÚSICA */}
             {workspaceItem?.type === 'PPTX' ||
             (!workspaceItem &&
@@ -330,16 +331,16 @@ export function OperatorView({
                     : state.foreground.slides || []
                 return (
                   <div className="flex flex-1 flex-col gap-3">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                    <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Presentation className="h-4 w-4 text-emerald-400 shrink-0" />
+                        <Presentation className="h-4 w-4 text-zinc-400 shrink-0" strokeWidth={1.75} />
                         <div className="min-w-0">
-                          <h3 className="text-xs font-semibold text-white truncate">
+                          <h3 className="text-xs font-semibold text-zinc-100 truncate">
                             {workspaceItem?.type === 'PPTX'
                               ? workspaceItem.title || 'Apresentação'
                               : state.foreground.title || 'Apresentação'}
                           </h3>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] tabular-nums font-mono text-zinc-400">
                             Slide {workspaceFocusedIndex + 1} de {pptxSlides.length}
                           </p>
                         </div>
@@ -354,7 +355,7 @@ export function OperatorView({
                               setWorkspaceFocusedIndex((prev) => Math.max(0, prev - 1))
                             }
                           }}
-                          className="flex items-center gap-1 rounded bg-[#192334] hover:bg-[#1E2B40] px-2.5 py-1 text-[11px] font-medium text-slate-200 transition"
+                          className="flex items-center gap-1 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-200 transition"
                         >
                           <ChevronLeft className="h-3.5 w-3.5" />
                           <span>Anterior</span>
@@ -370,7 +371,7 @@ export function OperatorView({
                               )
                             }
                           }}
-                          className="flex items-center gap-1 rounded bg-sky-500 hover:bg-sky-400 px-2.5 py-1 text-[11px] font-semibold text-slate-950 transition"
+                          className="flex items-center gap-1 rounded-md bg-zinc-100 hover:bg-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-900 transition"
                         >
                           <span>Próximo</span>
                           <ChevronRight className="h-3.5 w-3.5" />
@@ -384,8 +385,13 @@ export function OperatorView({
                           isWorkspaceItemLive && state.foreground.slideIndex === slideIdx
                         const isFocused = !isLive && workspaceFocusedIndex === slideIdx
                         return (
-                          <div
+                          <SlidePreviewCard
                             key={slideIdx}
+                            slideNumber={slideIdx + 1}
+                            lines={slide.content}
+                            imageUrl={slide.imageUrl}
+                            isLive={isLive}
+                            isFocused={isFocused}
                             onClick={() => setWorkspaceFocusedIndex(slideIdx)}
                             onDoubleClick={() => {
                               setWorkspaceFocusedIndex(slideIdx)
@@ -410,42 +416,7 @@ export function OperatorView({
                                 })
                               }
                             }}
-                            className={`group relative flex flex-col rounded-lg border cursor-pointer overflow-hidden transition select-none ${
-                              isLive
-                                ? 'border-emerald-500/70 bg-emerald-950/25 ring-1 ring-emerald-500/40'
-                                : isFocused
-                                  ? 'border-sky-500/30 bg-[#18202C] ring-1 ring-sky-500/40'
-                                  : 'border-white/5 bg-[#141820] hover:bg-[#181C24]'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between px-2.5 py-1 bg-[#0B0D10]/60 text-[10px]">
-                              <span className="font-semibold text-slate-300">
-                                Slide {slideIdx + 1}
-                              </span>
-                              {isLive ? (
-                                <span className="rounded bg-emerald-500/20 px-1.5 py-0.2 font-bold text-emerald-300">
-                                  AO VIVO
-                                </span>
-                              ) : isFocused ? (
-                                <span className="rounded bg-sky-500/20 px-1.5 py-0.2 font-bold text-sky-300">
-                                  FOCADO
-                                </span>
-                              ) : null}
-                            </div>
-                            <div className="aspect-video w-full bg-black flex items-center justify-center overflow-hidden p-2">
-                              {slide.imageUrl ? (
-                                <img
-                                  src={slide.imageUrl}
-                                  alt={`Slide ${slideIdx + 1}`}
-                                  className="h-full w-full object-contain"
-                                />
-                              ) : (
-                                <div className="text-[11px] text-center font-medium text-slate-200 line-clamp-4">
-                                  {slide.content.join(' ')}
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                          />
                         )
                       })}
                     </div>
@@ -477,7 +448,7 @@ export function OperatorView({
               })()
             ) : isLoadingSongDetail ? (
               <div className="flex flex-1 items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-sky-400" />
+                <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
               </div>
             ) : currentSong ? (
               <SongStanzaGrid
@@ -496,7 +467,7 @@ export function OperatorView({
                 }}
               />
             ) : (
-              <div className="flex flex-1 items-center justify-center text-xs text-slate-400">
+              <div className="flex flex-1 items-center justify-center text-xs text-zinc-400">
                 Selecione uma música, passagem bíblica ou apresentação para preparar no workspace
               </div>
             )}

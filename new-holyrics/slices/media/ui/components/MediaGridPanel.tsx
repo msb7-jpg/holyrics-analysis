@@ -9,7 +9,7 @@ import {
   Image as ImageIcon,
   Music,
   Search,
-  Check,
+  Radio,
   Upload,
   Trash2,
   Folder,
@@ -41,81 +41,28 @@ interface ContextMenuState {
   folderPath?: string
 }
 
-// TODO(perf): Otimizar carregamento de miniaturas de imagens gerando thumbnails em cache no disco/backend
-// (endpoint dedicado /api/media/thumb/:id) e virtualização da grade para acervos grandes.
-const thumbCache = new Map<string, string>()
+function MediaThumb({ item }: { item: MediaItem }) {
+  const [hasError, setHasError] = useState(false)
+  const thumbUrl = `/api/media/thumb/${encodeURIComponent(item.id)}`
 
-function MediaThumb({ item, streamUrl }: { item: MediaItem; streamUrl: string }) {
-  const [thumbSrc, setThumbSrc] = useState<string | null>(() => thumbCache.get(item.id) ?? null)
-
-  useEffect(() => {
-    if (item.type !== 'IMAGE') return
-    if (thumbCache.has(item.id)) {
-      setThumbSrc(thumbCache.get(item.id)!)
-      return
-    }
-
-    let cancelled = false
-    const controller = new AbortController()
-
-    fetch(streamUrl, { signal: controller.signal })
-      .then((res) => res.blob())
-      .then(async (blob) => {
-        if (cancelled) return
-        if (typeof createImageBitmap !== 'function') {
-          const objUrl = URL.createObjectURL(blob)
-          thumbCache.set(item.id, objUrl)
-          if (!cancelled) setThumbSrc(objUrl)
-          return
-        }
-        const bitmap = await createImageBitmap(blob, {
-          resizeWidth: 320,
-          resizeQuality: 'low',
-        })
-        const canvas = document.createElement('canvas')
-        canvas.width = bitmap.width
-        canvas.height = bitmap.height
-        const ctx = canvas.getContext('2d')
-        if (ctx) {
-          ctx.drawImage(bitmap, 0, 0)
-          bitmap.close()
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.72)
-          thumbCache.set(item.id, dataUrl)
-          if (!cancelled) setThumbSrc(dataUrl)
-        } else {
-          bitmap.close()
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setThumbSrc(streamUrl)
-      })
-
-    return () => {
-      cancelled = true
-      controller.abort()
-    }
-  }, [item.id, item.type, streamUrl])
-
-  if (item.type === 'IMAGE') {
-    if (!thumbSrc) {
-      return <ImageIcon className="h-5 w-5 text-slate-600 animate-pulse" />
-    }
+  if (item.type === 'IMAGE' || (item.type === 'VIDEO' && !hasError)) {
     return (
       <img
-        src={thumbSrc}
+        src={thumbUrl}
         alt={item.name}
         loading="lazy"
         decoding="async"
+        onError={() => setHasError(true)}
         className="h-full w-full object-cover"
       />
     )
   }
 
   if (item.type === 'VIDEO') {
-    return <Film className="h-5 w-5 text-sky-400/75" />
+    return <Film className="h-5 w-5 text-zinc-400/75" />
   }
 
-  return <Music className="h-5 w-5 text-sky-400" />
+  return <Music className="h-5 w-5 text-zinc-400" />
 }
 
 /**
@@ -333,19 +280,19 @@ export const MediaGridPanel = memo(function MediaGridPanel({
           uploadFiles(event.dataTransfer.files)
         }
       }}
-      className={`flex flex-col rounded-md bg-[#131C2B] text-slate-200 select-none overflow-hidden relative ${className}`}
+      className={`flex flex-col rounded-md bg-zinc-950 text-zinc-200 select-none overflow-hidden relative ${className}`}
     >
       {/* Barra de Filtro, Busca, Pastas e Upload */}
-      <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-white/5 bg-[#090D14]/50 p-2">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-zinc-800/80 bg-zinc-950 p-2">
         {(filterType === 'ALL' || filterType === 'VISUAL') && (
-          <div className="flex items-center gap-1 rounded bg-[#192334] p-0.5 text-xs">
+          <div className="flex items-center gap-0.5 rounded-md bg-zinc-900 border border-zinc-800/80 p-0.5 text-xs">
             <button
               type="button"
               onClick={() => setSelectedType('VISUAL')}
-              className={`rounded px-2 py-0.5 text-[10px] transition ${
+              className={`rounded-sm px-2 py-0.5 text-[10px] font-medium transition ${
                 selectedType === 'VISUAL' || selectedType === 'ALL'
-                  ? 'bg-sky-500 text-slate-950 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-zinc-100 text-zinc-900'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               Todos
@@ -353,34 +300,34 @@ export const MediaGridPanel = memo(function MediaGridPanel({
             <button
               type="button"
               onClick={() => setSelectedType('VIDEO')}
-              className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] transition ${
-                selectedType === 'VIDEO' ? 'bg-sky-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-200'
+              className={`flex items-center gap-1 rounded-sm px-2 py-0.5 text-[10px] font-medium transition ${
+                selectedType === 'VIDEO' ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              <Film className="h-3 w-3" />
+              <Film className="h-3 w-3" strokeWidth={1.75} />
               <span>Vídeos</span>
             </button>
             <button
               type="button"
               onClick={() => setSelectedType('IMAGE')}
-              className={`flex items-center gap-1 rounded px-2 py-0.5 text-[10px] transition ${
-                selectedType === 'IMAGE' ? 'bg-sky-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-200'
+              className={`flex items-center gap-1 rounded-sm px-2 py-0.5 text-[10px] font-medium transition ${
+                selectedType === 'IMAGE' ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              <ImageIcon className="h-3 w-3" />
+              <ImageIcon className="h-3 w-3" strokeWidth={1.75} />
               <span>Imagens</span>
             </button>
           </div>
         )}
 
         <div className="relative flex-1 min-w-[90px]">
-          <Search className="absolute left-2 top-1.5 h-3 w-3 text-slate-400" />
+          <Search className="absolute left-2 top-1.5 h-3 w-3 text-zinc-400" />
           <input
             type="text"
             placeholder="Filtrar..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full rounded bg-[#192334] pl-6 pr-2 py-1 text-[11px] text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className="w-full rounded-md bg-zinc-900 border border-zinc-800 pl-6 pr-2 py-1 text-[11px] text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600"
           />
         </div>
 
@@ -389,25 +336,25 @@ export const MediaGridPanel = memo(function MediaGridPanel({
             type="button"
             onClick={handleCreateFolder}
             title="Nova Pasta"
-            className="rounded bg-[#192334] p-1 text-slate-300 hover:bg-[#1E2B40] hover:text-sky-400 transition"
+            className="rounded-md bg-zinc-900 border border-zinc-800 p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition"
           >
-            <FolderPlus className="h-3.5 w-3.5" />
+            <FolderPlus className="h-3.5 w-3.5" strokeWidth={1.75} />
           </button>
           <button
             type="button"
             onClick={handleOpenLocalFolder}
             title="Abrir Pasta Local no Explorador do Computador"
-            className="rounded bg-[#192334] p-1 text-slate-300 hover:bg-[#1E2B40] hover:text-amber-400 transition"
+            className="rounded-md bg-zinc-900 border border-zinc-800 p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition"
           >
-            <FolderOpen className="h-3.5 w-3.5" />
+            <FolderOpen className="h-3.5 w-3.5" strokeWidth={1.75} />
           </button>
           <button
             type="button"
             onClick={handleRescan}
             title="Atualizar / Reescanear Pasta"
-            className="rounded bg-[#192334] p-1 text-slate-300 hover:bg-[#1E2B40] hover:text-emerald-400 transition"
+            className="rounded-md bg-zinc-900 border border-zinc-800 p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.75} />
           </button>
 
           <input
@@ -428,9 +375,9 @@ export const MediaGridPanel = memo(function MediaGridPanel({
             disabled={isUploading}
             onClick={() => fileInputRef.current?.click()}
             title="Importar arquivos do computador"
-            className="flex items-center gap-1 rounded bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 px-2 py-1 text-[10px] font-medium text-sky-300 transition shrink-0"
+            className="flex items-center gap-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-2.5 py-1 text-[11px] font-medium text-zinc-200 transition shrink-0"
           >
-            <Upload className="h-3 w-3" />
+            <Upload className="h-3 w-3 text-zinc-400" strokeWidth={1.75} />
             <span>{isUploading ? 'Enviando...' : 'Importar'}</span>
           </button>
         </div>
@@ -438,11 +385,11 @@ export const MediaGridPanel = memo(function MediaGridPanel({
 
       {/* Breadcrumb de Pastas */}
       {(currentFolder || immediateChildFolders.length > 0) && (
-        <div className="flex items-center gap-1 border-b border-white/5 bg-[#0F1622]/70 px-2.5 py-1 text-[10px] text-slate-400 overflow-x-auto">
+        <div className="flex items-center gap-1 border-b border-zinc-800/80 bg-zinc-900/50 px-2.5 py-1 text-[10px] text-zinc-400 overflow-x-auto">
           <button
             type="button"
             onClick={() => setCurrentFolder('')}
-            className={`hover:text-sky-400 transition ${!currentFolder ? 'text-sky-400 font-semibold' : ''}`}
+            className={`hover:text-zinc-400 transition ${!currentFolder ? 'text-zinc-400 font-semibold' : ''}`}
           >
             Raiz
           </button>
@@ -450,12 +397,12 @@ export const MediaGridPanel = memo(function MediaGridPanel({
             const path = breadcrumbs.slice(0, index + 1).join('/')
             return (
               <span key={path} className="flex items-center gap-1 shrink-0">
-                <ChevronRight className="h-2.5 w-2.5 text-slate-600" />
+                <ChevronRight className="h-2.5 w-2.5 text-zinc-600" />
                 <button
                   type="button"
                   onClick={() => setCurrentFolder(path)}
-                  className={`hover:text-sky-400 transition ${
-                    path === currentFolder ? 'text-sky-400 font-semibold' : ''
+                  className={`hover:text-zinc-400 transition ${
+                    path === currentFolder ? 'text-zinc-400 font-semibold' : ''
                   }`}
                 >
                   {segment}
@@ -471,38 +418,42 @@ export const MediaGridPanel = memo(function MediaGridPanel({
         {immediateChildFolders.length === 0 && filteredMedia.length === 0 ? (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center rounded-lg border border-dashed border-white/10 py-8 px-3 text-center cursor-pointer hover:border-sky-500/40 transition"
+            className="flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-800 py-8 px-3 text-center cursor-pointer hover:border-zinc-700 transition"
           >
-            <Upload className="h-6 w-6 text-slate-500 mb-1.5" />
-            <p className="text-xs font-medium text-slate-300">Nenhuma mídia nesta pasta</p>
-            <p className="text-[10px] text-slate-500 mt-0.5">
+            <Upload className="h-6 w-6 text-zinc-500 mb-1.5" />
+            <p className="text-xs font-medium text-zinc-300">Nenhuma mídia nesta pasta</p>
+            <p className="text-[10px] text-zinc-500 mt-0.5">
               Arraste arquivos aqui ou clique para importar
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {/* Pastas filhas */}
-            {!searchQuery &&
-              immediateChildFolders.map((folderPath) => {
-                const folderName = folderPath.split('/').pop() || folderPath
-                return (
-                  <div
-                    key={folderPath}
-                    onClick={() => setCurrentFolder(folderPath)}
-                    onContextMenu={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      setContextMenu({ x: event.clientX, y: event.clientY, folderPath })
-                    }}
-                    className="flex items-center gap-2 rounded-[6px] bg-[#192334]/80 hover:bg-[#1E2B40] p-2 cursor-pointer border border-white/5 transition"
-                  >
-                    <Folder className="h-4 w-4 text-amber-400 shrink-0" />
-                    <span className="truncate text-[11px] font-medium text-slate-200">{folderName}</span>
-                  </div>
-                )
-              })}
+          <div className="flex flex-col gap-2">
+            {/* Pastas filhas (altura fixa compacta, independente dos cards de mídia) */}
+            {!searchQuery && immediateChildFolders.length > 0 && (
+              <div className="grid grid-cols-2 gap-1.5">
+                {immediateChildFolders.map((folderPath) => {
+                  const folderName = folderPath.split('/').pop() || folderPath
+                  return (
+                    <div
+                      key={folderPath}
+                      onClick={() => setCurrentFolder(folderPath)}
+                      onContextMenu={(event) => {
+                        event.preventDefault()
+                        event.stopPropagation()
+                        setContextMenu({ x: event.clientX, y: event.clientY, folderPath })
+                      }}
+                      className="flex h-9 items-center gap-2 rounded-md bg-zinc-900/70 hover:bg-zinc-800/80 px-2.5 cursor-pointer border border-zinc-800/80 transition"
+                    >
+                      <Folder className="h-3.5 w-3.5 text-zinc-400 shrink-0" strokeWidth={1.75} />
+                      <span className="truncate text-xs font-medium text-zinc-200">{folderName}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
 
             {/* Itens de Mídia */}
+            <div className="grid grid-cols-2 gap-2">
             {filteredMedia.map((item) => {
               const streamUrl = `/api/media/stream/${encodeURIComponent(item.id)}`
               const isCurrentlyActive =
@@ -531,16 +482,16 @@ export const MediaGridPanel = memo(function MediaGridPanel({
                     event.stopPropagation()
                     setContextMenu({ x: event.clientX, y: event.clientY, item })
                   }}
-                  className={`group relative flex flex-col rounded-[6px] cursor-pointer overflow-hidden transition ${
+                  className={`group relative flex flex-col rounded-md cursor-pointer overflow-hidden border transition ${
                     isCurrentlyActive
-                      ? 'ring-1 ring-emerald-500 bg-[#1D2D3E]'
-                      : 'bg-[#192334] hover:bg-[#1E2B40]'
+                      ? 'border-zinc-200 ring-1 ring-zinc-200 bg-zinc-900'
+                      : 'border-zinc-800/80 bg-zinc-900/50 hover:bg-zinc-900 hover:border-zinc-700'
                   }`}
                 >
-                  <div className="relative h-16 w-full bg-[#090D14] flex items-center justify-center overflow-hidden">
-                    <MediaThumb item={item} streamUrl={streamUrl} />
+                  <div className="relative h-16 w-full bg-black flex items-center justify-center overflow-hidden">
+                    <MediaThumb item={item} />
 
-                    <span className="absolute left-1 top-1 rounded bg-[#0F1622]/90 px-1 py-0.5 text-[9px] font-mono text-slate-300">
+                    <span className="absolute left-1 top-1 rounded bg-zinc-950/85 px-1 py-0.5 text-[9px] font-mono text-zinc-300 border border-zinc-800/80">
                       {item.type === 'VIDEO' ? 'VÍDEO' : item.type === 'AUDIO' ? 'ÁUDIO' : 'IMG'}
                     </span>
 
@@ -552,7 +503,7 @@ export const MediaGridPanel = memo(function MediaGridPanel({
                           setPreviewItem(item)
                         }}
                         title="Visualizar Preview Ampliado"
-                        className="rounded bg-black/75 p-1 text-sky-300 hover:text-sky-200 transition"
+                        className="rounded bg-black/75 p-1 text-zinc-200 hover:text-white transition"
                       >
                         <Eye className="h-2.5 w-2.5" />
                       </button>
@@ -564,7 +515,7 @@ export const MediaGridPanel = memo(function MediaGridPanel({
                             handleDeleteMedia(item.id)
                           }}
                           title="Remover mídia"
-                          className="rounded bg-black/75 p-1 text-rose-400 hover:text-rose-300 transition"
+                          className="rounded bg-black/75 p-1 text-red-400 hover:text-red-300 transition"
                         >
                           <Trash2 className="h-2.5 w-2.5" />
                         </button>
@@ -572,18 +523,24 @@ export const MediaGridPanel = memo(function MediaGridPanel({
                     </div>
 
                     {isCurrentlyActive && (
-                      <span className="absolute right-1 bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-slate-950">
-                        <Check className="h-2.5 w-2.5 stroke-[3]" />
+                      <span
+                        data-testid="live-indicator"
+                        aria-label="Ao vivo"
+                        title="Fundo ao vivo no telão"
+                        className="absolute right-1 bottom-1 inline-flex items-center justify-center rounded-full bg-zinc-950/85 p-1 text-emerald-400 border border-emerald-500/30"
+                      >
+                        <Radio className="h-2.5 w-2.5 animate-pulse" strokeWidth={2} />
                       </span>
                     )}
                   </div>
 
                   <div className="p-1.5">
-                    <div className="truncate text-[11px] font-medium text-slate-200">{item.name}</div>
+                    <div className="truncate text-[11px] font-medium text-zinc-200">{item.name}</div>
                   </div>
                 </div>
               )
             })}
+            </div>
           </div>
         )}
       </div>
@@ -592,7 +549,7 @@ export const MediaGridPanel = memo(function MediaGridPanel({
       {contextMenu && (
         <div
           style={{ left: contextMenu.x, top: contextMenu.y }}
-          className="fixed z-50 w-48 rounded-lg border border-white/10 bg-[#0F1622] py-1 text-xs shadow-2xl"
+          className="fixed z-50 w-48 rounded-lg border border-zinc-800 bg-zinc-950 py-1 text-xs shadow-2xl"
         >
           {contextMenu.item && (
             <>
@@ -604,7 +561,7 @@ export const MediaGridPanel = memo(function MediaGridPanel({
                     setContextMenu(null)
                     onProjectMedia(target)
                   }}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-zinc-200 hover:bg-zinc-800"
                 >
                   <Presentation className="h-3.5 w-3.5 text-emerald-400" />
                   <span>Projetar em Tela Cheia</span>
@@ -617,9 +574,9 @@ export const MediaGridPanel = memo(function MediaGridPanel({
                   setContextMenu(null)
                   handleApplyBackground(target)
                 }}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-zinc-200 hover:bg-zinc-900"
               >
-                <ImageIcon className="h-3.5 w-3.5 text-sky-400" />
+                <ImageIcon className="h-3.5 w-3.5 text-zinc-400" />
                 <span>Definir como Fundo de Louvor</span>
               </button>
               <button
@@ -629,15 +586,15 @@ export const MediaGridPanel = memo(function MediaGridPanel({
                   setContextMenu(null)
                   setPreviewItem(target)
                 }}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-zinc-200 hover:bg-zinc-900"
               >
-                <Eye className="h-3.5 w-3.5 text-sky-400" />
+                <Eye className="h-3.5 w-3.5 text-zinc-400" />
                 <span>Visualizar Preview</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleRenameMedia(contextMenu.item!)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-zinc-200 hover:bg-zinc-900"
               >
                 <Pencil className="h-3.5 w-3.5 text-amber-400" />
                 <span>Renomear</span>
@@ -657,7 +614,7 @@ export const MediaGridPanel = memo(function MediaGridPanel({
               <button
                 type="button"
                 onClick={() => handleRenameFolder(contextMenu.folderPath!)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-zinc-200 hover:bg-zinc-900"
               >
                 <Pencil className="h-3.5 w-3.5 text-amber-400" />
                 <span>Renomear Pasta</span>
@@ -683,14 +640,14 @@ export const MediaGridPanel = memo(function MediaGridPanel({
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            className="flex w-full max-w-3xl flex-col rounded-xl border border-white/10 bg-[#0F1622] overflow-hidden shadow-2xl"
+            className="flex w-full max-w-3xl flex-col rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden shadow-2xl"
           >
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+            <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
               <span className="text-xs font-semibold text-white truncate">{previewItem.name}</span>
               <button
                 type="button"
                 onClick={() => setPreviewItem(null)}
-                className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-white"
+                className="rounded p-1 text-zinc-400 hover:bg-white/10 hover:text-white"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -719,14 +676,14 @@ export const MediaGridPanel = memo(function MediaGridPanel({
               )}
             </div>
             {previewItem.type !== 'AUDIO' && (
-              <div className="flex justify-end gap-2 border-t border-white/10 px-4 py-3 bg-[#090D14]">
+              <div className="flex justify-end gap-2 border-t border-zinc-800 px-4 py-3 bg-zinc-950">
                 <button
                   type="button"
                   onClick={() => {
                     handleApplyBackground(previewItem)
                     setPreviewItem(null)
                   }}
-                  className="rounded-md bg-sky-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition"
+                  className="rounded-md bg-sky-500 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-sky-400 transition"
                 >
                   Projetar no Telão
                 </button>

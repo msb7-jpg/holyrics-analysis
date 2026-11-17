@@ -25,24 +25,24 @@ export function BibleQuickLookupCard({ lookup, onProject }: BibleQuickLookupCard
   return (
     <div
       onClick={() => onProject(lookup)}
-      className="flex flex-col gap-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 p-2.5 cursor-pointer hover:bg-sky-500/20 transition mb-2 select-none"
+      className="flex flex-col gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 p-2.5 cursor-pointer hover:bg-zinc-800 transition mb-2 select-none"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <BookOpen className="h-3.5 w-3.5 text-sky-400" />
+          <BookOpen className="h-3.5 w-3.5 text-zinc-400" />
           <span className="font-semibold text-xs text-white">{lookup.reference}</span>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="bible">{lookup.version}</Badge>
-          <div className="flex items-center gap-1 text-[10px] text-sky-400 font-mono">
+          <div className="flex items-center gap-1 text-[10px] text-zinc-400 font-mono">
             <span>Projetar</span>
             <CornerDownLeft className="h-2.5 w-2.5" />
           </div>
         </div>
       </div>
 
-      <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
-        <span className="font-mono text-sky-400 font-bold mr-1">{firstVerse.verse}.</span>
+      <p className="text-[11px] text-zinc-300 line-clamp-2 leading-relaxed">
+        <span className="font-mono text-zinc-400 font-bold mr-1">{firstVerse.verse}.</span>
         {firstVerse.text}
       </p>
     </div>

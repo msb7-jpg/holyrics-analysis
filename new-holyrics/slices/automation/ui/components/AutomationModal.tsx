@@ -156,30 +156,30 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-5 select-none animate-in fade-in duration-150">
-      <div className="flex h-[90vh] w-full max-w-6xl flex-col rounded-xl border border-white/10 bg-slate-950 shadow-2xl overflow-hidden">
+      <div className="flex h-[90vh] w-full max-w-6xl flex-col rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl overflow-hidden">
         {/* Cabeçalho */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-slate-900 px-5 py-3">
+        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950 px-5 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-800 text-zinc-400">
                 <Cpu className="h-4 w-4" />
               </span>
               <div>
-                <h2 className="text-sm font-bold text-slate-100">Automações & Integrações</h2>
-                <p className="text-[11px] text-slate-400">
+                <h2 className="text-sm font-bold text-zinc-100">Automações & Integrações</h2>
+                <p className="text-[11px] text-zinc-400">
                   Regras visuais integradas com OBS Studio, webhooks HTTP e projeção
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 rounded-lg bg-slate-950 p-1 text-xs">
+            <div className="flex items-center gap-0.5 rounded-lg bg-zinc-950/80 p-0.5 border border-zinc-800 text-xs">
               <button
                 type="button"
                 onClick={() => setActiveTab('EDITOR')}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-medium transition ${
                   activeTab === 'EDITOR'
-                    ? 'bg-sky-500 text-slate-950'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-sky-500 text-zinc-950'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 <Workflow className="h-3.5 w-3.5" />
@@ -193,8 +193,8 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
                 }}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-medium transition ${
                   activeTab === 'HISTORY'
-                    ? 'bg-sky-500 text-slate-950'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-sky-500 text-zinc-950'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 <History className="h-3.5 w-3.5" />
@@ -206,7 +206,7 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition"
+            className="rounded p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition"
             title="Fechar (Esc)"
           >
             <X className="h-5 w-5" />
@@ -218,16 +218,16 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
           {activeTab === 'EDITOR' ? (
             <>
               {/* Barra Lateral de Múltiplos Fluxos */}
-              <aside className="w-56 shrink-0 border-r border-white/10 bg-slate-900/70 p-3 flex flex-col gap-2 text-xs">
-                <div className="flex items-center justify-between pb-1 border-b border-white/5">
-                  <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-400">
+              <aside className="w-56 shrink-0 border-r border-zinc-800 bg-zinc-950 p-3 flex flex-col gap-2 text-xs">
+                <div className="flex items-center justify-between pb-1 border-b border-zinc-800">
+                  <span className="font-semibold uppercase tracking-wider text-[10px] text-zinc-400">
                     Regras / Fluxos ({flows.length})
                   </span>
                   <button
                     type="button"
                     onClick={handleCreateFlow}
                     title="Novo Fluxo de Automação"
-                    className="flex items-center gap-1 rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] font-medium text-sky-300 hover:bg-sky-500/25"
+                    className="flex items-center gap-1 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-200 hover:bg-zinc-800"
                   >
                     <Plus className="h-3 w-3" /> Novo
                   </button>
@@ -242,8 +242,8 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
                         onClick={() => setActiveFlowId(flow.id)}
                         className={`group flex items-center justify-between rounded-md px-2.5 py-2 cursor-pointer transition ${
                           isSelected
-                            ? 'bg-slate-800 text-white ring-1 ring-sky-500/50'
-                            : 'text-slate-300 hover:bg-slate-800/50'
+                            ? 'bg-zinc-800 text-white ring-1 ring-zinc-600'
+                            : 'text-zinc-300 hover:bg-zinc-800'
                         }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
@@ -265,7 +265,7 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
                               void handleDeleteFlow(flow.id)
                             }}
                             title="Excluir Fluxo"
-                            className="opacity-0 group-hover:opacity-100 rounded p-0.5 text-slate-500 hover:text-rose-400 transition"
+                            className="opacity-0 group-hover:opacity-100 rounded p-0.5 text-zinc-500 hover:text-rose-400 transition"
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
@@ -279,7 +279,7 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
               {/* Canvas */}
               <div className="flex-1 min-w-0 relative">
                 {loading ? (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-slate-400 font-mono">
+                  <div className="flex h-full w-full items-center justify-center text-xs text-zinc-400 font-mono">
                     Carregando regras de automação...
                   </div>
                 ) : (
@@ -297,14 +297,14 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
             /* Aba de Histórico de Execução */
             <div className="flex flex-1 flex-col p-5 overflow-y-auto text-xs">
               <div className="mb-3 flex items-center justify-between">
-                <span className="font-semibold text-slate-300">
+                <span className="font-semibold text-zinc-300">
                   Últimas Execuções ({history.length})
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={loadHistory}
-                    className="flex items-center gap-1 rounded bg-slate-800 px-2.5 py-1 text-slate-200 hover:bg-slate-700"
+                    className="flex items-center gap-1 rounded bg-zinc-900 border border-zinc-800 px-2.5 py-1 text-zinc-200 hover:bg-zinc-800"
                   >
                     <RefreshCw className="h-3 w-3" /> Atualizar
                   </button>
@@ -322,7 +322,7 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
               </div>
 
               {history.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center text-slate-500">
+                <div className="flex flex-1 items-center justify-center text-zinc-500">
                   Nenhuma execução registrada nesta sessão. Clique em &quot;Testar Fluxo&quot; ou projete um slide.
                 </div>
               ) : (
@@ -330,7 +330,7 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
                   {history.map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-center justify-between rounded-lg border border-white/10 bg-slate-900/70 px-3.5 py-2.5"
+                      className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2.5"
                     >
                       <div className="flex items-center gap-3">
                         <span
@@ -339,17 +339,17 @@ export function AutomationModal({ isOpen, onClose }: AutomationModalProps) {
                               ? 'bg-emerald-500/20 text-emerald-300'
                               : entry.status === 'error'
                                 ? 'bg-rose-500/20 text-rose-300'
-                                : 'bg-slate-700 text-slate-300'
+                                : 'bg-zinc-700 text-zinc-300'
                           }`}
                         >
                           {entry.status}
                         </span>
                         <div>
-                          <p className="font-semibold text-slate-100">{entry.triggerType}</p>
-                          <p className="text-[11px] text-slate-400">{entry.details}</p>
+                          <p className="font-semibold text-zinc-100">{entry.triggerType}</p>
+                          <p className="text-[11px] text-zinc-400">{entry.details}</p>
                         </div>
                       </div>
-                      <span className="font-mono text-[10px] text-slate-500">
+                      <span className="font-mono text-[10px] text-zinc-500">
                         {new Date(entry.timestamp).toLocaleTimeString()}
                       </span>
                     </div>

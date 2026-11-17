@@ -5,6 +5,7 @@
 
 import { BookOpen, Columns2 } from 'lucide-react'
 import { Button } from '@ui/components/ui/button'
+import { LiveIndicator } from '@ui/components/ui/live-indicator'
 import type { BibleLookupResponse } from '../../contracts/bible-contracts'
 
 export interface BibleVerseGridProps {
@@ -44,14 +45,9 @@ export function BibleVerseGrid({
 }: BibleVerseGridProps) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="mb-2 flex items-center justify-between text-xs font-semibold">
-        <span className="uppercase truncate flex items-center gap-2 text-slate-100">
-          <span
-            className={`inline-block h-2 w-2 rounded-full shrink-0 ${
-              isLiveOnScreen ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-sky-400'
-            }`}
-          />
-          <BookOpen className="h-3.5 w-3.5 text-sky-400" />
+      <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
+        <span className="uppercase truncate flex items-center gap-2 text-zinc-100">
+          <BookOpen className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.75} />
           <span>
             {activeBible.reference} ({activeBible.version}
             {activeBible.dualVersion ? ` + ${activeBible.dualVersion}` : ''})
@@ -66,11 +62,11 @@ export function BibleVerseGrid({
               onClick={() => onChangeDualVersion(dualVersion ? null : 'NVI')}
               title="Exibir duas traduções bíblicas lado a lado no telão"
             >
-              <Columns2 className="h-3.5 w-3.5" />
+              <Columns2 className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.75} />
               <span>{dualVersion ? `2ª Versão: ${dualVersion}` : 'Comparar Versão'}</span>
             </Button>
           )}
-          <span className="text-[11px] text-slate-400 font-mono">
+          <span className="text-[11px] text-zinc-500 tabular-nums font-mono">
             {activeBible.verses.length}{' '}
             {activeBible.verses.length === 1 ? 'versículo' : 'versículos'}
           </span>
@@ -87,50 +83,45 @@ export function BibleVerseGrid({
             key={verseItem.id}
             onClick={() => onSelectVerse?.(index)}
             onDoubleClick={() => onProjectVerse?.(index)}
-            className={`group relative flex cursor-pointer rounded-[6px] p-3.5 transition select-none ${
+            className={`group relative flex cursor-pointer rounded-xl p-4 transition select-none ${
               isCurrentLive
-                ? 'bg-[#1D2D3E] ring-1 ring-emerald-500/50 shadow-sm'
+                ? 'bg-zinc-900 border border-zinc-300 ring-1 ring-zinc-200'
                 : isFocused
-                  ? 'bg-[#172338] ring-1 ring-sky-500/40'
-                  : 'bg-[#192334] hover:bg-[#1E2B40]'
+                  ? 'bg-zinc-900/90 border border-zinc-700'
+                  : 'bg-zinc-900/40 hover:bg-zinc-900/80 border border-zinc-800/60 hover:border-zinc-700'
             }`}
           >
             {isCurrentLive && (
-              <>
-                <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[6px] bg-emerald-500" />
-                <span className="absolute top-2 right-2 rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-mono font-bold text-emerald-300">
-                  AO VIVO
-                </span>
-              </>
+              <LiveIndicator variant="icon" className="absolute top-3 right-3" />
             )}
 
             <span
-              className={`mr-3.5 font-mono text-xs font-bold pt-0.5 select-none ${
+              className={`mr-3.5 tabular-nums font-mono text-xs pt-0.5 select-none ${
                 isCurrentLive
-                  ? 'text-emerald-400'
+                  ? 'text-zinc-200 font-medium'
                   : isFocused
-                    ? 'text-sky-400'
-                    : 'text-sky-400/80'
+                    ? 'text-zinc-300'
+                    : 'text-zinc-500 group-hover:text-zinc-400'
               }`}
             >
-              {verseItem.verse}
+              {String(verseItem.verse).padStart(2, '0')}
             </span>
 
-            <div className="flex-1 flex flex-col gap-1.5">
+            <div className="flex-1 flex flex-col gap-1.5 pr-7">
               <p
-                className={`font-sans text-[15px] leading-[1.5] transition-colors ${
+                className={`font-sans text-[14px] leading-relaxed transition-colors ${
                   isCurrentLive
-                    ? 'text-[#F8FAFC] font-medium'
+                    ? 'text-zinc-50 font-medium'
                     : isFocused
-                      ? 'text-slate-100'
-                      : 'text-[#94A3B8] group-hover:text-slate-200'
+                      ? 'text-zinc-100'
+                      : 'text-zinc-300 group-hover:text-zinc-100'
                 }`}
               >
                 {verseItem.text}
               </p>
 
               {secondaryVerse && (
-                <p className="border-t border-white/10 pt-1.5 font-sans text-sm leading-relaxed text-amber-200/90">
+                <p className="border-t border-white/5 pt-1.5 font-sans text-sm leading-relaxed text-amber-200/90">
                   <span className="mr-1.5 font-mono text-[10px] font-bold text-amber-400">
                     [{activeBible.dualVersion}]
                   </span>

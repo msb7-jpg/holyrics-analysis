@@ -9,6 +9,7 @@
  */
 
 import { Pencil } from 'lucide-react'
+import { LiveIndicator } from '@ui/components/ui/live-indicator'
 import type { Song } from '../../contracts/song-contracts'
 
 export interface SongStanzaGridProps {
@@ -46,30 +47,24 @@ export function SongStanzaGrid({
   const isCoverFocused = !isCoverLive && focusedIndex === 0
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="mb-2 flex items-center justify-between text-xs font-semibold">
+    <div className="flex flex-col gap-2">
+      <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
         <div className="flex items-center gap-2 truncate">
-          <span
-            className={`inline-block h-2 w-2 rounded-full shrink-0 ${
-              isLiveOnScreen ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-sky-400'
-            }`}
-            title={isLiveOnScreen ? 'Música ao vivo no telão' : 'Música em visualização (Preview)'}
-          />
-          <span className="uppercase tracking-wide text-slate-100 truncate">
-            {song.title} <span className="text-slate-400 font-normal">— {song.artist}</span>
+          <span className="uppercase tracking-wide text-zinc-100 truncate">
+            {song.title} <span className="text-zinc-400 font-normal">— {song.artist}</span>
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
           <button
             type="button"
             onClick={() => onEditSong?.(song)}
-            className="flex items-center gap-1.5 rounded-lg bg-[#141820] hover:bg-[#181C24] text-slate-300 hover:text-white px-2.5 py-1 text-[11px] font-medium border border-white/5 transition"
+            className="flex items-center gap-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-200 px-3 py-1.5 text-xs font-medium border border-zinc-800 transition"
             title="Editar letra, título e fundo desta música"
           >
-            <Pencil className="h-3 w-3 text-sky-400" />
+            <Pencil className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.75} />
             <span>Editar</span>
           </button>
-          <span className="text-[11px] text-slate-400 font-mono">
+          <span className="text-[11px] text-zinc-500 font-mono tabular-nums">
             {song.sections.length} {song.sections.length === 1 ? 'estrofe' : 'estrofes'}
           </span>
         </div>
@@ -79,49 +74,47 @@ export function SongStanzaGrid({
       <div
         onClick={() => onSelectStanza?.(0)}
         onDoubleClick={() => onProjectStanza?.(0)}
-        className={`group relative flex cursor-pointer rounded-xl p-4.5 transition select-none ${
+        className={`group relative flex cursor-pointer rounded-xl p-4 transition select-none ${
           isCoverLive
-            ? 'bg-emerald-950/25 border border-emerald-500/70 ring-1 ring-emerald-500/40'
+            ? 'bg-zinc-900 border border-zinc-300 ring-1 ring-zinc-200'
             : isCoverFocused
-              ? 'bg-[#18202C] border border-sky-500/30 ring-1 ring-sky-500/40'
-              : 'bg-[#141820] hover:bg-[#181C24] border border-white/[0.04]'
+              ? 'bg-zinc-900/90 border border-zinc-700'
+              : 'bg-zinc-900/40 hover:bg-zinc-900/80 border border-zinc-800/60 hover:border-zinc-700'
         }`}
       >
         {isCoverLive && (
-          <span className="absolute top-3 right-3 rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-mono font-bold text-emerald-300">
-            AO VIVO
-          </span>
+          <LiveIndicator variant="icon" className="absolute top-3 right-3" />
         )}
 
         <span
-          className={`mr-3.5 tabular-nums font-mono text-xs font-semibold pt-0.5 select-none ${
+          className={`mr-3.5 tabular-nums font-mono text-xs pt-0.5 select-none ${
             isCoverLive
-              ? 'text-emerald-400'
+              ? 'text-zinc-200 font-medium'
               : isCoverFocused
-                ? 'text-sky-400'
-                : 'text-slate-500 group-hover:text-slate-400'
+                ? 'text-zinc-300'
+                : 'text-zinc-500 group-hover:text-zinc-400'
           }`}
         >
           00
         </span>
 
-        <div className="flex-1 min-w-0">
-          <span className="text-[10px] tabular-nums font-mono font-semibold uppercase tracking-wider text-slate-400 block mb-0.5">
-            00 · Capa / Título
+        <div className="flex-1 min-w-0 pr-7">
+          <span className="text-[10px] tabular-nums font-mono font-medium uppercase tracking-wider text-zinc-500 block mb-0.5">
+            Título
           </span>
           <p
-            className={`font-sans text-[15px] font-bold leading-tight truncate ${
+            className={`font-sans text-[14px] leading-relaxed truncate ${
               isCoverLive
-                ? 'text-white font-medium'
+                ? 'text-zinc-50 font-medium'
                 : isCoverFocused
-                  ? 'text-slate-100'
-                  : 'text-slate-200 group-hover:text-white'
+                  ? 'text-zinc-100 font-medium'
+                  : 'text-zinc-300 group-hover:text-zinc-100'
             }`}
           >
             {song.title}
           </p>
           {song.artist && (
-            <p className="font-sans text-xs text-slate-400 truncate mt-0.5">
+            <p className="font-sans text-xs text-zinc-400 truncate mt-0.5">
               {song.artist}
             </p>
           )}
@@ -138,39 +131,37 @@ export function SongStanzaGrid({
             key={section.id}
             onClick={() => onSelectStanza?.(slideIndex)}
             onDoubleClick={() => onProjectStanza?.(slideIndex)}
-            className={`group relative flex cursor-pointer rounded-xl p-4.5 transition select-none ${
+            className={`group relative flex cursor-pointer rounded-xl p-4 transition select-none ${
               isCurrentLive
-                ? 'bg-emerald-950/25 border border-emerald-500/70 ring-1 ring-emerald-500/40'
+                ? 'bg-zinc-900 border border-zinc-300 ring-1 ring-zinc-200'
                 : isFocused
-                  ? 'bg-[#18202C] border border-sky-500/30 ring-1 ring-sky-500/40'
-                  : 'bg-[#141820] hover:bg-[#181C24] border border-white/[0.04]'
+                  ? 'bg-zinc-900/90 border border-zinc-700'
+                  : 'bg-zinc-900/40 hover:bg-zinc-900/80 border border-zinc-800/60 hover:border-zinc-700'
             }`}
           >
             {isCurrentLive && (
-              <span className="absolute top-3 right-3 rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-mono font-bold text-emerald-300">
-                AO VIVO
-              </span>
+              <LiveIndicator variant="icon" className="absolute top-3 right-3" />
             )}
 
             <span
-              className={`mr-3.5 tabular-nums font-mono text-xs font-semibold pt-0.5 select-none ${
+              className={`mr-3.5 tabular-nums font-mono text-xs pt-0.5 select-none ${
                 isCurrentLive
-                  ? 'text-emerald-400'
+                  ? 'text-zinc-200 font-medium'
                   : isFocused
-                    ? 'text-sky-400'
-                    : 'text-slate-500 group-hover:text-slate-400'
+                    ? 'text-zinc-300'
+                    : 'text-zinc-500 group-hover:text-zinc-400'
               }`}
             >
               {String(slideIndex).padStart(2, '0')}
             </span>
 
             <p
-              className={`flex-1 whitespace-pre-line font-sans text-[15px] leading-[1.5] transition-colors ${
+              className={`flex-1 whitespace-pre-line font-sans text-[14px] leading-relaxed pr-7 transition-colors ${
                 isCurrentLive
-                  ? 'text-white font-medium'
+                  ? 'text-zinc-50 font-medium'
                   : isFocused
-                    ? 'text-slate-100'
-                    : 'text-[#A0AAB8] group-hover:text-slate-200'
+                    ? 'text-zinc-100'
+                    : 'text-zinc-300 group-hover:text-zinc-100'
               }`}
             >
               {section.lines.join('\n')}

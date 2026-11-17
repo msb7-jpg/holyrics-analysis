@@ -38,23 +38,23 @@ export function TriggerNode({ data }: { data: AutomationNode }) {
     : 'Webhook HTTP'
 
   return (
-    <div className="min-w-[180px] rounded-lg border border-sky-500/30 bg-slate-900/90 p-3 shadow-xl backdrop-blur-md">
+    <div className="min-w-[180px] rounded-lg border border-zinc-700 bg-zinc-900/95 p-3 shadow-xl backdrop-blur-md">
       <div className="flex items-center gap-2 mb-1.5">
-        <span className="flex h-5 w-5 items-center justify-center rounded bg-sky-500/20 text-sky-400">
+        <span className="flex h-5 w-5 items-center justify-center rounded bg-zinc-800 text-zinc-400">
           <Zap className="h-3 w-3" />
         </span>
-        <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-sky-400">
+        <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
           Gatilho
         </span>
       </div>
-      <p className="text-xs font-semibold text-slate-100">{data.label}</p>
-      <span className="text-[10px] text-slate-400 font-mono">{triggerLabel}</span>
+      <p className="text-xs font-semibold text-zinc-100">{data.label}</p>
+      <span className="text-[10px] text-zinc-400 font-mono">{triggerLabel}</span>
 
       {/* Handle de saída */}
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-2.5 !w-2.5 !bg-sky-400 !border-slate-900"
+        className="!h-2.5 !w-2.5 !bg-sky-400 !border-zinc-900"
       />
     </div>
   )
@@ -71,12 +71,12 @@ export function ConditionNode({ data }: { data: AutomationNode }) {
   const config = data.conditionConfig
 
   return (
-    <div className="relative min-w-[200px] rounded-lg border border-amber-500/30 bg-slate-900/90 p-3 shadow-xl backdrop-blur-md">
+    <div className="relative min-w-[200px] rounded-lg border border-amber-500/30 bg-zinc-900/95 p-3 shadow-xl backdrop-blur-md">
       {/* Handle de entrada */}
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-2.5 !w-2.5 !bg-amber-400 !border-slate-900"
+        className="!h-2.5 !w-2.5 !bg-amber-400 !border-zinc-900"
       />
 
       <div className="flex items-center gap-2 mb-1.5">
@@ -87,11 +87,11 @@ export function ConditionNode({ data }: { data: AutomationNode }) {
           Condição
         </span>
       </div>
-      <p className="text-xs font-semibold text-slate-100">{data.label}</p>
+      <p className="text-xs font-semibold text-zinc-100">{data.label}</p>
       {config && (
-        <div className="mt-1 flex items-center gap-1 rounded bg-slate-800/80 px-1.5 py-0.5 text-[10px] font-mono text-amber-300">
+        <div className="mt-1 flex items-center gap-1 rounded bg-zinc-950/80 px-1.5 py-0.5 text-[10px] font-mono text-amber-300">
           <span>{config.field}</span>
-          <span className="text-slate-500">{config.operator}</span>
+          <span className="text-zinc-500">{config.operator}</span>
           <span className="text-white">"{config.value}"</span>
         </div>
       )}
@@ -103,7 +103,7 @@ export function ConditionNode({ data }: { data: AutomationNode }) {
           id="true"
           type="source"
           position={Position.Right}
-          className="!h-2.5 !w-2.5 !bg-emerald-400 !border-slate-900"
+          className="!h-2.5 !w-2.5 !bg-emerald-400 !border-zinc-900"
         />
       </div>
 
@@ -113,7 +113,7 @@ export function ConditionNode({ data }: { data: AutomationNode }) {
           id="false"
           type="source"
           position={Position.Right}
-          className="!h-2.5 !w-2.5 !bg-rose-400 !border-slate-900"
+          className="!h-2.5 !w-2.5 !bg-rose-400 !border-zinc-900"
         />
       </div>
     </div>
@@ -139,7 +139,7 @@ export function ActionNode({ data }: { data: AutomationNode }) {
     ? 'border-purple-500/30'
     : isFsm
     ? 'border-cyan-500/30'
-    : 'border-slate-500/30'
+    : 'border-zinc-500/30'
 
   const badgeBg = isObs
     ? 'bg-emerald-500/20 text-emerald-400'
@@ -147,15 +147,15 @@ export function ActionNode({ data }: { data: AutomationNode }) {
     ? 'bg-purple-500/20 text-purple-400'
     : isFsm
     ? 'bg-cyan-500/20 text-cyan-400'
-    : 'bg-slate-500/20 text-slate-400'
+    : 'bg-zinc-500/20 text-zinc-400'
 
   return (
-    <div className={`min-w-[200px] rounded-lg border ${borderClass} bg-slate-900/90 p-3 shadow-xl backdrop-blur-md`}>
+    <div className={`min-w-[200px] rounded-lg border ${borderClass} bg-zinc-900/95 p-3 shadow-xl backdrop-blur-md`}>
       {/* Handle de entrada */}
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-2.5 !w-2.5 !bg-slate-400 !border-slate-900"
+        className="!h-2.5 !w-2.5 !bg-zinc-400 !border-zinc-900"
       />
 
       <div className="flex items-center gap-2 mb-1.5">
@@ -165,12 +165,12 @@ export function ActionNode({ data }: { data: AutomationNode }) {
           {isFsm && <Layers className="h-3 w-3" />}
           {isDelay && <Clock className="h-3 w-3" />}
         </span>
-        <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-slate-400">
+        <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
           {isObs ? 'OBS v5' : isHttp ? 'HTTP REST' : isFsm ? 'FSM Projeção' : 'Delay'}
         </span>
       </div>
 
-      <p className="text-xs font-semibold text-slate-100">{data.label}</p>
+      <p className="text-xs font-semibold text-zinc-100">{data.label}</p>
 
       {/* Detalhes específicos de cada ação */}
       {isObs && data.actionObsConfig && (
@@ -187,7 +187,7 @@ export function ActionNode({ data }: { data: AutomationNode }) {
       )}
 
       {isDelay && data.actionDelayConfig && (
-        <p className="mt-1 text-[10px] text-slate-400 font-mono">
+        <p className="mt-1 text-[10px] text-zinc-400 font-mono">
           Pausa: {data.actionDelayConfig.durationMs}ms
         </p>
       )}
@@ -196,7 +196,7 @@ export function ActionNode({ data }: { data: AutomationNode }) {
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-2.5 !w-2.5 !bg-slate-400 !border-slate-900"
+        className="!h-2.5 !w-2.5 !bg-zinc-400 !border-zinc-900"
       />
     </div>
   )

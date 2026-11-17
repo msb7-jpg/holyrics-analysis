@@ -24,10 +24,10 @@ export function SpotlightQuickActions({ onExecutePanic }: SpotlightQuickActionsP
       <Command.Item
         value="action_blackout"
         onSelect={() => onExecutePanic('blackout')}
-        className="flex items-center justify-between rounded-lg px-3 py-2 text-xs cursor-pointer select-none transition data-[selected=true]:bg-sky-500/20 data-[selected=true]:text-white text-slate-300"
+        className="flex items-center justify-between rounded-lg px-3 py-2 text-xs cursor-pointer select-none transition data-[selected=true]:bg-zinc-800/80 data-[selected=true]:text-zinc-50 text-zinc-300"
       >
         <div className="flex items-center gap-2.5">
-          <EyeOff className="h-4 w-4 text-red-400" />
+          <EyeOff className="h-4 w-4 text-zinc-400" strokeWidth={1.75} />
           <span className="font-medium">Alternar Blackout (Telão Preto)</span>
         </div>
         <Kbd>F1</Kbd>
@@ -36,10 +36,10 @@ export function SpotlightQuickActions({ onExecutePanic }: SpotlightQuickActionsP
       <Command.Item
         value="action_clear_text"
         onSelect={() => onExecutePanic('clearText')}
-        className="flex items-center justify-between rounded-lg px-3 py-2 text-xs cursor-pointer select-none transition data-[selected=true]:bg-sky-500/20 data-[selected=true]:text-white text-slate-300"
+        className="flex items-center justify-between rounded-lg px-3 py-2 text-xs cursor-pointer select-none transition data-[selected=true]:bg-zinc-800/80 data-[selected=true]:text-zinc-50 text-zinc-300"
       >
         <div className="flex items-center gap-2.5">
-          <FileText className="h-4 w-4 text-sky-400" />
+          <FileText className="h-4 w-4 text-zinc-400" strokeWidth={1.75} />
           <span className="font-medium">Ocultar Texto / Preservar Fundo</span>
         </div>
         <Kbd>F2</Kbd>
@@ -48,10 +48,10 @@ export function SpotlightQuickActions({ onExecutePanic }: SpotlightQuickActionsP
       <Command.Item
         value="action_freeze"
         onSelect={() => onExecutePanic('freeze')}
-        className="flex items-center justify-between rounded-lg px-3 py-2 text-xs cursor-pointer select-none transition data-[selected=true]:bg-sky-500/20 data-[selected=true]:text-white text-slate-300"
+        className="flex items-center justify-between rounded-lg px-3 py-2 text-xs cursor-pointer select-none transition data-[selected=true]:bg-zinc-800/80 data-[selected=true]:text-zinc-50 text-zinc-300"
       >
         <div className="flex items-center gap-2.5">
-          <Snowflake className="h-4 w-4 text-cyan-400" />
+          <Snowflake className="h-4 w-4 text-zinc-400" strokeWidth={1.75} />
           <span className="font-medium">Congelar Projeção (Freeze)</span>
         </div>
         <Kbd>F3</Kbd>

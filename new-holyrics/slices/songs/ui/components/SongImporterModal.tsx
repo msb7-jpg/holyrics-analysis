@@ -20,6 +20,7 @@ import {
 import { Button } from '@ui/components/ui/button'
 import { Input } from '@ui/components/ui/input'
 import { Textarea } from '@ui/components/ui/textarea'
+import { SlidePreviewCard } from '@slices/navigation/ui/components/SlidePreviewCard'
 import type { MediaItem } from '@slices/media/contracts/media-contracts'
 import type { Song } from '../../contracts/song-contracts'
 import { songsService } from '../services/songs-service'
@@ -303,18 +304,18 @@ export function SongImporterModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs">
-      <div className="flex max-h-[90vh] w-full max-w-5xl flex-col rounded-xl border border-white/10 bg-slate-900 text-slate-100 shadow-2xl overflow-hidden">
+      <div className="flex max-h-[90vh] w-full max-w-5xl flex-col rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 shadow-2xl overflow-hidden">
         {/* Cabeçalho + Abas */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-slate-800/60 px-5 py-3">
+        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-5 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <Music className="h-4 w-4 text-sky-400" />
+              <Music className="h-4 w-4 text-zinc-400" />
               <h2 className="text-sm font-semibold text-white">
                 {songToEdit ? `Editar Música: ${title || songToEdit.title}` : 'Acervo & Editor de Músicas'}
               </h2>
             </div>
 
-            <div className="flex items-center gap-1 rounded-lg bg-slate-950/80 p-1 text-xs">
+            <div className="flex items-center gap-0.5 rounded-lg bg-zinc-950/80 p-0.5 border border-zinc-800 text-xs">
               <button
                 type="button"
                 onClick={() => {
@@ -323,8 +324,8 @@ export function SongImporterModal({
                 }}
                 className={`rounded-md px-3 py-1 font-medium transition ${
                   activeTab === 'EDITOR'
-                    ? 'bg-sky-500 text-slate-950'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-sky-500 text-zinc-950'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 Editor / Nova Música
@@ -337,8 +338,8 @@ export function SongImporterModal({
                 }}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-medium transition ${
                   activeTab === 'ONLINE'
-                    ? 'bg-sky-500 text-slate-950'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-sky-500 text-zinc-950'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 <Globe className="h-3.5 w-3.5" />
@@ -352,8 +353,8 @@ export function SongImporterModal({
                 }}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1 font-medium transition ${
                   activeTab === 'BACKUP'
-                    ? 'bg-sky-500 text-slate-950'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-sky-500 text-zinc-950'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 <FileArchive className="h-3.5 w-3.5" />
@@ -376,7 +377,7 @@ export function SongImporterModal({
               <div className="flex flex-col gap-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="mb-1 block text-slate-400">Título do Louvor</label>
+                    <label className="mb-1 block text-zinc-400">Título do Louvor</label>
                     <Input
                       value={title}
                       onChange={(event) => setTitle(event.target.value)}
@@ -384,7 +385,7 @@ export function SongImporterModal({
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-slate-400">Artista / Ministério</label>
+                    <label className="mb-1 block text-zinc-400">Artista / Ministério</label>
                     <Input
                       value={artist}
                       onChange={(event) => setArtist(event.target.value)}
@@ -394,14 +395,14 @@ export function SongImporterModal({
                 </div>
 
                 <div>
-                  <label className="mb-1 flex items-center gap-1.5 text-slate-400">
-                    <ImageIcon className="h-3.5 w-3.5 text-sky-400" />
+                  <label className="mb-1 flex items-center gap-1.5 text-zinc-400">
+                    <ImageIcon className="h-3.5 w-3.5 text-zinc-400" />
                     <span>Fundo Associado à Música (Opcional)</span>
                   </label>
                   <select
                     value={selectedBgId}
                     onChange={(event) => setSelectedBgId(event.target.value)}
-                    className="w-full rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-xs text-slate-100 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                    className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-600"
                   >
                     <option value="">Nenhum (manter fundo atual do telão)</option>
                     {mediaItems.map((media) => (
@@ -413,9 +414,9 @@ export function SongImporterModal({
                 </div>
 
                 <div className="flex flex-1 flex-col">
-                  <label className="mb-1 flex items-center justify-between text-slate-400">
+                  <label className="mb-1 flex items-center justify-between text-zinc-400">
                     <span>Letra da Música</span>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-zinc-500">
                       Linha em branco (Enter duplo) = novo slide
                     </span>
                   </label>
@@ -444,49 +445,32 @@ export function SongImporterModal({
               </div>
 
               {/* Direita: Grade de Preview 16:9 em Tempo Real */}
-              <div className="flex flex-col rounded-xl border border-white/10 bg-slate-950/60 p-3">
+              <div className="flex flex-col rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
                 <div className="mb-2.5 flex items-center justify-between">
-                  <span className="font-semibold text-slate-300">
+                  <span className="font-semibold text-zinc-300">
                     Pré-visualização dos Slides ({liveSlides.length})
                   </span>
-                  <span className="text-[10px] text-slate-500">Proporção 16:9</span>
+                  <span className="text-[10px] text-zinc-500">Proporção 16:9</span>
                 </div>
 
                 {liveSlides.length === 0 ? (
-                  <div className="flex flex-1 flex-col items-center justify-center py-16 text-center text-slate-500">
+                  <div className="flex flex-1 flex-col items-center justify-center py-16 text-center text-zinc-500">
                     <Music className="h-7 w-7 mb-2 opacity-40" />
                     <p>Digite ou cole a letra à esquerda para visualizar os slides ao vivo.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 auto-rows-max content-start gap-3 overflow-y-auto max-h-[420px] pr-1.5">
                     {liveSlides.map((lines, idx) => (
-                      <div
+                      <SlidePreviewCard
                         key={idx}
-                        className="relative aspect-video w-full shrink-0 rounded-md border border-white/10 bg-slate-900 overflow-hidden flex items-center justify-center pt-6 pb-3 px-3 text-center"
-                      >
-                        {selectedMediaBg && selectedMediaBg.type === 'IMAGE' && (
-                          <img
-                            src={`/api/media/stream/${encodeURIComponent(selectedMediaBg.id)}`}
-                            alt=""
-                            className="absolute inset-0 h-full w-full object-cover opacity-50"
-                          />
-                        )}
-                        {selectedMediaBg && selectedMediaBg.type === 'VIDEO' && (
-                          <video
-                            src={`/api/media/stream/${encodeURIComponent(selectedMediaBg.id)}`}
-                            muted
-                            className="absolute inset-0 h-full w-full object-cover opacity-50"
-                          />
-                        )}
-                        <span className="absolute left-1.5 top-1 z-20 rounded bg-black/75 px-1.5 py-0.5 text-[9px] font-semibold text-sky-300">
-                          Slide {idx + 1}
-                        </span>
-                        <div className="relative z-10 text-[10px] font-semibold leading-snug text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] line-clamp-4">
-                          {lines.map((line, lIdx) => (
-                            <p key={lIdx}>{line}</p>
-                          ))}
-                        </div>
-                      </div>
+                        slideNumber={idx + 1}
+                        lines={lines}
+                        backgroundThumbUrl={
+                          selectedMediaBg && selectedMediaBg.type !== 'AUDIO'
+                            ? `/api/media/thumb/${encodeURIComponent(selectedMediaBg.id)}`
+                            : undefined
+                        }
+                      />
                     ))}
                   </div>
                 )}
@@ -499,7 +483,7 @@ export function SongImporterModal({
             <div className="flex flex-col gap-4">
               <form onSubmit={handleSearchOnline} className="flex gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                  <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-zinc-400" />
                   <Input
                     value={onlineQuery}
                     onChange={(event) => setOnlineQuery(event.target.value)}
@@ -519,12 +503,12 @@ export function SongImporterModal({
 
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {/* Resultados */}
-                <div className="flex flex-col gap-1.5 max-h-[360px] overflow-y-auto rounded-xl border border-white/10 bg-slate-950/50 p-3">
-                  <span className="mb-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <div className="flex flex-col gap-1.5 max-h-[360px] overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-950/50 p-3">
+                  <span className="mb-1 text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
                     Resultados ({onlineResults.length})
                   </span>
                   {onlineResults.length === 0 ? (
-                    <p className="py-10 text-center text-slate-500">
+                    <p className="py-10 text-center text-zinc-500">
                       Digite o nome da música acima para buscar online gratuitamente.
                     </p>
                   ) : (
@@ -533,14 +517,14 @@ export function SongImporterModal({
                         key={item.id}
                         type="button"
                         onClick={() => handleFetchOnlineSong(item.id)}
-                        className="flex items-center justify-between rounded-md bg-slate-900 hover:bg-slate-800 px-3 py-2 text-left transition"
+                        className="flex items-center justify-between rounded-md bg-zinc-900 hover:bg-zinc-800 px-3 py-2 text-left transition"
                       >
                         <div className="min-w-0 pr-2">
-                          <p className="font-semibold text-slate-100 truncate">{item.title}</p>
-                          <p className="text-[11px] text-slate-400 truncate">{item.band}</p>
+                          <p className="font-semibold text-zinc-100 truncate">{item.title}</p>
+                          <p className="text-[11px] text-zinc-400 truncate">{item.band}</p>
                         </div>
                         {item.source && (
-                          <span className="rounded bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-sky-300 shrink-0">
+                          <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[9px] font-semibold text-zinc-200 shrink-0">
                             {item.source}
                           </span>
                         )}
@@ -550,27 +534,27 @@ export function SongImporterModal({
                 </div>
 
                 {/* Preview da letra selecionada */}
-                <div className="flex flex-col justify-between rounded-xl border border-white/10 bg-slate-950/50 p-3 max-h-[360px]">
+                <div className="flex flex-col justify-between rounded-xl border border-zinc-800 bg-zinc-950/50 p-3 max-h-[360px]">
                   {isFetchingLyrics ? (
                     <div className="flex flex-1 items-center justify-center py-12">
-                      <Loader2 className="h-6 w-6 animate-spin text-sky-400" />
+                      <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
                     </div>
                   ) : previewOnlineSong ? (
                     <>
-                      <div className="mb-2 border-b border-white/10 pb-2">
+                      <div className="mb-2 border-b border-zinc-800 pb-2">
                         <h3 className="text-sm font-semibold text-white">{previewOnlineSong.title}</h3>
-                        <p className="text-[11px] text-slate-400">{previewOnlineSong.artist}</p>
+                        <p className="text-[11px] text-zinc-400">{previewOnlineSong.artist}</p>
                       </div>
-                      <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 text-slate-200">
+                      <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 text-zinc-200">
                         {previewOnlineSong.sections.map((sec) => (
-                          <div key={sec.id} className="rounded bg-slate-900/70 p-2">
+                          <div key={sec.id} className="rounded bg-zinc-900 p-2">
                             {sec.lines.map((line, i) => (
                               <p key={i}>{line}</p>
                             ))}
                           </div>
                         ))}
                       </div>
-                      <div className="mt-3 flex gap-2 pt-2 border-t border-white/10">
+                      <div className="mt-3 flex gap-2 pt-2 border-t border-zinc-800">
                         <Button
                           variant="secondary"
                           className="flex-1"
@@ -589,7 +573,7 @@ export function SongImporterModal({
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-1 items-center justify-center py-12 text-slate-500">
+                    <div className="flex flex-1 items-center justify-center py-12 text-zinc-500">
                       Selecione um resultado à esquerda para visualizar a letra.
                     </div>
                   )}
@@ -600,11 +584,11 @@ export function SongImporterModal({
 
           {/* ABA 3: IMPORTAR BACKUP (.ZIP) */}
           {activeTab === 'BACKUP' && (
-            <div className="flex flex-col gap-3 rounded-xl border border-dashed border-white/15 bg-slate-950/50 p-6">
-              <span className="font-semibold text-sky-400 text-sm">
+            <div className="flex flex-col gap-3 rounded-xl border border-dashed border-zinc-800 bg-zinc-950/50 p-6">
+              <span className="font-semibold text-zinc-400 text-sm">
                 Importar Backup Completo do Holyrics (.zip)
               </span>
-              <p className="text-slate-400">
+              <p className="text-zinc-400">
                 Selecione um arquivo de backup (.zip) exportado do Holyrics para importar todas as músicas automaticamente para o acervo.
               </p>
               <Input type="file" accept=".zip" onChange={handleZipFileSelect} disabled={isSaving} />

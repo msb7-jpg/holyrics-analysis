@@ -21,18 +21,18 @@ export interface PanicToolbarProps {
  */
 export function PanicToolbar({ panic, onTogglePanic }: PanicToolbarProps) {
   return (
-    <div className="rounded-lg bg-[#141820] p-0.5 border border-white/5 flex items-center">
+    <div className="inline-flex items-center rounded-md border border-zinc-800 bg-zinc-900/50 p-0.5">
       <button
         type="button"
         onClick={() => onTogglePanic('blackout')}
         title="Escurecer completamente o telão (F1)"
-        className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded transition select-none ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-sm transition-colors select-none ${
           panic.blackout
-            ? 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/50'
-            : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+            ? 'bg-red-500/15 text-red-400 border border-red-500/30'
+            : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 border border-transparent'
         }`}
       >
-        <EyeOff className="h-3.5 w-3.5" />
+        <EyeOff className="h-3.5 w-3.5" strokeWidth={1.75} />
         <span>Blackout</span>
       </button>
 
@@ -40,13 +40,13 @@ export function PanicToolbar({ panic, onTogglePanic }: PanicToolbarProps) {
         type="button"
         onClick={() => onTogglePanic('clearText')}
         title="Ocultar texto do telão mantendo o fundo (F2)"
-        className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded transition select-none ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-sm transition-colors select-none ${
           panic.clearText
-            ? 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/50'
-            : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+            ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+            : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 border border-transparent'
         }`}
       >
-        <FileText className="h-3.5 w-3.5" />
+        <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
         <span>Ocultar Letra</span>
       </button>
 
@@ -54,13 +54,13 @@ export function PanicToolbar({ panic, onTogglePanic }: PanicToolbarProps) {
         type="button"
         onClick={() => onTogglePanic('freeze')}
         title="Congelar imagem atual do telão na saída (F3)"
-        className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded transition select-none ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-sm transition-colors select-none ${
           panic.freeze
-            ? 'bg-cyan-500/20 text-cyan-300 ring-1 ring-cyan-500/50'
-            : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+            ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
+            : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 border border-transparent'
         }`}
       >
-        <Snowflake className="h-3.5 w-3.5" />
+        <Snowflake className="h-3.5 w-3.5" strokeWidth={1.75} />
         <span>Congelar</span>
       </button>
     </div>

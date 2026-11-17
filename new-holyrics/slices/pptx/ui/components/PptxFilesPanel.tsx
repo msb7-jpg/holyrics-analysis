@@ -190,18 +190,18 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
           void handleUploadFiles(event.dataTransfer.files)
         }
       }}
-      className="flex flex-1 flex-col rounded-md bg-[#131C2B] text-slate-200 select-none overflow-hidden relative"
+      className="flex flex-1 flex-col rounded-md bg-zinc-950 text-zinc-200 select-none overflow-hidden relative"
     >
       {/* Barra Padronizada: Busca, Pastas, Abrir Local, Reescanear, Importar */}
-      <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-white/5 bg-[#090D14]/50 p-2">
+      <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-zinc-800/80 bg-zinc-950 p-2">
         <div className="relative flex-1 min-w-[90px]">
-          <Search className="absolute left-2 top-1.5 h-3 w-3 text-slate-400" />
+          <Search className="absolute left-2 top-1.5 h-3 w-3 text-zinc-400" />
           <input
             type="text"
             placeholder="Filtrar..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full rounded bg-[#192334] pl-6 pr-2 py-1 text-[11px] text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+            className="w-full rounded-md bg-zinc-900 border border-zinc-800 pl-6 pr-2 py-1 text-[11px] text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600"
           />
         </div>
 
@@ -210,25 +210,25 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
             type="button"
             onClick={handleCreateFolder}
             title="Nova Pasta"
-            className="rounded bg-[#192334] p-1 text-slate-300 hover:bg-[#1E2B40] hover:text-sky-400 transition"
+            className="rounded-md bg-zinc-900 border border-zinc-800 p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition"
           >
-            <FolderPlus className="h-3.5 w-3.5" />
+            <FolderPlus className="h-3.5 w-3.5" strokeWidth={1.75} />
           </button>
           <button
             type="button"
             onClick={handleOpenLocalFolder}
             title="Abrir Pasta Local no Explorador do Computador"
-            className="rounded bg-[#192334] p-1 text-slate-300 hover:bg-[#1E2B40] hover:text-amber-400 transition"
+            className="rounded-md bg-zinc-900 border border-zinc-800 p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition"
           >
-            <FolderOpen className="h-3.5 w-3.5" />
+            <FolderOpen className="h-3.5 w-3.5" strokeWidth={1.75} />
           </button>
           <button
             type="button"
             onClick={loadDecks}
             title="Atualizar Lista"
-            className="rounded bg-[#192334] p-1 text-slate-300 hover:bg-[#1E2B40] hover:text-emerald-400 transition"
+            className="rounded-md bg-zinc-900 border border-zinc-800 p-1 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 transition"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.75} />
           </button>
 
           <input
@@ -249,9 +249,9 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
             disabled={isUploading}
             onClick={() => fileInputRef.current?.click()}
             title="Importar arquivos .pptx ou .pdf"
-            className="flex items-center gap-1 rounded bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 px-2 py-1 text-[10px] font-medium text-sky-300 transition shrink-0"
+            className="flex items-center gap-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 px-2.5 py-1 text-[11px] font-medium text-zinc-200 transition shrink-0"
           >
-            <Upload className="h-3 w-3" />
+            <Upload className="h-3 w-3 text-zinc-400" strokeWidth={1.75} />
             <span>{isUploading ? 'Enviando...' : 'Importar'}</span>
           </button>
         </div>
@@ -259,11 +259,11 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
 
       {/* Breadcrumb de Pastas */}
       {(currentFolder || immediateChildFolders.length > 0) && (
-        <div className="flex items-center gap-1 border-b border-white/5 bg-[#0F1622]/70 px-2.5 py-1 text-[10px] text-slate-400 overflow-x-auto">
+        <div className="flex items-center gap-1 border-b border-zinc-800/80 bg-zinc-900/50 px-2.5 py-1 text-[10px] text-zinc-400 overflow-x-auto">
           <button
             type="button"
             onClick={() => setCurrentFolder('')}
-            className={`hover:text-sky-400 transition ${!currentFolder ? 'text-sky-400 font-semibold' : ''}`}
+            className={`hover:text-zinc-100 transition ${!currentFolder ? 'text-zinc-100 font-semibold' : ''}`}
           >
             Raiz
           </button>
@@ -271,12 +271,12 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
             const path = breadcrumbs.slice(0, index + 1).join('/')
             return (
               <span key={path} className="flex items-center gap-1 shrink-0">
-                <ChevronRight className="h-2.5 w-2.5 text-slate-600" />
+                <ChevronRight className="h-2.5 w-2.5 text-zinc-600" />
                 <button
                   type="button"
                   onClick={() => setCurrentFolder(path)}
-                  className={`hover:text-sky-400 transition ${
-                    path === currentFolder ? 'text-sky-400 font-semibold' : ''
+                  className={`hover:text-zinc-100 transition ${
+                    path === currentFolder ? 'text-zinc-100 font-semibold' : ''
                   }`}
                 >
                   {segment}
@@ -292,11 +292,11 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
         {immediateChildFolders.length === 0 && filteredDecks.length === 0 ? (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="flex flex-col items-center justify-center rounded-lg border border-dashed border-white/10 py-8 px-3 text-center cursor-pointer hover:border-sky-500/40 transition"
+            className="flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-800 py-8 px-3 text-center cursor-pointer hover:border-zinc-700 transition"
           >
-            <Presentation className="h-6 w-6 text-slate-500 mb-1.5" />
-            <p className="text-xs font-medium text-slate-300">Nenhum arquivo nesta pasta</p>
-            <p className="text-[10px] text-slate-500 mt-0.5">
+            <Presentation className="h-6 w-6 text-zinc-500 mb-1.5" />
+            <p className="text-xs font-medium text-zinc-300">Nenhum arquivo nesta pasta</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
               Arraste arquivos .pptx ou .pdf aqui ou clique para importar
             </p>
           </div>
@@ -314,10 +314,10 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
                       event.stopPropagation()
                       setContextMenu({ x: event.clientX, y: event.clientY, folderPath })
                     }}
-                    className="flex items-center gap-2 rounded-[6px] bg-[#192334]/80 hover:bg-[#1E2B40] p-2 cursor-pointer border border-white/5 transition"
+                    className="flex items-center gap-2 rounded-md bg-zinc-900/60 hover:bg-zinc-900 p-2 cursor-pointer border border-zinc-800/80 transition"
                   >
-                    <Folder className="h-4 w-4 text-amber-400 shrink-0" />
-                    <span className="truncate text-[11px] font-medium text-slate-200">{folderName}</span>
+                    <Folder className="h-4 w-4 text-zinc-400 shrink-0" strokeWidth={1.75} />
+                    <span className="truncate text-xs font-medium text-zinc-200">{folderName}</span>
                   </div>
                 )
               })}
@@ -344,11 +344,11 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
                   event.stopPropagation()
                   setContextMenu({ x: event.clientX, y: event.clientY, deck })
                 }}
-                className="group flex items-center justify-between rounded-[6px] bg-[#192334] hover:bg-[#1E2B40] p-2.5 cursor-pointer transition"
+                className="group flex items-center justify-between rounded-md bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/80 p-2.5 cursor-pointer transition"
               >
                 <div className="min-w-0 pr-2">
-                  <p className="text-xs font-medium text-slate-100 truncate">{deck.title}</p>
-                  <p className="text-[10px] text-slate-400">
+                  <p className="text-xs font-medium text-zinc-100 truncate">{deck.title}</p>
+                  <p className="text-[11px] text-zinc-400">
                     {deck.slides.length} slides • {deck.format}
                   </p>
                 </div>
@@ -360,7 +360,7 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
                       onAddToLiturgy?.(deck)
                     }}
                     title="Adicionar ao Roteiro"
-                    className="rounded bg-sky-500/15 hover:bg-sky-500/30 px-1.5 py-0.5 text-[10px] text-sky-300 transition"
+                    className="rounded-md bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 px-2 py-0.5 text-[11px] font-medium text-zinc-200 transition"
                   >
                     + Roteiro
                   </button>
@@ -371,7 +371,7 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
                       void handleDeleteDeck(deck.id)
                     }}
                     title="Excluir apresentação"
-                    className="rounded p-1 text-slate-500 hover:text-rose-400 transition"
+                    className="rounded p-1 text-zinc-500 hover:text-red-400 transition"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -386,32 +386,32 @@ export function PptxFilesPanel({ onSelectDeck, onAddToLiturgy }: PptxFilesPanelP
       {contextMenu && (
         <div
           style={{ left: contextMenu.x, top: contextMenu.y }}
-          className="fixed z-50 w-44 rounded-lg border border-white/10 bg-[#0F1622] py-1 text-xs shadow-2xl"
+          className="fixed z-50 w-44 rounded-lg border border-zinc-800 bg-zinc-900 py-1 text-xs shadow-xl"
         >
           {contextMenu.deck && (
             <>
               <button
                 type="button"
                 onClick={() => onAddToLiturgy?.(contextMenu.deck!)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-zinc-200 hover:bg-zinc-800"
               >
-                <Plus className="h-3.5 w-3.5 text-sky-400" />
+                <Plus className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.75} />
                 <span>Adicionar ao Roteiro</span>
               </button>
               <button
                 type="button"
                 onClick={() => void handleRenameDeck(contextMenu.deck!)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-slate-200 hover:bg-[#192334]"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-zinc-200 hover:bg-zinc-800"
               >
-                <Pencil className="h-3.5 w-3.5 text-amber-400" />
+                <Pencil className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.75} />
                 <span>Renomear</span>
               </button>
               <button
                 type="button"
                 onClick={() => void handleDeleteDeck(contextMenu.deck!.id)}
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-rose-300 hover:bg-rose-500/10"
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-red-400 hover:bg-red-500/10"
               >
-                <Trash2 className="h-3.5 w-3.5 text-rose-400" />
+                <Trash2 className="h-3.5 w-3.5 text-red-400" strokeWidth={1.75} />
                 <span>Excluir</span>
               </button>
             </>

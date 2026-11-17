@@ -91,22 +91,21 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-slate-950 text-slate-100 select-none">
+    <div className="flex min-h-screen w-full flex-col bg-zinc-950 text-zinc-100 select-none">
       {/* Header */}
-      <header className="flex items-center justify-between border-b border-white/10 bg-slate-900 px-4 py-3">
+      <header className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950 px-4 py-3">
         <div className="flex items-center gap-2">
-          <Badge variant="live">OPERADOR MOBILE</Badge>
-          <span className="text-xs text-slate-400 truncate max-w-[180px]">
+          <span className="text-xs text-zinc-400 truncate max-w-[180px]">
             {state.foreground.title || 'Telão Ativo'}
           </span>
         </div>
-        <span className="font-mono text-xs text-sky-400">
+        <span className="tabular-nums font-mono text-xs text-zinc-400">
           Slide {state.foreground.slideIndex + 1}/{Math.max(1, state.foreground.totalSlides)}
         </span>
       </header>
 
       {/* Abas de Navegação Móvel */}
-      <nav className="grid grid-cols-4 gap-1 border-b border-white/10 bg-slate-900/70 p-2">
+      <nav className="grid grid-cols-4 gap-1 border-b border-zinc-800 bg-zinc-950 p-2">
         <Button
           size="sm"
           variant={activeTab === 'control' ? 'activeInfo' : 'ghost'}
@@ -147,7 +146,7 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
           <div className="flex flex-col gap-4">
             {/* Mini-Preview 16:9 ao Vivo */}
             <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between text-[11px] text-slate-400">
+              <div className="flex items-center justify-between text-[11px] text-zinc-400">
                 <span className="font-mono uppercase">Preview do Telão (16:9)</span>
                 <div className="flex items-center gap-1">
                   <Button
@@ -168,7 +167,7 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
                   </Button>
                 </div>
               </div>
-              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/15 bg-black shadow-lg">
+              <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-zinc-800 bg-black shadow-2xl shadow-black/90">
                 <ProjectorScreen state={state} isPreview={true} />
               </div>
             </div>
@@ -176,7 +175,7 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
             {/* Carrossel Horizontal de Slides (Swipe mobile / Clique desktop) */}
             {slides.length > 0 && (
               <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-mono text-slate-400 uppercase">
+                <span className="text-[11px] font-mono text-zinc-400 uppercase">
                   Slides ({state.foreground.slideIndex + 1}/{slides.length})
                 </span>
                 <div
@@ -192,12 +191,12 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
                         onClick={() => dispatch({ type: 'NAV_GOTO', slideIndex: idx })}
                         className={`snap-center shrink-0 w-44 rounded-lg border p-2.5 text-left transition ${
                           isActive
-                            ? 'border-emerald-500 bg-emerald-950/30 ring-1 ring-emerald-500/50'
-                            : 'border-white/10 bg-slate-900 hover:border-sky-500/50'
+                            ? 'border-emerald-500/70 bg-emerald-950/25 ring-1 ring-emerald-500/40'
+                            : 'border-zinc-800 bg-zinc-900 hover:bg-zinc-800'
                         }`}
                       >
                         <div className="mb-1 flex items-center justify-between text-[10px]">
-                          <span className="font-semibold text-slate-300">Slide {idx + 1}</span>
+                          <span className="font-semibold text-zinc-300">Slide {idx + 1}</span>
                           {isActive && (
                             <span className="rounded bg-emerald-500/20 px-1 text-[9px] font-bold text-emerald-300">
                               NO AR
@@ -211,7 +210,7 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
                             className="aspect-video w-full rounded bg-black object-contain"
                           />
                         ) : (
-                          <p className="line-clamp-3 text-[11px] text-slate-200 leading-snug">
+                          <p className="line-clamp-3 text-[11px] text-zinc-200 leading-snug">
                             {slide.content.join(' ')}
                           </p>
                         )}
@@ -264,17 +263,17 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
 
         {activeTab === 'liturgy' && (
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold text-slate-400">
+            <span className="text-xs font-semibold text-zinc-400">
               Itens do Roteiro ({liturgy?.title || 'Culto Ativo'})
             </span>
             {liturgy?.items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-900 p-3"
+                className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 p-3"
               >
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-white">{item.title}</span>
-                  <span className="text-[11px] font-mono text-sky-400">{item.type}</span>
+                  <span className="text-[11px] font-mono text-zinc-400">{item.type}</span>
                 </div>
                 <Button
                   size="sm"
@@ -302,8 +301,8 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
         )}
 
         {activeTab === 'bible' && (
-          <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900 p-4">
-            <span className="text-xs font-semibold text-sky-400 uppercase">
+          <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <span className="text-xs font-semibold text-zinc-400 uppercase">
               Busca Bíblica Rápida (Quick Jump)
             </span>
             <Input
@@ -322,7 +321,7 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
         )}
 
         {activeTab === 'alerts' && (
-          <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900 p-4">
+          <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
             <span className="text-xs font-semibold text-amber-400 uppercase">
               Alerta Rápido Lower Third
             </span>
@@ -345,7 +344,7 @@ export function OperatorRemoteView({ state, dispatch }: OperatorRemoteViewProps)
       </main>
 
       {/* Controles Permanentes de Avanço/Recuo */}
-      <footer className="grid grid-cols-2 gap-3 border-t border-white/10 bg-slate-900 p-4">
+      <footer className="grid grid-cols-2 gap-3 border-t border-zinc-800 bg-zinc-950 p-4">
         <Button
           variant="secondary"
           size="lg"

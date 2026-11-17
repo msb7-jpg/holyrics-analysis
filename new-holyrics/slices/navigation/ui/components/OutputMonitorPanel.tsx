@@ -62,7 +62,7 @@ export function OutputMonitorPanel({
   }
 
   return (
-    <section className="flex h-full flex-col bg-[#11141A] p-3 border-l border-white/5 overflow-hidden">
+    <section className="flex h-full flex-col bg-zinc-950 p-3 border-l border-zinc-800/80 overflow-hidden">
       <ResizableSplitPane
         direction="vertical"
         initialSizes={[42, 58]}
@@ -75,16 +75,16 @@ export function OutputMonitorPanel({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 min-w-0">
               <span
-                className={`h-2 w-2 rounded-full shrink-0 ${
+                className={`h-1.5 w-1.5 rounded-full shrink-0 ${
                   state.panic.blackout
-                    ? 'bg-rose-500'
+                    ? 'bg-red-500'
                     : isOutputLive
-                      ? 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.6)]'
-                      : 'bg-emerald-500/60'
+                      ? 'bg-emerald-500 animate-pulse'
+                      : 'bg-zinc-600'
                 }`}
               />
-              <Monitor className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-              <span className="truncate text-[11px] font-semibold text-slate-200">
+              <Monitor className="h-3.5 w-3.5 text-zinc-400 shrink-0" strokeWidth={1.75} />
+              <span className="truncate text-[11px] font-semibold text-zinc-200">
                 Saída: Telão Principal (1080p)
               </span>
             </div>
@@ -93,9 +93,9 @@ export function OutputMonitorPanel({
               {state.mode !== 'EMPTY' && state.projectedAt && (
                 <span
                   title="Tempo decorrido de projeção do item atual"
-                  className="flex items-center gap-1 rounded bg-[#141820] px-1.5 py-0.5 tabular-nums font-mono text-[10px] font-semibold text-emerald-300 border border-white/5"
+                  className="flex items-center gap-1 rounded-md bg-zinc-900 px-1.5 py-0.5 tabular-nums font-mono text-[10px] font-medium text-zinc-300 border border-zinc-800"
                 >
-                  <Clock className="h-2.5 w-2.5" />
+                  <Clock className="h-2.5 w-2.5 text-zinc-400" />
                   <span>{formatElapsedProjection(elapsedSeconds)}</span>
                 </span>
               )}
@@ -103,9 +103,9 @@ export function OutputMonitorPanel({
                 type="button"
                 onClick={handleOpenProjectorWindow}
                 title="Abrir janela externa de projeção para o segundo monitor ou telão"
-                className="flex items-center gap-1 rounded-md bg-[#141820] px-2 py-1 text-[10px] font-medium text-sky-400 hover:bg-[#181C24] hover:text-sky-300 border border-white/5 transition shrink-0"
+                className="flex items-center gap-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-200 border border-zinc-800 transition shrink-0"
               >
-                <ExternalLink className="h-3 w-3" />
+                <ExternalLink className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.75} />
                 <span>Abrir Telão</span>
               </button>
             </div>
@@ -114,7 +114,7 @@ export function OutputMonitorPanel({
           {/* Canvas do Monitor de Saída (16:9 Real com Escalonamento Proporcional) */}
           <div
             data-testid="output-monitor-canvas"
-            className="relative aspect-video w-full rounded-lg bg-black overflow-hidden shadow-2xl shadow-black/90 border border-white/5 transition"
+            className="relative aspect-video w-full rounded-lg bg-black overflow-hidden border border-zinc-800/80 transition"
           >
             <ProjectorScreen state={state} isPreview={true} />
           </div>
@@ -122,29 +122,29 @@ export function OutputMonitorPanel({
 
         <div className="flex h-full flex-col gap-2 overflow-hidden pt-1">
           {/* Alternador de Abas: Áudio Ambiente vs Fundos de Mídia */}
-          <div className="flex rounded-lg bg-[#0B0D10]/80 p-0.5 border border-white/5 text-xs shrink-0">
+          <div className="flex rounded-lg bg-zinc-900 p-1 border border-zinc-800/80 text-xs shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab('AUDIO')}
-              className={`flex flex-1 items-center justify-center gap-1.5 py-1 text-[11px] font-medium transition ${
+              className={`flex flex-1 items-center justify-center gap-1.5 py-1 text-[11px] font-medium rounded-md transition ${
                 activeTab === 'AUDIO'
-                  ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
+                  ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              <Music className="h-3 w-3" />
+              <Music className="h-3.5 w-3.5" strokeWidth={1.75} />
               <span>Áudio Ambiente</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('MEDIA')}
-              className={`flex flex-1 items-center justify-center gap-1.5 py-1 text-[11px] font-medium transition ${
+              className={`flex flex-1 items-center justify-center gap-1.5 py-1 text-[11px] font-medium rounded-md transition ${
                 activeTab === 'MEDIA'
-                  ? 'bg-[#181C24] text-sky-400 shadow-sm font-semibold rounded-md'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-md'
+                  ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+                  : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              <Film className="h-3 w-3" />
+              <Film className="h-3.5 w-3.5" strokeWidth={1.75} />
               <span>Fundos & Loops</span>
             </button>
           </div>

@@ -30,7 +30,7 @@ describe('SongStanzaGrid', () => {
   it('deve renderizar o card 00 de Capa/Título com título e artista', () => {
     const html = renderToString(<SongStanzaGrid song={mockSong} />)
 
-    expect(html).toContain('00 · Capa / Título')
+    expect(html).toContain('Título')
     expect(html).toContain('Maranata')
     expect(html).toContain('Ministério Avivah')
     expect(html).toContain('00')
@@ -52,19 +52,21 @@ describe('SongStanzaGrid', () => {
     expect(html).toContain('Editar letra, título e fundo desta música')
   })
 
-  it('deve exibir badge AO VIVO no card 00 quando activeSlideIndex for 0 e isLiveOnScreen for true', () => {
+  it('deve exibir indicador de live no card 00 quando activeSlideIndex for 0 e isLiveOnScreen for true', () => {
     const html = renderToString(
       <SongStanzaGrid song={mockSong} activeSlideIndex={0} isLiveOnScreen={true} />
     )
 
-    expect(html).toContain('AO VIVO')
+    expect(html).toContain('data-testid="live-indicator"')
+    expect(html).toContain('aria-label="Ao vivo"')
   })
 
-  it('deve exibir badge AO VIVO na estrofe 01 quando activeSlideIndex for 1 e isLiveOnScreen for true', () => {
+  it('deve exibir indicador de live na estrofe 01 quando activeSlideIndex for 1 e isLiveOnScreen for true', () => {
     const html = renderToString(
       <SongStanzaGrid song={mockSong} activeSlideIndex={1} isLiveOnScreen={true} />
     )
 
-    expect(html).toContain('AO VIVO')
+    expect(html).toContain('data-testid="live-indicator"')
+    expect(html).toContain('aria-label="Ao vivo"')
   })
 })
