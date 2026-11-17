@@ -76,21 +76,21 @@ function RemoteTokenGate({
 
   if (status === 'checking') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
-        <Loader2 className="h-6 w-6 animate-spin text-sky-400" />
+      <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-300">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
       </div>
     )
   }
 
   if (status === 'denied') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 p-6 text-slate-100">
-        <div className="w-full max-w-sm rounded-xl border border-white/10 bg-slate-900 p-6 text-center shadow-2xl">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-950 p-6 text-zinc-100">
+        <div className="w-full max-w-sm rounded-xl border border-zinc-800 bg-zinc-950 p-6 text-center shadow-2xl">
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-500/15 text-rose-400">
             <Lock className="h-6 w-6" />
           </div>
           <h1 className="text-base font-semibold text-white">Acesso Restrito</h1>
-          <p className="mt-1.5 text-xs text-slate-400">{errorReason}</p>
+          <p className="mt-1.5 text-xs text-zinc-400">{errorReason}</p>
           <form
             onSubmit={(event) => {
               event.preventDefault()
@@ -105,11 +105,11 @@ function RemoteTokenGate({
               value={draftToken}
               onChange={(event) => setDraftToken(event.target.value)}
               placeholder="Digite o token de acesso..."
-              className="rounded-md border border-white/10 bg-slate-950 px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-sky-500"
+              className="rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-zinc-600"
             />
             <button
               type="submit"
-              className="rounded-md bg-sky-500 px-3 py-2 text-xs font-semibold text-slate-950 hover:bg-sky-400 transition"
+              className="rounded-md bg-sky-500 px-3 py-2 text-xs font-semibold text-zinc-950 hover:bg-sky-400 transition"
             >
               Validar Token
             </button>

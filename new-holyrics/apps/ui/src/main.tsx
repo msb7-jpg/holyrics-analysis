@@ -4,6 +4,8 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from './core/query/query-client'
 import { wsStore } from './core/sync/ws-client'
 import { App } from './App'
+import '@fontsource-variable/geist'
+import '@fontsource-variable/geist-mono'
 import './index.css'
 
 // Conecta o WebSocket no boot da aplicação

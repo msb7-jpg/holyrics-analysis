@@ -3,17 +3,17 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@ui/lib/utils'
 
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/50',
+  'inline-flex items-center justify-center gap-2 rounded-md font-medium transition cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400',
   {
     variants: {
       variant: {
-        default: 'bg-sky-600 text-white hover:bg-sky-500 border border-sky-500/50',
-        secondary: 'bg-slate-800 text-slate-200 hover:bg-slate-700 border border-white/10',
-        outline: 'border border-white/10 text-slate-300 hover:bg-slate-800 hover:text-white',
-        ghost: 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60',
-        panic: 'bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/50',
-        activePanic: 'bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20',
-        activeInfo: 'bg-sky-500/20 text-sky-300 border border-sky-500/50',
+        default: 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 border border-zinc-200',
+        secondary: 'bg-zinc-900 text-zinc-200 hover:bg-zinc-800 border border-zinc-800',
+        outline: 'border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100',
+        ghost: 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60',
+        panic: 'bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30',
+        activePanic: 'bg-red-600 text-white hover:bg-red-500 border border-red-500',
+        activeInfo: 'bg-zinc-800 text-zinc-100 border border-zinc-700',
       },
       size: {
         default: 'h-8 px-3 text-xs',
