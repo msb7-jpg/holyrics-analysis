@@ -379,3 +379,5 @@ Este documento consolida, classifica e enriquece todos os bugs e melhorias anota
    - `BUG-20` (Remover `"Zero App Store"`)
 6. **Fase 6 — Editor de Automações Interativo & Histórico**
    - `BUG-21` (Menu de botão direito, Inspector de nós, múltiplas regras e histórico de execuções)
+
+![](image.png)

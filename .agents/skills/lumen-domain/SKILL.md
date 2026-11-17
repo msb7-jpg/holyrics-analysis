@@ -118,6 +118,7 @@ A interface principal do operador (`OperatorView.tsx`) é organizada ergonomicam
 | **Console Orquestrador** | `OperatorView` | `apps/ui/src/operator/OperatorView.tsx` | `apps/ui` |
 
 ### Modais e Ferramentas Auxiliares:
+- `SlidePreviewCard`: `slices/navigation/ui/components/SlidePreviewCard.tsx` (Card canônico 16:9 de pré-visualização de slides para `SongImporterModal`, `OperatorView` e `PptxDeckModal` — usa `/api/media/thumb/:id` e nunca monta decodificadores `<video>` em grades)
 - `DiagnosticsModal`: `slices/navigation/ui/components/DiagnosticsModal.tsx` (Status do daemon e telas)
 - `SongImporterModal`: `slices/songs/ui/components/SongImporterModal.tsx` (Importador Holyrics `.muf` e Vagalume)
 - `SongHistoryModal`: `slices/songs/ui/components/SongHistoryModal.tsx` (Histórico de execuções de louvor)
