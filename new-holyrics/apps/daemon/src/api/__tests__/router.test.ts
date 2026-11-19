@@ -27,8 +27,6 @@ describe('Daemon API Router', () => {
     const bibleRepo = new BibleRepository(database)
     const bibCandidates = [
       resolve(import.meta.dir, '../../../../../slices/bible/pt_acrf.bib'),
-      resolve(import.meta.dir, '../../../../../../holyrics-source/legacy-java/com/limagiran/bible/database/pt_acrf.bib'),
-      resolve(import.meta.dir, '../../../../../../src/com/limagiran/bible/database/pt_acrf.bib'),
     ]
     const bibFilePath = bibCandidates.find((candidate) => existsSync(candidate)) ?? bibCandidates[0]
     bibleRepo.seedFromBibFile(bibFilePath, 'ACF', 'Almeida Corrigida e Fiel')

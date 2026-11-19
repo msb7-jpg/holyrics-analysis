@@ -11,8 +11,6 @@ describe('BibleRepository (FTS5 & SQLite WAL)', () => {
   let repository: BibleRepository
   const bibCandidates = [
     resolve(import.meta.dir, '../../pt_acrf.bib'),
-    resolve(import.meta.dir, '../../../../../holyrics-source/legacy-java/com/limagiran/bible/database/pt_acrf.bib'),
-    resolve(import.meta.dir, '../../../../../src/com/limagiran/bible/database/pt_acrf.bib'),
   ]
   const bibFilePath = bibCandidates.find((candidate) => existsSync(candidate)) ?? bibCandidates[0]
 
